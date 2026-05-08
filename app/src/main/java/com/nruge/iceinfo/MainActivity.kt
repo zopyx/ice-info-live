@@ -10,7 +10,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +67,10 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.light(
                 android.graphics.Color.TRANSPARENT,
                 android.graphics.Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT
             )
         )
         setContent {
@@ -72,7 +79,9 @@ class MainActivity : ComponentActivity() {
             val pois: List<PoiItem> by viewModel.pois.collectAsState()
             val isMockMode: Boolean by viewModel.isMockMode.collectAsState()
             val demoSpeed: Int by viewModel.demoSpeed.collectAsState()
+            val reducedMotion: Boolean by viewModel.reducedMotion.collectAsState()
             val connections: List<ConnectingTrain> by viewModel.connections.collectAsState()
+            val departures: List<Departure> by viewModel.departures.collectAsState()
             val isWIFIonICEStatus: Boolean by viewModel.isWIFIonICE.collectAsState()
 
             var appTheme by remember { mutableStateOf(AppTheme.SYSTEM) }
@@ -94,7 +103,9 @@ class MainActivity : ComponentActivity() {
                 }
                 SideEffect {
                     val window = (view.context as Activity).window
-                    WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !isDark
+                    val controller = WindowCompat.getInsetsController(window, view)
+                    controller.isAppearanceLightStatusBars = !isDark
+                    controller.isAppearanceLightNavigationBars = !isDark
                 }
 
                 val serviceRunning by IceNotificationService.isRunning.collectAsStateWithLifecycle()
@@ -155,7 +166,42 @@ class MainActivity : ComponentActivity() {
                             scrollBehavior = scrollBehavior
                         )
                     },
-                    bottomBar = {
+                ) { innerPadding ->
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (!trainStatus.isConnected && !isMockMode) {
+                            NoWifiScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                status = trainStatus,
+                                isWIFIonICE = isWIFIonICEStatus,
+                                onRetry = { viewModel.retryConnection() },
+                                onMockMode = { viewModel.setMockMode(true) }
+                            )
+                        } else {
+                            AppNavigation(
+                                navController = navController,
+                                innerPadding = innerPadding,
+                                trainStatus = trainStatus,
+                                pois = pois,
+                                connections = connections,
+                                departures = departures,
+                                isDarkTheme = isDark,
+                                isMockMode = isMockMode,
+                                demoSpeed = demoSpeed,
+                                showDemoSpeed = showDemoSpeed,
+                                reducedMotion = reducedMotion,
+                                onDemoSpeedChange = {
+                                    viewModel.setDemoSpeed(it)
+                                    if (serviceRunning && isMockMode) {
+                                        val intent = Intent(context, IceNotificationService::class.java).apply {
+                                            putExtra(IceNotificationService.EXTRA_DEMO_SPEED, it)
+                                        }
+                                        context.startForegroundService(intent)
+                                    }
+                                },
+                                onTargetStopChange = { viewModel.setTargetStop(it) }
+                            )
+                        }
+
                         AppBottomBar(
                             currentRoute = currentRoute,
                             enabled = trainStatus.isConnected || isMockMode,
@@ -167,39 +213,8 @@ class MainActivity : ComponentActivity() {
                                     launchSingleTop = true
                                     restoreState = true
                                 }
-                            }
-                        )
-                    }
-                ) { innerPadding ->
-                    if (!trainStatus.isConnected && !isMockMode) {
-                        NoWifiScreen(
-                            modifier = Modifier.padding(innerPadding),
-                            status = trainStatus,
-                            isWIFIonICE = isWIFIonICEStatus,
-                            onRetry = { viewModel.retryConnection() },
-                            onMockMode = { viewModel.setMockMode(true) }
-                        )
-                    } else {
-                        AppNavigation(
-                            navController = navController,
-                            innerPadding = innerPadding,
-                            trainStatus = trainStatus,
-                            pois = pois,
-                            connections = connections,
-                            isDarkTheme = isDark,
-                            isMockMode = isMockMode,
-                            demoSpeed = demoSpeed,
-                            showDemoSpeed = showDemoSpeed,
-                            onDemoSpeedChange = { 
-                                viewModel.setDemoSpeed(it)
-                                if (serviceRunning && isMockMode) {
-                                    val intent = Intent(context, IceNotificationService::class.java).apply {
-                                        putExtra(IceNotificationService.EXTRA_DEMO_SPEED, it)
-                                    }
-                                    context.startForegroundService(intent)
-                                }
                             },
-                            onTargetStopChange = { viewModel.setTargetStop(it) }
+                            modifier = Modifier.align(Alignment.BottomCenter)
                         )
                     }
                 }
@@ -219,6 +234,13 @@ class MainActivity : ComponentActivity() {
                         isMockMode = isMockMode,
                         showDemoSpeed = showDemoSpeed,
                         onToggleDemoSpeed = { showDemoSpeed = it },
+                        reducedMotion = reducedMotion,
+                        onToggleReducedMotion = { viewModel.setReducedMotion(it) },
+                        language = com.nruge.iceinfo.util.SettingsManager.getLanguage(context),
+                        onLanguageChange = {
+                            com.nruge.iceinfo.util.SettingsManager.setLanguage(context, it)
+                            showSettings = false
+                        },
                         onDismiss = { showSettings = false }
                     )
                 }

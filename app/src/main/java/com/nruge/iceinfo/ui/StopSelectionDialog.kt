@@ -7,8 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStop
 
 @Composable
@@ -19,11 +21,11 @@ fun StopSelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Ziel wählen") },
+        title = { Text(stringResource(R.string.stop_selection_title)) },
         text = {
             val upcomingStops = stops.filter { !it.passed }
             if (upcomingStops.isEmpty()) {
-                Text("Keine kommenden Halte verfügbar.")
+                Text(stringResource(R.string.stop_selection_empty))
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
@@ -32,7 +34,9 @@ fun StopSelectionDialog(
                     items(upcomingStops) { stop ->
                         ListItem(
                             headlineContent = { Text(stop.name, fontWeight = FontWeight.Bold) },
-                            supportingContent = { Text("Ankunft: ${stop.scheduledArrival} · Gleis ${stop.track}") },
+                            supportingContent = {
+                                Text(stringResource(R.string.stop_selection_arrival_track, stop.scheduledArrival, stop.track))
+                            },
                             modifier = Modifier.clickable { onStopSelected(stop) }
                         )
                     }
@@ -41,7 +45,7 @@ fun StopSelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Abbrechen")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

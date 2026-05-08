@@ -26,11 +26,12 @@ val sampleTrainStatus = TrainStatus(
         TrainStop("Hannover Hbf", "8000152", "09:31", "09:36", 5, "4", passed = true, isNext = false, distanceFromStart = 150000),
         TrainStop("Göttingen", "8000128", "10:15", "10:17", 2, "10", passed = false, isNext = true, distanceFromStart = 250000),
         TrainStop("Kassel-Wilhelmshöhe", "8003197", "10:35", "10:38", 3, "2", passed = false, isNext = false, distanceFromStart = 300000),
+        TrainStop("Fulda", "8000052", "11:12", "11:15", 3, "3", passed = false, isNext = false, distanceFromStart = 400000, isAdditional = true),
         TrainStop("Würzburg Hbf", "8000260", "11:58", "12:02", 4, "6", passed = false, isNext = false, distanceFromStart = 500000),
         TrainStop("Nürnberg Hbf", "8000284", "12:54", "12:59", 5, "9", passed = false, isNext = false, distanceFromStart = 600000),
-        TrainStop("München Hbf", "8000261", "14:11", "14:11", 0, "18", passed = false, isNext = false, distanceFromStart = 800000)
+        TrainStop("München Hbf", "8000261", "14:11", "14:11", 21, "18", passed = false, isNext = false, distanceFromStart = 800000)
     ),
-    destinationEta = "21:46",
+    destinationEta = "14:11",
     destinationTrack = "6",
     destinationDelay = 21,
     distanceToDestination = 467000,
@@ -126,4 +127,14 @@ val sampleConnections = listOf(
         delayMinutes = 0,
         reachable = true
     )
+)
+
+val sampleDepartures = listOf(
+    Departure(line = "ICE 372", destination = "Basel SBB", scheduledTime = "11:08", delayMinutes = 0, platform = "9"),
+    Departure(line = "RE 7", destination = "Kassel-Wilhelmshöhe", scheduledTime = "11:14", delayMinutes = 3, platform = "4"),
+    Departure(line = "S 1", destination = "Hannover-Bismarckstr.", scheduledTime = "11:17", delayMinutes = 0, platform = "2"),
+    Departure(line = "ICE 1075", destination = "München Hbf", scheduledTime = "11:23", delayMinutes = 12, platform = "5"),
+    Departure(line = "IC 2027", destination = "Köln Hbf", scheduledTime = "11:29", delayMinutes = 0, platform = "7", cancelled = true),
+    Departure(line = "RB 87", destination = "Bebra", scheduledTime = "11:36", delayMinutes = 0, platform = "1"),
+    Departure(line = "ICE 884", destination = "Hamburg-Altona", scheduledTime = "11:42", delayMinutes = 5, platform = "8")
 )

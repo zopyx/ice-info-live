@@ -5,6 +5,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Animation
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -24,6 +26,10 @@ fun SettingsSheet(
     isMockMode: Boolean,
     showDemoSpeed: Boolean,
     onToggleDemoSpeed: (Boolean) -> Unit,
+    reducedMotion: Boolean,
+    onToggleReducedMotion: (Boolean) -> Unit,
+    language: String,
+    onLanguageChange: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -40,14 +46,14 @@ fun SettingsSheet(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Text(
-                text = "Einstellungen",
+                text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "Erscheinungsbild",
+                    text = stringResource(R.string.settings_appearance),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -79,8 +85,8 @@ fun SettingsSheet(
             if (isMockMode) {
                 HorizontalDivider()
                 ListItem(
-                    headlineContent = { Text("Demo-Geschwindigkeit") },
-                    supportingContent = { Text("Slider zum Anpassen anzeigen") },
+                    headlineContent = { Text(stringResource(R.string.settings_demo_speed_title)) },
+                    supportingContent = { Text(stringResource(R.string.settings_demo_speed_desc)) },
                     leadingContent = { Icon(Icons.Default.Speed, contentDescription = null) },
                     trailingContent = {
                         Switch(
@@ -94,6 +100,44 @@ fun SettingsSheet(
                     modifier = Modifier.align(Alignment.Start)
                 )
             }
+
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_language_title)) },
+                supportingContent = {
+                    Text(if (language == "de") "Deutsch" else "English")
+                },
+                leadingContent = { Icon(Icons.Default.Language, contentDescription = null) },
+                trailingContent = {
+                    Switch(
+                        checked = language == "en",
+                        onCheckedChange = { isEn ->
+                            onLanguageChange(if (isEn) "en" else "de")
+                        }
+                    )
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                ),
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_reduced_motion_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_reduced_motion_desc)) },
+                leadingContent = { Icon(Icons.Default.Animation, contentDescription = null) },
+                trailingContent = {
+                    Switch(
+                        checked = reducedMotion,
+                        onCheckedChange = onToggleReducedMotion
+                    )
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                ),
+                modifier = Modifier.align(Alignment.Start)
+            )
         }
     }
 }

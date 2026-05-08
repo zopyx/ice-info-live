@@ -71,11 +71,9 @@ fun ConnectivityRow(status: TrainStatus, isDarkTheme: Boolean) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ElevatedCard(
+        AppCard(
             modifier = Modifier.weight(1f),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
-            )
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -94,13 +92,11 @@ fun ConnectivityRow(status: TrainStatus, isDarkTheme: Boolean) {
                 )
             }
         }
-        ElevatedCard(
+        AppCard(
             modifier = Modifier
                 .weight(1f)
                 .height(IntrinsicSize.Min),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = colors.container
-            )
+            containerColor = colors.container
         ) {
             val nextColors = if (status.nextConnectivity != null) {
                 connectivityColors(status.nextConnectivity, isDarkTheme)

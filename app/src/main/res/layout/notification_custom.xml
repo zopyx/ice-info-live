@@ -22,7 +22,7 @@
             android:text="ICE 1234"
             android:textStyle="bold"
             android:textSize="13sp"
-            android:textColor="?android:attr/textColorPrimary" />
+            android:textColor="@color/notif_text_primary" />
 
         <TextView
             android:id="@+id/tv_speed"
@@ -31,7 +31,7 @@
             android:text="142 km/h"
             android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary" />
+            android:textColor="@color/notif_text_primary" />
     </LinearLayout>
 
     <TextView
@@ -43,7 +43,7 @@
         android:textSize="10sp"
         android:textAllCaps="true"
         android:letterSpacing="0.08"
-        android:textColor="?android:attr/textColorSecondary" />
+        android:textColor="@color/notif_text_secondary" />
 
     <TextView
         android:id="@+id/tv_destination"
@@ -54,7 +54,7 @@
         android:textStyle="bold"
         android:singleLine="true"
         android:ellipsize="end"
-        android:textColor="?android:attr/textColorPrimary" />
+        android:textColor="@color/notif_text_primary" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -70,7 +70,7 @@
             android:layout_weight="1"
             android:text="12 km · 6 min"
             android:textSize="13sp"
-            android:textColor="?android:attr/textColorSecondary" />
+            android:textColor="@color/notif_text_secondary" />
 
         <TextView
             android:id="@+id/tv_eta"
@@ -79,7 +79,7 @@
             android:text="an. 10:15"
             android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary" />
+            android:textColor="@color/notif_text_primary" />
 
         <TextView
             android:id="@+id/tv_delay"
@@ -109,6 +109,6 @@
         android:textSize="12sp"
         android:singleLine="true"
         android:ellipsize="end"
-        android:textColor="?android:attr/textColorSecondary" />
+        android:textColor="@color/notif_text_secondary" />
 
 </LinearLayout>

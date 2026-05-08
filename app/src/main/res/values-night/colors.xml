@@ -4,4 +4,6 @@
     <color name="widget_text_primary">#FFFFFFFF</color>
     <color name="widget_text_secondary">#FFBDBDBD</color>
     <color name="widget_divider">#FF333333</color>
+    <color name="notif_text_primary">#FFFFFFFF</color>
+    <color name="notif_text_secondary">#B3FFFFFF</color>
 </resources>

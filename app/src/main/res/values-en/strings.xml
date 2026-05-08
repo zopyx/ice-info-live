@@ -40,18 +40,23 @@
     <string name="connection_reachable">reachable</string>
     <string name="connection_missed">missed</string>
     <string name="map_position_title">📍 Position</string>
-    <string name="info_version">Version 1.0</string>
+    <string name="info_version">Version 3.6</string>
     <string name="info_description">This app reads live data from the ICE Portal API of the Deutsche Bahn ICE Wi-Fi and displays it clearly.</string>
     <string name="info_privacy_title">Data protection</string>
     <string name="info_privacy_text">This app does not store or collect any personal data. API queries are made exclusively to the internal API within the train\'s Wi-Fi network.</string>
     <string name="info_api_title">API</string>
-    <string name="info_api_url">iceportal.de/api1/rs/</string>
+    <string name="info_api_url1">https://iceportal.de/api1/rs/status</string>
+    <string name="info_api_url2">https://iceportal.de/api1/rs/tripInfo/trip</string>
+    <string name="info_api_url3">https://iceportal.de/api1/rs/pois/all</string>
+    <string name="info_api_url4">https://iceportal.de/api1/rs/tripInfo/connection/{eva_nummer}</string>
     <string name="info_built_with_title">Created with</string>
     <string name="info_built_with_text">Kotlin · Jetpack Compose · OSMDroid · Material 3</string>
     <string name="info_legal_title">Legal</string>
     <string name="info_legal_1">"This is an unofficial app. No liability can be assumed for the accuracy of the displayed data.  "</string>
     <string name="info_legal_2">This app is not affiliated with DB Fernverkehr AG, DB Systel GmbH or any other subsidiary of Deutsche Bahn AG.</string>
     <string name="info_legal_3">This app is not affiliated with Siemens Mobility GmbH.</string>
+    <string name="info_legal_5">This app is not affiliated with Bombardier Transportation / Alstrom</string>
+    <string name="info_legal_6">This app is not affiliated with Talgo</string>
     <string name="info_legal_4">ICEportal.de and the ICEportal API are provided by DB Systel GmbH.</string>
     <string name="info_close">Close</string>
     <string name="demo_mode_text">You can also use a demo mode,\nto test the app without train Wi-Fi.</string>
@@ -67,4 +72,41 @@
     <string name="onboarding_button">Let\'s go!</string>
     <string name="widget_description">Shows the current train speed and the next stop.</string>
     <string name="widget_loading">Loading train data...</string>
+
+    <!-- Navigation -->
+    <string name="nav_status">Status</string>
+    <string name="nav_stops">Stops</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_service">Service</string>
+    <string name="nav_connections">Connections</string>
+
+    <!-- Settings -->
+    <string name="menu_settings">Settings</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_demo_speed_title">Demo speed</string>
+    <string name="settings_demo_speed_desc">Show slider to adjust</string>
+    <string name="settings_reduced_motion_title">Reduced motion</string>
+    <string name="settings_language_title">Language</string>
+    <string name="settings_reduced_motion_desc">Disable train animation and transitions</string>
+
+    <!-- Stop selection -->
+    <string name="stop_selection_title">Choose destination</string>
+    <string name="stop_selection_empty">No upcoming stops available.</string>
+    <string name="stop_selection_arrival_track">Arrival: %1$s · Platform %2$s</string>
+    <string name="cancel">Cancel</string>
+    <string name="home_target_title">Your destination</string>
+    <string name="home_no_target">No destination chosen</string>
+
+    <!-- Travel summary -->
+    <string name="travel_remaining_stops">%1$d stops left</string>
+
+    <!-- Connections -->
+    <string name="connections_more_departures">More departures in %1$s</string>
+    <string name="track_short">Pl. %1$s</string>
+    <string name="track_full">Platform %1$s</string>
+    <string name="stop_additional">Additional stop</string>
+
+    <!-- Service -->
+    <string name="service_wip">Service status (work in progress)</string>
 </resources>

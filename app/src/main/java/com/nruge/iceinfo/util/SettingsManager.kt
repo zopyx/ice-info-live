@@ -1,6 +1,10 @@
 package com.nruge.iceinfo.util
 
+import android.app.LocaleManager
 import android.content.Context
+import android.os.LocaleList
+import android.provider.Settings
+import java.util.Locale
 
 object SettingsManager {
     private const val PREFS_NAME = "iceinfo_settings"
@@ -8,6 +12,40 @@ object SettingsManager {
     private const val KEY_IS_MOCK_MODE = "is_mock_mode"
     private const val KEY_DEMO_SPEED = "demo_speed"
     private const val KEY_ONBOARDING_SHOWN = "onboarding_shown"
+    private const val KEY_REDUCED_MOTION = "reduced_motion"
+
+    fun isSystemReducedMotion(context: Context): Boolean {
+        val resolver = context.contentResolver
+        val transition = Settings.Global.getFloat(resolver, Settings.Global.TRANSITION_ANIMATION_SCALE, 1f)
+        val animator = Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+        return transition == 0f || animator == 0f
+    }
+
+    fun setReducedMotion(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_REDUCED_MOTION, enabled).apply()
+    }
+
+    fun isReducedMotion(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return if (prefs.contains(KEY_REDUCED_MOTION)) {
+            prefs.getBoolean(KEY_REDUCED_MOTION, false)
+        } else {
+            isSystemReducedMotion(context)
+        }
+    }
+
+    fun getLanguage(context: Context): String {
+        val lm = context.getSystemService(LocaleManager::class.java)
+        val current = lm.applicationLocales
+        val tag = if (!current.isEmpty) current[0].language else Locale.getDefault().language
+        return if (tag == "de") "de" else "en"
+    }
+
+    fun setLanguage(context: Context, language: String) {
+        val lm = context.getSystemService(LocaleManager::class.java)
+        lm.applicationLocales = LocaleList.forLanguageTags(language)
+    }
 
     fun setTargetStopEva(context: Context, eva: String?) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

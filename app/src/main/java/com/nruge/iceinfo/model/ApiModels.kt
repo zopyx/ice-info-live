@@ -51,7 +51,8 @@ data class Station(
 data class StopInfo(
     val passed: Boolean = false,
     val distance: Int = 0,
-    val distanceFromStart: Int = 0
+    val distanceFromStart: Int = 0,
+    val status: Int = 0
 )
 
 @Serializable

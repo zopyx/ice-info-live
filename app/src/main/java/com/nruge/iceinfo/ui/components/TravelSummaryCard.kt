@@ -10,7 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStatus
-import com.nruge.iceinfo.util.formatRemainingTime
+import com.nruge.iceinfo.util.formatRemainingTimeUntil
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -42,22 +42,18 @@ fun TravelSummaryCard(status: TrainStatus) {
         (currentPosition.toFloat() / totalDistanceForProgress).coerceIn(0f, 1f)
     } else 0f
 
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-        )
-    ) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "${status.stops.firstOrNull()?.name ?: "—"} ➜ $displayDestination",
+                text = " ➜ $displayDestination",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
+            Spacer(modifier = Modifier.height(7.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -70,8 +66,8 @@ fun TravelSummaryCard(status: TrainStatus) {
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    text = if (targetStop != null) 
-                        "Noch ${stopsToTarget.size} Halte" 
+                    text = if (targetStop != null)
+                        stringResource(R.string.travel_remaining_stops, stopsToTarget.size)
                         else stringResource(R.string.travel_stops_progress, passedStops, totalStopsInJourney),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
@@ -93,9 +89,7 @@ fun TravelSummaryCard(status: TrainStatus) {
                     trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
                 )
             }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
-
+            Spacer(modifier = Modifier.height(7.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -111,7 +105,10 @@ fun TravelSummaryCard(status: TrainStatus) {
                     Text(
                         text = stringResource(
                             R.string.travel_remaining_time,
-                            formatRemainingTime(remainingDistanceToTarget, status.speed)
+                            formatRemainingTimeUntil(
+                                targetStop?.scheduledArrival ?: status.destinationEta,
+                                displayDelay
+                            )
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)

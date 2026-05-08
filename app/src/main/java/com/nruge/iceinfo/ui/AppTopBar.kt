@@ -1,6 +1,7 @@
 package com.nruge.iceinfo.ui
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
@@ -81,7 +82,7 @@ fun AppTopBar(
                                 contentDescription = stringResource(R.string.notifications_cd)
                             )
                             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text("Benachrichtigung")
+                            Text(stringResource(R.string.notifications_cd))
                         }
                     },
                     trailingButton = {
@@ -109,10 +110,11 @@ fun AppTopBar(
 
             DropdownMenu(
                 expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false }
+                onDismissRequest = { menuExpanded = false },
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 DropdownMenuItem(
-                    text = { Text("Einstellungen") },
+                    text = { Text(stringResource(R.string.menu_settings)) },
                     onClick = { onShowSettings(); menuExpanded = false },
                     leadingIcon = { Icon(Icons.Default.Settings, null) }
                 )
@@ -143,10 +145,11 @@ fun AppTopBar(
 fun AppBottomBar(
     currentRoute: String?,
     enabled: Boolean,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(horizontal = 4.dp)
@@ -155,14 +158,15 @@ fun AppBottomBar(
     ) {
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f),
-            tonalElevation = 4.dp,
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            tonalElevation = 0.dp,
             shadowElevation = 12.dp,
+            border = BorderStroke(0.75.dp, MaterialTheme.colorScheme.outlineVariant),
             modifier = Modifier.wrapContentSize()
         ) {
             Row(
                 modifier = Modifier
-                    .padding(4.dp)
+                    .padding(horizontal = 6.dp, vertical = 4.dp)
                     .selectableGroup()
                     .animateContentSize(),
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -197,7 +201,7 @@ fun AppBottomBar(
                                 Spacer(Modifier.width(8.dp))
                             }
                             Text(
-                                text = screen.label,
+                                text = stringResource(screen.labelRes),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
                                 color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer

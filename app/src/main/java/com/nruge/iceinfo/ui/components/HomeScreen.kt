@@ -29,6 +29,7 @@ fun HomeScreen(
     isMockMode: Boolean = false,
     demoSpeed: Int = 114,
     showDemoSpeed: Boolean = true,
+    reducedMotion: Boolean = false,
     onDemoSpeedChange: (Int) -> Unit = {},
     onTargetStopChange: (String?) -> Unit = {}
 ) {
@@ -41,7 +42,7 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        TrainHeader(status = status)
+        TrainHeader(status = status, reducedMotion = reducedMotion)
 
         StopSelectionCard(
             status = status,
@@ -57,7 +58,7 @@ fun HomeScreen(
         if (isMockMode && showDemoSpeed) {
             DemoSpeedCard(demoSpeed = demoSpeed, onDemoSpeedChange = onDemoSpeedChange)
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(96.dp))
     }
 }
 
@@ -71,17 +72,13 @@ private fun StopSelectionCard(
     val stops = status.stops.filter { !it.passed }
     val currentTarget = stops.find { it.evaNr == status.targetStopEva }
 
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-        )
-    ) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Dein Ausstieg",
+                text = stringResource(R.string.home_target_title),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -96,8 +93,8 @@ private fun StopSelectionCard(
                         .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         .fillMaxWidth(),
                     shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.08f),
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 ) {
                     Row(
                         modifier = Modifier
@@ -108,7 +105,7 @@ private fun StopSelectionCard(
                     ) {
                         Icon(Icons.Default.Train, contentDescription = null)
                         Text(
-                            text = currentTarget?.name ?: "Kein Ausstieg gewählt",
+                            text = currentTarget?.name ?: stringResource(R.string.home_no_target),
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.weight(1f)
                         )
@@ -119,10 +116,11 @@ private fun StopSelectionCard(
                 ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    shape = MaterialTheme.shapes.large
+                    shape = MaterialTheme.shapes.large,
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Kein Ausstieg gewählt") },
+                        text = { Text(stringResource(R.string.home_no_target)) },
                         leadingIcon = {
                             if (currentTarget == null) {
                                 Icon(Icons.Default.Check, contentDescription = null)

@@ -181,7 +181,9 @@ object TrainRepository {
                 track = stopTrack,
                 passed = passed,
                 isNext = isNext,
-                distanceFromStart = info.distanceFromStart
+                distanceFromStart = info.distanceFromStart,
+                scheduledArrivalMs = scheduledMs,
+                isAdditional = info.status == 2
             ))
         }
 

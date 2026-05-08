@@ -1,5 +1,10 @@
 package com.nruge.iceinfo.ui
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -8,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.nruge.iceinfo.model.ConnectingTrain
+import com.nruge.iceinfo.model.Departure
 import com.nruge.iceinfo.model.PoiItem
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.ui.components.ConnectionsScreen
@@ -23,17 +29,26 @@ fun AppNavigation(
     trainStatus: TrainStatus,
     pois: List<PoiItem>,
     connections: List<ConnectingTrain>,
+    departures: List<Departure>,
     isDarkTheme: Boolean,
     isMockMode: Boolean,
     demoSpeed: Int,
     showDemoSpeed: Boolean,
+    reducedMotion: Boolean,
     onDemoSpeedChange: (Int) -> Unit,
     onTargetStopChange: (String?) -> Unit
 ) {
+    val enter: EnterTransition = if (reducedMotion) EnterTransition.None else fadeIn(animationSpec = tween(220))
+    val exit: ExitTransition = if (reducedMotion) ExitTransition.None else fadeOut(animationSpec = tween(220))
+
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
-        modifier = Modifier.padding(innerPadding)
+        modifier = Modifier.padding(innerPadding),
+        enterTransition = { enter },
+        exitTransition = { exit },
+        popEnterTransition = { enter },
+        popExitTransition = { exit }
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
@@ -42,6 +57,7 @@ fun AppNavigation(
                 isMockMode = isMockMode,
                 demoSpeed = demoSpeed,
                 showDemoSpeed = showDemoSpeed,
+                reducedMotion = reducedMotion,
                 onDemoSpeedChange = onDemoSpeedChange,
                 onTargetStopChange = onTargetStopChange
             )
@@ -56,7 +72,11 @@ fun AppNavigation(
             ServiceScreen(status = trainStatus)
         }
         composable(Screen.Connections.route) {
-            ConnectionsScreen(status = trainStatus, connections = connections)
+            ConnectionsScreen(
+                status = trainStatus,
+                connections = connections,
+                departures = departures
+            )
         }
     }
 }

@@ -16,7 +16,7 @@ fun MapScreen(status: TrainStatus, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 96.dp)
     ) {
         MapCard(
             latitude = status.latitude,

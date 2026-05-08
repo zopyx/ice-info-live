@@ -45,7 +45,19 @@ data class TrainStop(
     val track: String,
     val passed: Boolean,
     val isNext: Boolean,
-    val distanceFromStart: Int = 0
+    val distanceFromStart: Int = 0,
+    val scheduledArrivalMs: Long = 0L,
+    val isAdditional: Boolean = false
+)
+
+@Serializable
+data class Departure(
+    val line: String,
+    val destination: String,
+    val scheduledTime: String,
+    val delayMinutes: Int = 0,
+    val platform: String = "",
+    val cancelled: Boolean = false
 )
 
 @Serializable

@@ -36,7 +36,7 @@ private val DBLightColorScheme = lightColorScheme(
     onSurfaceVariant = DBMittelgrau,
 
     outline = DBMittelgrau,
-    outlineVariant = Color(0xFFCDD3D8)
+    outlineVariant = Color(0xFFB8C2CA)
 )
 
 private val DBDarkColorScheme = darkColorScheme(

@@ -25,13 +25,17 @@ import com.nruge.iceinfo.util.getIceClass
 import com.nruge.iceinfo.util.getIceDrawable
 
 @Composable
-fun TrainHeader(status: TrainStatus) {
+fun TrainHeader(status: TrainStatus, reducedMotion: Boolean = false) {
     val density = LocalDensity.current
     var trackWidthPx by remember { mutableStateOf(300f) }
     var trackOffset by remember { mutableStateOf(0f) }
     val currentStatus by rememberUpdatedState(status)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(reducedMotion) {
+        if (reducedMotion) {
+            trackOffset = 0f
+            return@LaunchedEffect
+        }
         var lastTime = withFrameNanos { it }
         while (true) {
             withFrameNanos { time ->
@@ -43,7 +47,7 @@ fun TrainHeader(status: TrainStatus) {
                     val trackWidthDp = trackWidthPx / density.density
                     val velocity = (trackWidthDp * speed) / 300f
                     trackOffset -= dt * velocity
-                    
+
                     if (trackOffset <= -trackWidthDp) {
                         trackOffset += trackWidthDp
                     }
@@ -96,13 +100,11 @@ fun TrainHeader(status: TrainStatus) {
                 .graphicsLayer { clip = false }
         )
 
-        ElevatedCard(
+        AppCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 50.dp),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         ) {
             Row(
                 modifier = Modifier

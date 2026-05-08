@@ -64,10 +64,18 @@ fun InfoDialog(onDismiss: () -> Unit) {
                         overline = stringResource(R.string.info_privacy_title),
                         headline = stringResource(R.string.info_privacy_text)
                     )
-                    InfoRow(
-                        icon = Icons.Default.Cloud,
-                        overline = stringResource(R.string.info_api_title),
-                        headline = stringResource(R.string.info_api_url)
+                    ListItem(
+                        leadingContent = { Icon(Icons.Default.Cloud, contentDescription = null) },
+                        overlineContent = { Text(stringResource(R.string.info_api_title)) },
+                        headlineContent = {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(stringResource(R.string.info_api_url1))
+                                Text(stringResource(R.string.info_api_url2))
+                                Text(stringResource(R.string.info_api_url3))
+                                Text(stringResource(R.string.info_api_url4))
+                            }
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                     )
                     InfoRow(
                         icon = Icons.Default.Code,
@@ -85,6 +93,8 @@ fun InfoDialog(onDismiss: () -> Unit) {
                                 Text(stringResource(R.string.info_legal_1))
                                 Text(stringResource(R.string.info_legal_2))
                                 Text(stringResource(R.string.info_legal_3))
+                                Text(stringResource(R.string.info_legal_5))
+                                Text(stringResource(R.string.info_legal_6))
                                 Text(stringResource(R.string.info_legal_4))
                             }
                         },

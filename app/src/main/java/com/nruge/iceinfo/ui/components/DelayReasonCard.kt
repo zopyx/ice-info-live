@@ -9,11 +9,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DelayReasonCard(reason: String) {
-    ElevatedCard(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
+        containerColor = MaterialTheme.colorScheme.errorContainer
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

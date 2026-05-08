@@ -61,18 +61,23 @@
     <string name="map_position_title">📍 Position</string>
 
     <!-- Info Dialog -->
-    <string name="info_version">Version 1.0</string>
+    <string name="info_version">Version 3.6</string>
     <string name="info_description">Diese App liest Live-Daten aus der ICE Portal API des Deutsche Bahn ICE-WLANs aus und zeigt sie übersichtlich an.</string>
     <string name="info_privacy_title">Datenschutz</string>
     <string name="info_privacy_text">Diese App speichert oder erfasst keine personenbezogenen Daten. Die API Abfragen erfolgen ausschließlich an die Interne API im Zug-WLAN.</string>
     <string name="info_api_title">API</string>
-    <string name="info_api_url">iceportal.de/api1/rs/</string>
+    <string name="info_api_url1">https://iceportal.de/api1/rs/status</string>
+    <string name="info_api_url2">https://iceportal.de/api1/rs/tripInfo/trip</string>
+    <string name="info_api_url3">https://iceportal.de/api1/rs/pois/all</string>
+    <string name="info_api_url4">https://iceportal.de/api1/rs/tripInfo/connection/{eva_nummer}</string>
     <string name="info_built_with_title">Entwickelt mit</string>
     <string name="info_built_with_text">Kotlin · Jetpack Compose · OSMDroid · Material 3</string>
     <string name="info_legal_title">Rechtliches</string>
     <string name="info_legal_1">Dies ist eine inoffizielle App. Für die Richtigkeit der angezeigten Daten kann keine Haftung übernommen werden.</string>
     <string name="info_legal_2">Diese App steht in keiner Verbindung mit der DB Fernverkehr AG, DB Systel GmbH oder anderen Tochterunternehmen der Deutsche Bahn AG.</string>
     <string name="info_legal_3">Diese App steht in keiner Verbindung mit der Siemens Mobility GmbH</string>
+    <string name="info_legal_5">Diese App steht in keiner Verbindung mit Bombardier Transportation / Alstrom</string>
+    <string name="info_legal_6">Diese App steht in keiner Verbindung mit Talgo</string>
     <string name="info_legal_4">Das ICEportal.de und die ICEportal API werden von der DB Systel GmbH bereitgestellt.</string>
     <string name="info_close">Schließen</string>
 
@@ -86,4 +91,41 @@
     <string name="onboarding_button">Los geht\'s!</string>
     <string name="widget_description">Zeigt die aktuelle Zug-Geschwindigkeit und den nächsten Halt.</string>
     <string name="widget_loading">Lade Zug-Daten…</string>
+
+    <!-- Navigation -->
+    <string name="nav_status">Status</string>
+    <string name="nav_stops">Halte</string>
+    <string name="nav_map">Karte</string>
+    <string name="nav_service">Service</string>
+    <string name="nav_connections">Anschlüsse</string>
+
+    <!-- Settings -->
+    <string name="menu_settings">Einstellungen</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_appearance">Erscheinungsbild</string>
+    <string name="settings_demo_speed_title">Demo-Geschwindigkeit</string>
+    <string name="settings_demo_speed_desc">Slider zum Anpassen anzeigen</string>
+    <string name="settings_reduced_motion_title">Reduzierte Bewegung</string>
+    <string name="settings_language_title">Sprache</string>
+    <string name="settings_reduced_motion_desc">Zug-Animation und Übergänge deaktivieren</string>
+
+    <!-- Stop selection -->
+    <string name="stop_selection_title">Ziel wählen</string>
+    <string name="stop_selection_empty">Keine kommenden Halte verfügbar.</string>
+    <string name="stop_selection_arrival_track">Ankunft: %1$s · Gleis %2$s</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="home_target_title">Dein Ausstieg</string>
+    <string name="home_no_target">Kein Ausstieg gewählt</string>
+
+    <!-- Travel summary -->
+    <string name="travel_remaining_stops">Noch %1$d Halte</string>
+
+    <!-- Connections -->
+    <string name="connections_more_departures">Weitere Abfahrten in %1$s</string>
+    <string name="track_short">Gl. %1$s</string>
+    <string name="track_full">Gleis %1$s</string>
+    <string name="stop_additional">Zusatzhalt</string>
+
+    <!-- Service -->
+    <string name="service_wip">Service Status (In Arbeit)</string>
 </resources>

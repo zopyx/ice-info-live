@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.Place
@@ -147,11 +148,32 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
                 )
                 if (stop.track.isNotEmpty()) {
                     Text(
-                        text = "Gleis ${stop.track}",
+                        text = stringResource(R.string.track_full, stop.track),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                             .copy(alpha = if (isPassed) 0.5f else 1f),
                         style = MaterialTheme.typography.bodySmall
                     )
+                }
+                if (stop.isAdditional) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        modifier = Modifier.padding(top = 2.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AddCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(11.dp),
+                            tint = MaterialTheme.colorScheme.tertiary
+                                .copy(alpha = if (isPassed) 0.5f else 1f)
+                        )
+                        Text(
+                            text = stringResource(R.string.stop_additional),
+                            color = MaterialTheme.colorScheme.tertiary
+                                .copy(alpha = if (isPassed) 0.5f else 1f),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
 
@@ -200,7 +222,7 @@ fun StopsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (status.stops.isNotEmpty()) {
-            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+            AppCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp)
@@ -229,6 +251,7 @@ fun StopsScreen(
             }
         }
         PoisCard(status = status, pois = pois)
+        Spacer(modifier = Modifier.height(96.dp))
     }
 
 }
@@ -238,7 +261,7 @@ fun PoisCard(status: TrainStatus, pois: List<PoiItem>) {
     val context = LocalContext.current
     val displayPois = if (status.isConnected && pois.isNotEmpty()) pois else samplePois
 
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)

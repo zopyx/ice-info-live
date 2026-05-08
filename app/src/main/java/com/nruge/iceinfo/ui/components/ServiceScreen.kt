@@ -8,17 +8,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStatus
 
 @Composable
 fun ServiceScreen(status: TrainStatus) {
     Box(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 96.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Service Status (In Arbeit)",
+            text = stringResource(R.string.service_wip),
             style = MaterialTheme.typography.headlineMedium
         )
     }

@@ -3,6 +3,7 @@ package com.nruge.iceinfo.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.nruge.iceinfo.DepartureBoardRepository
 import com.nruge.iceinfo.TrainRepository
 import com.nruge.iceinfo.model.*
 import com.nruge.iceinfo.sampleTrainStatus
@@ -31,6 +32,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _demoSpeed: MutableStateFlow<Int> = MutableStateFlow(SettingsManager.getDemoSpeed(application))
     val demoSpeed: StateFlow<Int> = _demoSpeed.asStateFlow()
 
+    private val _reducedMotion: MutableStateFlow<Boolean> = MutableStateFlow(SettingsManager.isReducedMotion(application))
+    val reducedMotion: StateFlow<Boolean> = _reducedMotion.asStateFlow()
+
     private val _isChecking: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isChecking: StateFlow<Boolean> = _isChecking.asStateFlow()
 
@@ -41,6 +45,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _connections: MutableStateFlow<List<ConnectingTrain>> = MutableStateFlow<List<ConnectingTrain>>(emptyList())
     val connections: StateFlow<List<ConnectingTrain>> = _connections.asStateFlow()
+
+    private val _departures: MutableStateFlow<List<Departure>> = MutableStateFlow<List<Departure>>(emptyList())
+    val departures: StateFlow<List<Departure>> = _departures.asStateFlow()
 
 
     init {
@@ -60,6 +67,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         SettingsManager.setTargetStopEva(getApplication(), eva)
         _trainStatus.value = _trainStatus.value.copy(targetStopEva = eva)
         updateWidget(_trainStatus.value)
+
+        viewModelScope.launch {
+            val status = _trainStatus.value
+            val boardStop = relevantBoardStop(status)
+            _connections.value = TrainRepository.fetchConnections(boardStop?.evaNr ?: status.nextStopEva)
+            _departures.value = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
+        }
         
         // Notify the service about the target change.
         // We use startService (not startForegroundService) so it doesn't 
@@ -90,6 +104,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _trainStatus.value = _trainStatus.value.copy(isConnected = false, targetStopEva = currentTarget)
             startPolling()
         }
+    }
+
+    fun setReducedMotion(enabled: Boolean) {
+        _reducedMotion.value = enabled
+        SettingsManager.setReducedMotion(getApplication(), enabled)
     }
 
     fun setDemoSpeed(speed: Int) {
@@ -143,9 +162,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val updatedStatus = status.copy(targetStopEva = currentTarget)
                     _trainStatus.value = updatedStatus
                     _pois.value = TrainRepository.fetchPois(status.latitude, status.longitude)
+                    val boardStop = relevantBoardStop(updatedStatus)
                     _connections.value = TrainRepository.fetchConnections(
-                        status.nextStopEva
+                        boardStop?.evaNr ?: status.nextStopEva
                     )
+                    _departures.value = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
                     updateWidget(updatedStatus)
                 }
                 delay(3000)
@@ -155,5 +176,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun stopPolling() {
         pollingJob?.cancel()
+    }
+
+    private fun relevantBoardStop(status: TrainStatus): TrainStop? {
+        val targetEva = status.targetStopEva
+        val target = targetEva?.let { eva -> status.stops.find { it.evaNr == eva && !it.passed } }
+        return target ?: status.stops.firstOrNull { !it.passed }
+    }
+
+    private suspend fun fetchDeparturesForStop(stop: TrainStop): List<Departure> {
+        if (stop.evaNr.isBlank() || stop.scheduledArrivalMs <= 0L) return emptyList()
+        val arrivalMs = stop.scheduledArrivalMs + stop.delayMinutes * 60_000L
+        return DepartureBoardRepository.fetchDepartures(stop.evaNr, arrivalMs)
     }
 }
