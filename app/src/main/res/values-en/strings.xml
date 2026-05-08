@@ -107,6 +107,10 @@
     <string name="track_full">Platform %1$s</string>
     <string name="stop_additional">Additional stop</string>
 
+    <!-- In-App Update -->
+    <string name="update_downloaded">Update downloaded</string>
+    <string name="update_install">Install</string>
+
     <!-- Service -->
     <string name="service_wip">Service status (work in progress)</string>
 </resources>

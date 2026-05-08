@@ -126,6 +126,10 @@
     <string name="track_full">Gleis %1$s</string>
     <string name="stop_additional">Zusatzhalt</string>
 
+    <!-- In-App Update -->
+    <string name="update_downloaded">Update heruntergeladen</string>
+    <string name="update_install">Installieren</string>
+
     <!-- Service -->
     <string name="service_wip">Service Status (In Arbeit)</string>
 </resources>
