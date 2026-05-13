@@ -14,3 +14,10 @@
 .cxx
 local.properties
 /.idea/
+
+# Build outputs
+**/release/*.aab
+**/release/*.apk
+**/release/output-metadata.json
+**/release/mapping.txt
+

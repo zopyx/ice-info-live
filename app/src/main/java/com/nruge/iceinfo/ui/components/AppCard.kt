@@ -19,7 +19,7 @@ fun AppCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(6.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         border = BorderStroke(0.75.dp, MaterialTheme.colorScheme.outlineVariant),

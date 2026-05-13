@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 android {
@@ -16,19 +18,26 @@ android {
         applicationId = "com.nruge.iceinfo"
         minSdk = 33
         targetSdk = 36
-        versionCode = 6
-        versionName = "3.8"
+        versionCode = 8
+        versionName = "4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
+        }
+        debug {
+            isMinifyEnabled = false
         }
     }
     compileOptions {
@@ -37,6 +46,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -64,6 +74,8 @@ dependencies {
     implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.datastore.preferences)
     implementation("com.google.android.play:app-update-ktx:2.1.0")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

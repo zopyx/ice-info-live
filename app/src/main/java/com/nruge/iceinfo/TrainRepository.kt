@@ -13,6 +13,7 @@ import io.ktor.client.statement.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -65,7 +66,7 @@ object TrainRepository {
                 lastException = e
             }
         }
-        throw lastException!!
+        throw lastException ?: IllegalStateException("No hosts configured for $path")
     }
 
     /** Raw text GET with automatic HTTP fallback. */
@@ -79,7 +80,7 @@ object TrainRepository {
                 lastException = e
             }
         }
-        throw lastException!!
+        throw lastException ?: IllegalStateException("No hosts configured for $path")
     }
 
     private val timeFormatter: DateTimeFormatter =
@@ -151,6 +152,10 @@ object TrainRepository {
             val actualMs = timetable?.actualArrivalTime ?: 0L
             val stopDelay = calculateDelayMinutes(actualMs, scheduledMs)
 
+            val depScheduledMs = timetable?.scheduledDepartureTime ?: 0L
+            val depActualMs = timetable?.actualDepartureTime ?: 0L
+            val depDelay = calculateDelayMinutes(depActualMs, depScheduledMs)
+
             val stopTrack = stop.track?.actual ?: ""
             val stopName = stop.station?.name ?: "?"
 
@@ -168,7 +173,7 @@ object TrainRepository {
                 distanceLastToNext = distanceFromStart - (if (i > 0) {
                     stops[i - 1].info?.distanceFromStart ?: 0
                 } else 0)
-                
+
                 delayReason = stop.delayReasons?.firstOrNull()?.text ?: ""
             }
 
@@ -183,7 +188,11 @@ object TrainRepository {
                 isNext = isNext,
                 distanceFromStart = info.distanceFromStart,
                 scheduledArrivalMs = scheduledMs,
-                isAdditional = info.status == 2
+                isAdditional = info.status == 2,
+                scheduledDeparture = formatTime(depScheduledMs),
+                actualDeparture = formatTime(depActualMs),
+                departureDelayMinutes = depDelay,
+                isCancelled = stop.cancelled || info.status == 3
             ))
         }
 
@@ -217,14 +226,24 @@ object TrainRepository {
         )
     }
 
-    suspend fun fetchConnections(evaNr: String): List<ConnectingTrain> = withContext(Dispatchers.IO) {
+    suspend fun fetchConnections(evaNr: String, ourArrivalMs: Long = 0L): List<ConnectingTrain> = withContext(Dispatchers.IO) {
         try {
             if (evaNr.isEmpty()) return@withContext emptyList()
             val response: ConnectionResponse = getWithFallback("$API_PATH_CONN/$evaNr")
+            val now = System.currentTimeMillis()
             response.connections?.map { c ->
                 val scheduledMs = c.timetable?.scheduledDepartureTime ?: 0L
                 val actualMs = c.timetable?.actualDepartureTime ?: 0L
                 val delayMin = calculateDelayMinutes(actualMs, scheduledMs)
+                val effectiveDepartureMs = if (actualMs > 0) actualMs else scheduledMs
+                val reachable = when {
+                    effectiveDepartureMs <= 0L -> true
+                    ourArrivalMs > 0L -> effectiveDepartureMs > ourArrivalMs
+                    else -> effectiveDepartureMs > now
+                }
+                val transferMinutes = if (ourArrivalMs > 0L && effectiveDepartureMs > ourArrivalMs) {
+                    ((effectiveDepartureMs - ourArrivalMs) / 60_000L).toInt()
+                } else null
                 ConnectingTrain(
                     trainType = c.trainType,
                     trainNumber = c.vzn,
@@ -232,13 +251,54 @@ object TrainRepository {
                     departure = formatTime(scheduledMs),
                     track = c.track?.actual ?: "",
                     delayMinutes = delayMin,
-                    reachable = !c.missed
+                    reachable = reachable,
+                    transferMinutes = transferMinutes
                 )
             } ?: emptyList()
         } catch (e: Exception) {
             Log.e("ICERepo", "Connection Fehler: ${e.message}")
             emptyList()
         }
+    }
+
+    data class DebugData(
+        val tripRaw: String,
+        val tripError: String?,
+        val connectionRaw: String,
+        val connectionError: String?,
+        val evaNr: String
+    )
+
+    suspend fun fetchDebugData(): DebugData = withContext(Dispatchers.IO) {
+        var tripRaw = ""
+        var tripError: String? = null
+        var evaNr = ""
+
+        try {
+            tripRaw = getRawWithFallback(API_PATH_TRIP)
+            try {
+                val tripResponse = json.decodeFromString<TripResponse>(tripRaw)
+                evaNr = tripResponse.trip?.stops
+                    ?.firstOrNull { it.info?.passed == false }
+                    ?.station?.evaNr ?: ""
+            } catch (_: Exception) {}
+        } catch (e: Exception) {
+            tripError = e.message ?: "Unbekannter Fehler"
+        }
+
+        var connectionRaw = ""
+        var connectionError: String? = null
+        if (evaNr.isNotEmpty()) {
+            try {
+                connectionRaw = getRawWithFallback("$API_PATH_CONN/$evaNr")
+            } catch (e: Exception) {
+                connectionError = e.message ?: "Unbekannter Fehler"
+            }
+        } else {
+            connectionError = "EVA-Nummer nicht verfügbar"
+        }
+
+        DebugData(tripRaw, tripError, connectionRaw, connectionError, evaNr)
     }
 
     private fun formatTime(ms: Long): String {

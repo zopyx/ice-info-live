@@ -13,6 +13,43 @@ object SettingsManager {
     private const val KEY_DEMO_SPEED = "demo_speed"
     private const val KEY_ONBOARDING_SHOWN = "onboarding_shown"
     private const val KEY_REDUCED_MOTION = "reduced_motion"
+    private const val KEY_APP_THEME = "app_theme"
+    private const val KEY_CRASH_REPORTING = "crash_reporting_enabled"
+    private const val KEY_CRASH_CONSENT_VERSION = "crash_consent_version_code"
+
+    fun isCrashReportingEnabled(context: Context): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean(KEY_CRASH_REPORTING, false)
+    }
+
+    fun setCrashReportingEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_CRASH_REPORTING, enabled).apply()
+    }
+
+    /**
+     * versionCode for which the user last answered the crash-reporting consent
+     * dialog. -1 means never asked. Used to re-prompt once after each update.
+     */
+    fun getCrashConsentVersion(context: Context): Int {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getInt(KEY_CRASH_CONSENT_VERSION, -1)
+    }
+
+    fun setCrashConsentVersion(context: Context, versionCode: Int) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_CRASH_CONSENT_VERSION, versionCode).apply()
+    }
+
+    fun setAppTheme(context: Context, theme: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_APP_THEME, theme).apply()
+    }
+
+    fun getAppTheme(context: Context): String {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_APP_THEME, "SYSTEM") ?: "SYSTEM"
+    }
 
     fun isSystemReducedMotion(context: Context): Boolean {
         val resolver = context.contentResolver

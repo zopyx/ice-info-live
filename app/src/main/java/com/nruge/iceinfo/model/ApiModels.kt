@@ -38,7 +38,8 @@ data class ApiStop(
     val info: StopInfo? = null,
     val timetable: Timetable? = null,
     val track: Track? = null,
-    val delayReasons: List<DelayReason>? = null
+    val delayReasons: List<DelayReason>? = null,
+    val cancelled: Boolean = false  // evtl. auch status==3 — mit Debug-Report verifizieren
 )
 
 @Serializable

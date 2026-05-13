@@ -28,6 +28,10 @@ class IceNotificationService : Service() {
         const val EXTRA_DEMO_SPEED = "extra_demo_speed"
         const val EXTRA_TARGET_EVA = "extra_target_eva"
 
+        private const val POLL_INTERVAL_MS = 5_000L
+        private const val MAX_BACKOFF_MS = 60_000L
+        private const val MAX_BACKOFF_STEPS = 4
+
         private val _isRunning = MutableStateFlow(false)
         val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
     }
@@ -39,11 +43,13 @@ class IceNotificationService : Service() {
     private var targetStopEva: String? = null
     private var lastKnownStatus: TrainStatus? = null
 
-    private val connectingStatus = TrainStatus(
-        trainType = "—", trainNumber = "—", speed = 0,
-        nextStop = "Verbinde…", destination = "", eta = "",
-        isConnected = false
-    )
+    private val connectingStatus: TrainStatus by lazy {
+        TrainStatus(
+            trainType = "—", trainNumber = "—", speed = 0,
+            nextStop = getString(R.string.notif_connecting), destination = "", eta = "",
+            isConnected = false
+        )
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -110,20 +116,21 @@ class IceNotificationService : Service() {
     private fun buildCurrentStatus(): TrainStatus {
         val base = when {
             currentDemoSpeed != -1 -> sampleTrainStatus.copy(speed = currentDemoSpeed, isConnected = true)
-            lastKnownStatus != null -> lastKnownStatus!!
-            else -> connectingStatus
+            else -> lastKnownStatus ?: connectingStatus
         }
         return base.copy(targetStopEva = targetStopEva)
     }
 
     private fun startPolling(demoSpeed: Int = -1) {
         this.currentDemoSpeed = demoSpeed
-        
+
         if (pollingJob?.isActive == true) return
         pollingJob = serviceScope.launch {
+            var failureCount = 0
             while (isActive) {
-                try {
-                    val status = if (currentDemoSpeed != -1) {
+                val isDemo = currentDemoSpeed != -1
+                val success = try {
+                    val status = if (isDemo) {
                         sampleTrainStatus.copy(speed = currentDemoSpeed)
                     } else {
                         TrainRepository.fetchTrainStatus()
@@ -132,16 +139,26 @@ class IceNotificationService : Service() {
 
                     val targetStop = status.stops.find { it.evaNr == targetStopEva }
                     com.nruge.iceinfo.widget.WidgetUpdater.update(
-                        this@IceNotificationService, 
-                        status, 
-                        currentDemoSpeed != -1, 
+                        this@IceNotificationService,
+                        status,
+                        isDemo,
                         targetStop?.name
                     )
                     notificationManager.notify(NOTIFICATION_ID, buildNotification(status))
+                    status.isConnected
                 } catch (e: Exception) {
                     Log.e("IceService", "Fehler: ${e.message}")
+                    false
                 }
-                delay(3000)
+
+                if (success || isDemo) {
+                    failureCount = 0
+                    delay(POLL_INTERVAL_MS)
+                } else {
+                    failureCount = (failureCount + 1).coerceAtMost(MAX_BACKOFF_STEPS)
+                    val backoff = POLL_INTERVAL_MS * (1L shl failureCount)
+                    delay(backoff.coerceAtMost(MAX_BACKOFF_MS))
+                }
             }
         }
     }
@@ -149,10 +166,10 @@ class IceNotificationService : Service() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "ICE Tracker",
+            getString(R.string.notif_channel_name),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Zeigt Geschwindigkeit und nächsten Halt"
+            description = getString(R.string.notif_channel_description)
             setShowBadge(false)
         }
         notificationManager.createNotificationChannel(channel)
@@ -195,7 +212,7 @@ class IceNotificationService : Service() {
             if (remainingKm > 0) append("$remainingKm km")
             if (remainingKm > 0 && remainingMin > 0) append(" · ")
             if (remainingMin > 0) append("${remainingMin} min")
-            if (remainingKm == 0 && remainingMin == 0) append("Ankunft …")
+            if (remainingKm == 0 && remainingMin == 0) append(getString(R.string.notif_arriving))
         }
 
         // Progress: travelled fraction of total route to target (start-of-route → target)
@@ -205,9 +222,13 @@ class IceNotificationService : Service() {
         else 0
 
         val footerParts = buildList {
-            if (displayTrack.isNotEmpty()) add("Gleis $displayTrack")
+            if (displayTrack.isNotEmpty()) add(getString(R.string.track_full, displayTrack))
             if (finalDestination != null && finalDestination.evaNr != target?.evaNr) {
-                add("Ziel: ${finalDestination.name} ${finalDestination.scheduledArrival}")
+                add(getString(
+                    R.string.notif_destination_format,
+                    finalDestination.name,
+                    finalDestination.scheduledArrival
+                ))
             }
         }
 
@@ -215,12 +236,14 @@ class IceNotificationService : Service() {
             setTextViewText(R.id.tv_train_info, "${status.trainType} ${status.trainNumber}")
             setTextViewText(R.id.tv_speed, "${status.speed} km/h")
             setTextViewText(R.id.tv_label,
-                if (target?.evaNr == targetStopEva && targetStopEva != null) "DEIN AUSSTIEG"
-                else "NÄCHSTER HALT"
+                if (target?.evaNr == targetStopEva && targetStopEva != null)
+                    getString(R.string.notif_label_target_stop)
+                else
+                    getString(R.string.notif_label_next_stop)
             )
             setTextViewText(R.id.tv_destination, displayStopName)
-            setTextViewText(R.id.tv_distance, distanceLine.ifEmpty { "—" })
-            setTextViewText(R.id.tv_eta, "an. $displayEta")
+            setTextViewText(R.id.tv_distance, distanceLine.ifEmpty { getString(R.string.notif_no_eta) })
+            setTextViewText(R.id.tv_eta, getString(R.string.notif_arrival_prefix, displayEta))
             if (displayDelay > 0) {
                 setTextViewText(R.id.tv_delay, "+$displayDelay")
                 setTextColor(R.id.tv_delay, Color.parseColor("#D32F2F"))
@@ -258,7 +281,7 @@ class IceNotificationService : Service() {
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                "Beenden",
+                getString(R.string.notif_action_stop),
                 stopIntent
             )
             .build()

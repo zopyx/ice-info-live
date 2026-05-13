@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="widget_background">#FF1A1A1A</color>
-    <color name="widget_text_primary">#FFFFFFFF</color>
-    <color name="widget_text_secondary">#FFBDBDBD</color>
-    <color name="widget_divider">#FF333333</color>
+    <color name="widget_background">#FF141218</color>
+    <color name="widget_text_primary">#FFE6E0E9</color>
+    <color name="widget_text_secondary">#FFCAC4D0</color>
+    <color name="widget_divider">#FF49454F</color>
     <color name="notif_text_primary">#FFFFFFFF</color>
     <color name="notif_text_secondary">#B3FFFFFF</color>
 </resources>

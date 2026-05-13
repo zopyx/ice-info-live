@@ -51,7 +51,7 @@ fun InfoDialog(onDismiss: () -> Unit) {
                 InfoSection {
                     InfoRow(
                         icon = Icons.Default.Info,
-                        headline = stringResource(R.string.info_version)
+                        headline = stringResource(R.string.info_version, com.nruge.iceinfo.BuildConfig.VERSION_NAME)
                     )
                     InfoRow(
                         headline = stringResource(R.string.info_description)

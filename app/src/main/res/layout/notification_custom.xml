@@ -66,11 +66,11 @@
         <TextView
             android:id="@+id/tv_distance"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="12 km · 6 min"
-            android:textSize="13sp"
-            android:textColor="@color/notif_text_secondary" />
+            android:textColor="@color/notif_text_secondary"
+            android:textSize="13sp" />
 
         <TextView
             android:id="@+id/tv_eta"

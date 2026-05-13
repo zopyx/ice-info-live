@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "311564684951",
+    "project_id": "iceinfo-live",
+    "storage_bucket": "iceinfo-live.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:311564684951:android:1cbd4a39f062f58e22a3d2",
+        "android_client_info": {
+          "package_name": "com.nruge.iceinfo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVSRqIsOVCb8qJt-NhIIYSGkvHhr6QXSc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

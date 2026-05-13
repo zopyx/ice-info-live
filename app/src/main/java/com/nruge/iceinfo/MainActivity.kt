@@ -1,5 +1,6 @@
 package com.nruge.iceinfo
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -26,14 +27,18 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -51,11 +56,13 @@ import com.nruge.iceinfo.ui.AppBottomBar
 import com.nruge.iceinfo.ui.AppNavigation
 import com.nruge.iceinfo.ui.AppTopBar
 import com.nruge.iceinfo.ui.ChangelogDialog
+import com.nruge.iceinfo.ui.CrashReportingConsentDialog
+import com.nruge.iceinfo.ui.DebugDialog
 import com.nruge.iceinfo.ui.InfoDialog
-import com.nruge.iceinfo.ui.OnboardingDialog
-import com.nruge.iceinfo.ui.StopSelectionDialog
 import com.nruge.iceinfo.ui.MainViewModel
+import com.nruge.iceinfo.ui.OnboardingDialog
 import com.nruge.iceinfo.ui.SettingsSheet
+import com.nruge.iceinfo.ui.StopSelectionDialog
 import com.nruge.iceinfo.ui.components.NoWifiScreen
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
 import com.nruge.iceinfo.util.isWIFIonICE as checkWIFIonICE
@@ -81,6 +88,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @SuppressLint("InvalidFragmentVersionForActivityResult")
     val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -89,6 +97,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @SuppressLint("InvalidFragmentVersionForActivityResult")
     private val updateResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -148,7 +157,7 @@ class MainActivity : ComponentActivity() {
         appUpdateManager.registerListener(installStateListener)
         checkForUpdate()
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(
+            statusBarStyle = SystemBarStyle.auto(
                 AndroidColor.TRANSPARENT,
                 AndroidColor.TRANSPARENT
             ),
@@ -159,16 +168,23 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             val viewModel: MainViewModel = viewModel()
-            val trainStatus: TrainStatus by viewModel.trainStatus.collectAsState()
-            val pois: List<PoiItem> by viewModel.pois.collectAsState()
-            val isMockMode: Boolean by viewModel.isMockMode.collectAsState()
-            val demoSpeed: Int by viewModel.demoSpeed.collectAsState()
-            val reducedMotion: Boolean by viewModel.reducedMotion.collectAsState()
-            val connections: List<ConnectingTrain> by viewModel.connections.collectAsState()
-            val departures: List<Departure> by viewModel.departures.collectAsState()
-            val isWIFIonICEStatus: Boolean by viewModel.isWIFIonICE.collectAsState()
+            val trainStatus: TrainStatus by viewModel.trainStatus.collectAsStateWithLifecycle()
+            val pois: List<PoiItem> by viewModel.pois.collectAsStateWithLifecycle()
+            val isMockMode: Boolean by viewModel.isMockMode.collectAsStateWithLifecycle()
+            val demoSpeed: Int by viewModel.demoSpeed.collectAsStateWithLifecycle()
+            val reducedMotion: Boolean by viewModel.reducedMotion.collectAsStateWithLifecycle()
+            val connections: List<ConnectingTrain> by viewModel.connections.collectAsStateWithLifecycle()
+            val departures: List<Departure> by viewModel.departures.collectAsStateWithLifecycle()
+            val isWIFIonICEStatus: Boolean by viewModel.isWIFIonICE.collectAsStateWithLifecycle()
 
-            var appTheme by remember { mutableStateOf(AppTheme.SYSTEM) }
+            val initialContext = LocalContext.current
+            var appTheme by rememberSaveable {
+                mutableStateOf(
+                    runCatching {
+                        AppTheme.valueOf(com.nruge.iceinfo.util.SettingsManager.getAppTheme(initialContext))
+                    }.getOrDefault(AppTheme.SYSTEM)
+                )
+            }
             val isDark = when (appTheme) {
                 AppTheme.LIGHT -> false
                 AppTheme.DARK -> true
@@ -179,10 +195,13 @@ class MainActivity : ComponentActivity() {
                 val view = LocalView.current
                 val context = LocalContext.current
 
-                LaunchedEffect(Unit) {
-                    while (true) {
-                        viewModel.updateWifiStatus(checkWIFIonICE(context))
-                        delay(5000)
+                val lifecycleOwner = LocalLifecycleOwner.current
+                LaunchedEffect(lifecycleOwner) {
+                    lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        while (true) {
+                            viewModel.updateWifiStatus(checkWIFIonICE(context))
+                            delay(5000)
+                        }
                     }
                 }
                 SideEffect {
@@ -196,10 +215,17 @@ class MainActivity : ComponentActivity() {
                 var showInfo by remember { mutableStateOf(false) }
                 var showChangelog by remember { mutableStateOf(false) }
                 var showSettings by remember { mutableStateOf(false) }
+                var showDebug by remember { mutableStateOf(false) }
                 var showDemoSpeed by remember { mutableStateOf(false) }
                 
                 var showOnboarding by remember {
                     mutableStateOf(!com.nruge.iceinfo.util.SettingsManager.isOnboardingShown(context))
+                }
+                var showCrashConsent by remember {
+                    mutableStateOf(
+                        com.nruge.iceinfo.util.SettingsManager.getCrashConsentVersion(context)
+                            != com.nruge.iceinfo.BuildConfig.VERSION_CODE
+                    )
                 }
 
                 LaunchedEffect(intent) {
@@ -317,21 +343,42 @@ class MainActivity : ComponentActivity() {
                 }
 
                 if (showSettings) {
+                    var crashReportingEnabled by remember {
+                        mutableStateOf(com.nruge.iceinfo.util.SettingsManager.isCrashReportingEnabled(context))
+                    }
                     SettingsSheet(
                         appTheme = appTheme,
-                        onThemeChange = { appTheme = it },
+                        onThemeChange = {
+                            appTheme = it
+                            com.nruge.iceinfo.util.SettingsManager.setAppTheme(context, it.name)
+                        },
                         isMockMode = isMockMode,
                         showDemoSpeed = showDemoSpeed,
                         onToggleDemoSpeed = { showDemoSpeed = it },
                         reducedMotion = reducedMotion,
                         onToggleReducedMotion = { viewModel.setReducedMotion(it) },
+                        crashReportingEnabled = crashReportingEnabled,
+                        onToggleCrashReporting = { enabled ->
+                            crashReportingEnabled = enabled
+                            com.nruge.iceinfo.util.SettingsManager.setCrashReportingEnabled(context, enabled)
+                            com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+                                .isCrashlyticsCollectionEnabled = enabled
+                        },
                         language = com.nruge.iceinfo.util.SettingsManager.getLanguage(context),
                         onLanguageChange = {
                             com.nruge.iceinfo.util.SettingsManager.setLanguage(context, it)
                             showSettings = false
                         },
+                        onDebug = {
+                            showSettings = false
+                            showDebug = true
+                        },
                         onDismiss = { showSettings = false }
                     )
+                }
+
+                if (showDebug) {
+                    DebugDialog(onDismiss = { showDebug = false })
                 }
 
                 if (showOnboarding) {
@@ -339,6 +386,27 @@ class MainActivity : ComponentActivity() {
                         com.nruge.iceinfo.util.SettingsManager.setOnboardingShown(context)
                         showOnboarding = false
                     })
+                } else if (showCrashConsent) {
+                    CrashReportingConsentDialog(
+                        onAccept = {
+                            com.nruge.iceinfo.util.SettingsManager.setCrashReportingEnabled(context, true)
+                            com.nruge.iceinfo.util.SettingsManager.setCrashConsentVersion(
+                                context, com.nruge.iceinfo.BuildConfig.VERSION_CODE
+                            )
+                            com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+                                .isCrashlyticsCollectionEnabled = true
+                            showCrashConsent = false
+                        },
+                        onDecline = {
+                            com.nruge.iceinfo.util.SettingsManager.setCrashReportingEnabled(context, false)
+                            com.nruge.iceinfo.util.SettingsManager.setCrashConsentVersion(
+                                context, com.nruge.iceinfo.BuildConfig.VERSION_CODE
+                            )
+                            com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+                                .isCrashlyticsCollectionEnabled = false
+                            showCrashConsent = false
+                        }
+                    )
                 }
             }
         }

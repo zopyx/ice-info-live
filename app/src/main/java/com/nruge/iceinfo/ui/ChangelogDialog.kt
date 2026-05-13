@@ -37,6 +37,40 @@ private data class ChangelogEntry(
 
 private val changelog = listOf(
     ChangelogEntry(
+        version = "4.0 (Release Candidate 1)",
+        newFeatures = listOf(
+            "Erster Release-Kandidat für die öffentliche Veröffentlichung im Google Play Store",
+            "Optionale, anonyme Absturzberichte via Firebase Crashlytics — standardmäßig aus, in den Einstellungen jederzeit umschaltbar",
+            "Einmaliger Opt-in-Dialog beim ersten Start und nach jedem Update fragt aktiv nach Zustimmung zum Crash-Reporting",
+            "Widget und Benachrichtigung vollständig lokalisiert (Deutsch / Englisch) — keine fest verdrahteten Texte mehr",
+            "Theme-Auswahl (System/Hell/Dunkel) wird jetzt dauerhaft gespeichert und überlebt App-Neustarts",
+            "Versionsnummer im Info-Dialog wird automatisch aus dem Build übernommen"
+        ),
+        fixes = listOf(
+            "Anschlüsse und Abfahrten zeigen keine Beispieldaten mehr, wenn keine echten Daten verfügbar sind — stattdessen klare Empty States",
+            "Points-of-Interest-Karte wird ausgeblendet, wenn keine POIs in der Nähe sind, statt Demo-POIs zu zeigen",
+            "Akku- und Datenverbrauch reduziert: Polling-Intervall der Benachrichtigung von 3 auf 5 Sekunden erhöht, mit exponentiellem Backoff (bis 60 s) bei Netzfehlern",
+            "Cleartext-Verbindungen sind nur noch für iceportal.de erlaubt, alle übrigen Endpunkte werden HTTPS-erzwungen",
+            "Unbenutzte Speicher-Berechtigung (WRITE_EXTERNAL_STORAGE) entfernt",
+            "Code-Verschleierung und Resource-Shrinking (R8) aktiviert — APK ist deutlich kleiner",
+            "Mehrere potenzielle Absturzursachen durch sichere Null-Behandlung in Netzwerk- und Service-Code entfernt",
+            "WLAN-Statusabfrage und UI-Datenströme reagieren jetzt auf den App-Lebenszyklus — keine unnötige Aktivität im Hintergrund",
+            "Statusleiste passt sich beim Wechsel des Themes sauberer an"
+        )
+    ),
+    ChangelogEntry(
+        version = "3.9",
+        newFeatures = listOf(
+            "Streckenverlauf: Ankunfts- und Abfahrtszeiten werden jetzt pro Halt nebeneinander angezeigt",
+            "Streckenverlauf: Ausgefallene Halte werden mit durchgestrichenem Namen und 'Entfällt'-Badge dargestellt",
+            "Debug-Dialog in den Einstellungen: zeigt Geräteinformationen, OS-Version, App-Version sowie Auszüge der API-Antworten; mit Kopieren- und Teilen-Funktion"
+        ),
+        fixes = listOf(
+            "Zeitanzeige im Streckenverlauf verwendet jetzt Monospace-Schrift für saubere Ausrichtung",
+            "Anschlussverbindungen nutzen jetzt konsistentes Design"
+        )
+    ),
+    ChangelogEntry(
         version = "3.8",
         newFeatures = listOf(
             "Halte - Zeigt jetzt einen Indikator an Halten, falls dieser halt ein Zusatzhalt ist",

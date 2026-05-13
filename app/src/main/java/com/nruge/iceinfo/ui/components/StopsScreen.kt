@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.Place
@@ -35,13 +36,11 @@ import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.PoiItem
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.model.TrainStop
-import com.nruge.iceinfo.samplePois
 
 @Composable
 fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
     val isPassed = stop.passed
     val isNext = stop.isNext
-    val isDelayed = stop.delayMinutes > 0
 
     val travelledLine = MaterialTheme.colorScheme.primary
     val pendingLine = MaterialTheme.colorScheme.outlineVariant
@@ -51,10 +50,13 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
     else
         Color.Transparent
 
+    val isCancelled = stop.isCancelled
+
     val nameColor = when {
-        isPassed -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-        isNext -> MaterialTheme.colorScheme.onPrimaryContainer
-        else -> MaterialTheme.colorScheme.onSurface
+        isCancelled -> MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+        isPassed    -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+        isNext      -> MaterialTheme.colorScheme.onPrimaryContainer
+        else        -> MaterialTheme.colorScheme.onSurface
     }
 
     Row(
@@ -62,9 +64,41 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
     ) {
+        // Times column LEFT of timeline — 2×2 grid (sched|actual per row)
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .width(88.dp)
+                .fillMaxHeight()
+                .padding(end = 6.dp, top = if (isNext) 12.dp else 8.dp, bottom = if (isNext) 12.dp else 8.dp)
+        ) {
+            if (stop.scheduledArrival.isNotEmpty()) {
+                StopTimePair(
+                    scheduled = stop.scheduledArrival,
+                    actual = stop.actualArrival,
+                    delay = stop.delayMinutes,
+                    isPassed = isPassed,
+                    isNext = isNext,
+                    isCancelled = isCancelled
+                )
+            }
+            if (stop.scheduledDeparture.isNotEmpty()) {
+                StopTimePair(
+                    scheduled = stop.scheduledDeparture,
+                    actual = stop.actualDeparture,
+                    delay = stop.departureDelayMinutes,
+                    isPassed = isPassed,
+                    isNext = isNext,
+                    isCancelled = isCancelled
+                )
+            }
+        }
+
+        // Timeline column
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(28.dp)
+            modifier = Modifier.width(24.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -79,9 +113,15 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
                     )
             )
             when {
+                isCancelled -> Icon(
+                    imageVector = Icons.Default.Cancel,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                )
                 isNext -> Box(
                     modifier = Modifier
-                        .size(22.dp)
+                        .size(20.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
@@ -89,7 +129,7 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
                     Icon(
                         imageVector = Icons.Default.Train,
                         contentDescription = null,
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(13.dp),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
@@ -121,9 +161,8 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
             )
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Row(
+        // Station info RIGHT of timeline
+        Column(
             modifier = Modifier
                 .weight(1f)
                 .clip(RoundedCornerShape(12.dp))
@@ -131,80 +170,110 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
                 .padding(
                     vertical = if (isNext) 12.dp else 8.dp,
                     horizontal = 10.dp
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stop.name,
-                    color = nameColor,
-                    style = if (isNext) MaterialTheme.typography.titleMedium
-                            else MaterialTheme.typography.bodyMedium,
-                    fontWeight = when {
-                        isNext -> FontWeight.Bold
-                        isPassed -> FontWeight.Normal
-                        else -> FontWeight.Medium
-                    }
                 )
-                if (stop.track.isNotEmpty()) {
+        ) {
+            Text(
+                text = stop.name,
+                color = nameColor,
+                style = if (isNext) MaterialTheme.typography.titleMedium
+                        else MaterialTheme.typography.bodyMedium,
+                fontWeight = when {
+                    isNext -> FontWeight.Bold
+                    isPassed -> FontWeight.Normal
+                    else -> FontWeight.Medium
+                },
+                textDecoration = if (isCancelled) TextDecoration.LineThrough else TextDecoration.None
+            )
+            if (isCancelled) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Cancel,
+                        contentDescription = null,
+                        modifier = Modifier.size(11.dp),
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                    )
                     Text(
-                        text = stringResource(R.string.track_full, stop.track),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = stringResource(R.string.stop_cancelled),
+                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+            if (!isCancelled && stop.track.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.track_full, stop.track),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                        .copy(alpha = if (isPassed) 0.5f else 1f),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            if (stop.isAdditional) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    modifier = Modifier.padding(top = 2.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AddCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(11.dp),
+                        tint = MaterialTheme.colorScheme.tertiary
+                            .copy(alpha = if (isPassed) 0.5f else 1f)
+                    )
+                    Text(
+                        text = stringResource(R.string.stop_additional),
+                        color = MaterialTheme.colorScheme.tertiary
                             .copy(alpha = if (isPassed) 0.5f else 1f),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                if (stop.isAdditional) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                        modifier = Modifier.padding(top = 2.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(11.dp),
-                            tint = MaterialTheme.colorScheme.tertiary
-                                .copy(alpha = if (isPassed) 0.5f else 1f)
-                        )
-                        Text(
-                            text = stringResource(R.string.stop_additional),
-                            color = MaterialTheme.colorScheme.tertiary
-                                .copy(alpha = if (isPassed) 0.5f else 1f),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
-
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                if (isDelayed && !isPassed) {
-                    Text(
-                        text = stop.scheduledArrival,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                        textDecoration = TextDecoration.LineThrough
-                    )
-                    Text(
-                        text = stop.actualArrival.ifEmpty { stop.scheduledArrival },
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                } else {
-                    Text(
-                        text = stop.scheduledArrival,
-                        color = nameColor,
-                        style = if (isNext) MaterialTheme.typography.titleSmall
-                                else MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (isNext) FontWeight.Bold else FontWeight.Normal
-                    )
-                }
             }
         }
+    }
+}
+
+@Composable
+private fun StopTimePair(
+    scheduled: String,
+    actual: String,
+    delay: Int,
+    isPassed: Boolean,
+    isNext: Boolean,
+    isCancelled: Boolean = false
+) {
+    val isDelayed = delay > 0 && !isPassed && !isCancelled && actual.isNotEmpty()
+    val displayActual = actual.ifEmpty { scheduled }
+
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = scheduled,
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+            fontWeight = if (isNext && !isDelayed && !isCancelled) FontWeight.SemiBold else FontWeight.Normal,
+            color = when {
+                isCancelled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                isDelayed   -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                isPassed    -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                else        -> MaterialTheme.colorScheme.onSurface
+            },
+            textDecoration = if (isDelayed || isCancelled) TextDecoration.LineThrough else TextDecoration.None
+        )
+        Text(
+            text = displayActual,
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+            fontWeight = if (isDelayed || isNext) FontWeight.Bold else FontWeight.Normal,
+            color = when {
+                isCancelled            -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                isPassed               -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                isDelayed && delay >= 5 -> MaterialTheme.colorScheme.error
+                else                   -> Color(0xFF4CAF50)
+            },
+            textDecoration = if (isCancelled) TextDecoration.LineThrough else TextDecoration.None
+        )
     }
 }
 @Composable
@@ -259,60 +328,41 @@ fun StopsScreen(
 @Composable
 fun PoisCard(status: TrainStatus, pois: List<PoiItem>) {
     val context = LocalContext.current
-    val displayPois = if (status.isConnected && pois.isNotEmpty()) pois else samplePois
+    if (pois.isEmpty()) return
+    val displayPois = pois
 
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.pois_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                if (!status.isConnected) {
-                    SuggestionChip(
-                        onClick = {},
-                        label = {
-                            Text(
-                                text = stringResource(R.string.pois_demo),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    )
-                }
-            }
+            Text(
+                text = stringResource(R.string.pois_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
 
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh
-            ) {
-                Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                    displayPois.forEachIndexed { index, poi ->
-                        val icon = when (poi.type) {
-                            "CITY" -> Icons.Default.LocationCity
-                            "RIVER" -> Icons.Default.Water
-                            "MOUNTAIN" -> Icons.Default.Terrain
-                            "LAKE" -> Icons.Default.Water
-                            "MONUMENT" -> Icons.Default.AccountBalance
-                            "FOREST" -> Icons.Default.Forest
-                            else -> Icons.Default.Place
-                        }
-                        val distanceText = if (poi.distance < 1000) {
-                            "${poi.distance} m"
-                        } else {
-                            "${"%.1f".format(poi.distance / 1000.0)} km"
-                        }
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                displayPois.forEachIndexed { index, poi ->
+                    val icon = when (poi.type) {
+                        "CITY" -> Icons.Default.LocationCity
+                        "RIVER" -> Icons.Default.Water
+                        "MOUNTAIN" -> Icons.Default.Terrain
+                        "LAKE" -> Icons.Default.Water
+                        "MONUMENT" -> Icons.Default.AccountBalance
+                        "FOREST" -> Icons.Default.Forest
+                        else -> Icons.Default.Place
+                    }
+                    val distanceText = if (poi.distance < 1000) {
+                        "${poi.distance} m"
+                    } else {
+                        "${"%.1f".format(poi.distance / 1000.0)} km"
+                    }
 
-                        ListItem(
-                            modifier = Modifier.clickable {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
                                 val query = Uri.encode(poi.name)
                                 context.startActivity(
                                     Intent(
@@ -320,43 +370,52 @@ fun PoisCard(status: TrainStatus, pois: List<PoiItem>) {
                                         Uri.parse("https://www.google.com/search?q=$query")
                                     )
                                 )
-                            },
-                            leadingContent = {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            overlineContent = {
-                                Text(poi.type.lowercase().replaceFirstChar { it.uppercase() })
-                            },
-                            headlineContent = {
-                                Text(poi.name, fontWeight = FontWeight.Medium)
-                            },
-                            supportingContent = if (poi.description.isNotEmpty()) {
-                                { Text(poi.description) }
-                            } else null,
-                            trailingContent = {
-                                AssistChip(
-                                    onClick = {},
-                                    enabled = false,
-                                    label = { Text(distanceText, style = MaterialTheme.typography.labelMedium) },
-                                    colors = AssistChipDefaults.assistChipColors(
-                                        disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                        disabledLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                )
-                            },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                            }
+                            .padding(vertical = 10.dp, horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
                         )
-
-                        if (index < displayPois.lastIndex) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = poi.type.lowercase().replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Text(
+                                text = poi.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            if (poi.description.isNotEmpty()) {
+                                Text(
+                                    text = poi.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
+                        AssistChip(
+                            onClick = {},
+                            enabled = false,
+                            label = { Text(distanceText, style = MaterialTheme.typography.labelMedium) },
+                            colors = AssistChipDefaults.assistChipColors(
+                                disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                disabledLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        )
+                    }
+
+                    if (index < displayPois.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                        )
                     }
                 }
             }

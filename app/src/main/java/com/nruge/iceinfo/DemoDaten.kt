@@ -22,14 +22,77 @@ val sampleTrainStatus = TrainStatus(
     latitude = 51.4825,
     longitude = 11.9906,
     stops = listOf(
-        TrainStop("Hamburg-Altona", "8002545", "08:12", "08:12", 0, "12", passed = true, isNext = false, distanceFromStart = 0),
-        TrainStop("Hannover Hbf", "8000152", "09:31", "09:36", 5, "4", passed = true, isNext = false, distanceFromStart = 150000),
-        TrainStop("Göttingen", "8000128", "10:15", "10:17", 2, "10", passed = false, isNext = true, distanceFromStart = 250000),
-        TrainStop("Kassel-Wilhelmshöhe", "8003197", "10:35", "10:38", 3, "2", passed = false, isNext = false, distanceFromStart = 300000),
-        TrainStop("Fulda", "8000052", "11:12", "11:15", 3, "3", passed = false, isNext = false, distanceFromStart = 400000, isAdditional = true),
-        TrainStop("Würzburg Hbf", "8000260", "11:58", "12:02", 4, "6", passed = false, isNext = false, distanceFromStart = 500000),
-        TrainStop("Nürnberg Hbf", "8000284", "12:54", "12:59", 5, "9", passed = false, isNext = false, distanceFromStart = 600000),
-        TrainStop("München Hbf", "8000261", "14:11", "14:11", 21, "18", passed = false, isNext = false, distanceFromStart = 800000)
+        // Startbahnhof — kein Delay, nur Abfahrt
+        TrainStop(
+            name = "Hamburg-Altona", evaNr = "8002545",
+            scheduledArrival = "", actualArrival = "", delayMinutes = 0,
+            track = "12", passed = true, isNext = false, distanceFromStart = 0,
+            scheduledDeparture = "08:13", actualDeparture = "08:13", departureDelayMinutes = 0
+        ),
+        // 3 min Delay → grün
+        TrainStop(
+            name = "Hamburg Hbf", evaNr = "8002549",
+            scheduledArrival = "08:24", actualArrival = "08:27", delayMinutes = 3,
+            track = "14", passed = true, isNext = false, distanceFromStart = 25000,
+            scheduledDeparture = "08:26", actualDeparture = "08:29", departureDelayMinutes = 3
+        ),
+        // Ausgefallener Halt
+        TrainStop(
+            name = "Hannover-Linden", evaNr = "8000226",
+            scheduledArrival = "09:18", actualArrival = "09:18", delayMinutes = 3,
+            track = "2", passed = false, isNext = false, distanceFromStart = 140000,
+            scheduledDeparture = "09:20", actualDeparture = "09:20", departureDelayMinutes = 3,
+            isCancelled = true
+        ),
+        // Nächster Halt — 3 min Delay → grün
+        TrainStop(
+            name = "Hannover Hbf", evaNr = "8000152",
+            scheduledArrival = "09:31", actualArrival = "09:34", delayMinutes = 3,
+            track = "4", passed = false, isNext = true, distanceFromStart = 150000,
+            scheduledDeparture = "09:33", actualDeparture = "09:36", departureDelayMinutes = 3
+        ),
+        // 0 min Delay — pünktlich, kein Highlight
+        TrainStop(
+            name = "Göttingen", evaNr = "8000128",
+            scheduledArrival = "10:15", actualArrival = "10:15", delayMinutes = 0,
+            track = "10", passed = false, isNext = false, distanceFromStart = 250000,
+            scheduledDeparture = "10:17", actualDeparture = "10:17", departureDelayMinutes = 0
+        ),
+        // 4 min Delay → grün (Grenzfall)
+        TrainStop(
+            name = "Kassel-Wilhelmshöhe", evaNr = "8003197",
+            scheduledArrival = "10:35", actualArrival = "10:39", delayMinutes = 4,
+            track = "2", passed = false, isNext = false, distanceFromStart = 300000,
+            scheduledDeparture = "10:37", actualDeparture = "10:41", departureDelayMinutes = 4
+        ),
+        // Zusatzhalt — 4 min Delay → grün
+        TrainStop(
+            name = "Fulda", evaNr = "8000052",
+            scheduledArrival = "11:12", actualArrival = "11:16", delayMinutes = 4,
+            track = "3", passed = false, isNext = false, distanceFromStart = 400000, isAdditional = true,
+            scheduledDeparture = "11:14", actualDeparture = "11:18", departureDelayMinutes = 4
+        ),
+        // 7 min Delay → rot
+        TrainStop(
+            name = "Würzburg Hbf", evaNr = "8000260",
+            scheduledArrival = "11:58", actualArrival = "12:05", delayMinutes = 7,
+            track = "6", passed = false, isNext = false, distanceFromStart = 500000,
+            scheduledDeparture = "12:01", actualDeparture = "12:08", departureDelayMinutes = 7
+        ),
+        // 12 min Delay → rot
+        TrainStop(
+            name = "Nürnberg Hbf", evaNr = "8000284",
+            scheduledArrival = "12:54", actualArrival = "13:06", delayMinutes = 12,
+            track = "9", passed = false, isNext = false, distanceFromStart = 600000,
+            scheduledDeparture = "12:57", actualDeparture = "13:09", departureDelayMinutes = 12
+        ),
+        // Endbahnhof — 21 min Delay → rot, nur Ankunft
+        TrainStop(
+            name = "München Hbf", evaNr = "8000261",
+            scheduledArrival = "14:11", actualArrival = "14:32", delayMinutes = 21,
+            track = "18", passed = false, isNext = false, distanceFromStart = 800000,
+            scheduledDeparture = "", actualDeparture = "", departureDelayMinutes = 0
+        ),
     ),
     destinationEta = "14:11",
     destinationTrack = "6",
@@ -89,7 +152,8 @@ val sampleConnections = listOf(
         departure = "10:24",
         track = "7",
         delayMinutes = 0,
-        reachable = true
+        reachable = true,
+        transferMinutes = 18
     ),
     ConnectingTrain(
         trainType = "IC",
@@ -98,7 +162,8 @@ val sampleConnections = listOf(
         departure = "10:31",
         track = "3",
         delayMinutes = 5,
-        reachable = true
+        reachable = true,
+        transferMinutes = 3
     ),
     ConnectingTrain(
         trainType = "RE",
@@ -107,7 +172,8 @@ val sampleConnections = listOf(
         departure = "10:18",
         track = "12",
         delayMinutes = 0,
-        reachable = false
+        reachable = false,
+        transferMinutes = null
     ),
     ConnectingTrain(
         trainType = "ICE",
@@ -116,7 +182,8 @@ val sampleConnections = listOf(
         departure = "10:47",
         track = "5",
         delayMinutes = 12,
-        reachable = true
+        reachable = true,
+        transferMinutes = 25
     ),
     ConnectingTrain(
         trainType = "RB",
@@ -125,7 +192,8 @@ val sampleConnections = listOf(
         departure = "10:55",
         track = "1",
         delayMinutes = 0,
-        reachable = true
+        reachable = true,
+        transferMinutes = null
     )
 )
 

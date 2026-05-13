@@ -2,31 +2,41 @@ package com.nruge.iceinfo.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.glance.*
+import androidx.glance.GlanceId
+import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
-import androidx.glance.layout.*
+import androidx.glance.background
+import androidx.glance.currentState
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
+import androidx.glance.layout.Column
+import androidx.glance.layout.Row
+import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
+import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
+import androidx.glance.color.ColorProvider
+import androidx.glance.LocalContext
 import com.nruge.iceinfo.MainActivity
-import com.nruge.iceinfo.ui.theme.DBGelb
-import com.nruge.iceinfo.ui.theme.DBGruen
-import com.nruge.iceinfo.ui.theme.DBRot
-import com.nruge.iceinfo.ui.theme.DBRotDark
-import com.nruge.iceinfo.ui.theme.DBWeiss
-import com.nruge.iceinfo.ui.theme.DBDunkelgrau
+import com.nruge.iceinfo.R
 
 class TrainWidget : GlanceAppWidget() {
 
@@ -38,6 +48,7 @@ class TrainWidget : GlanceAppWidget() {
         val KEY_SPEED           = intPreferencesKey("speed")
         val KEY_NEXT_STOP       = stringPreferencesKey("nextStop")
         val KEY_NEXT_STOP_EVA   = stringPreferencesKey("nextStopEva")
+        val KEY_NEXT_STOP_ETA   = stringPreferencesKey("nextStopEta")
         val KEY_TARGET_STOP     = stringPreferencesKey("targetStop")
         val KEY_TARGET_STOP_EVA = stringPreferencesKey("targetStopEva")
         val KEY_DELAY           = intPreferencesKey("delay")
@@ -46,196 +57,313 @@ class TrainWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
-            val prefs = currentState<androidx.datastore.preferences.core.Preferences>()
-            TrainWidgetContent(prefs)
+            GlanceTheme {
+                val prefs = currentState<androidx.datastore.preferences.core.Preferences>()
+                TrainWidgetContent(prefs)
+            }
         }
     }
 
     @Composable
     private fun TrainWidgetContent(prefs: androidx.datastore.preferences.core.Preferences) {
-        val isConnected    = prefs[KEY_CONNECTED] ?: false
-        val trainName      = prefs[KEY_TRAIN_NAME] ?: ""
-        val speed          = prefs[KEY_SPEED] ?: 0
-        val nextStop       = prefs[KEY_NEXT_STOP] ?: ""
-        val nextStopEva    = prefs[KEY_NEXT_STOP_EVA] ?: ""
-        val targetStop     = prefs[KEY_TARGET_STOP] ?: ""
-        val targetStopEva  = prefs[KEY_TARGET_STOP_EVA] ?: ""
-        val delay          = prefs[KEY_DELAY] ?: 0
-        val isMockMode     = prefs[KEY_MOCK_MODE] ?: false
+        val isConnected   = prefs[KEY_CONNECTED] ?: false
+        val trainName     = prefs[KEY_TRAIN_NAME] ?: ""
+        val speed         = prefs[KEY_SPEED] ?: 0
+        val nextStop      = prefs[KEY_NEXT_STOP] ?: ""
+        val nextStopEva   = prefs[KEY_NEXT_STOP_EVA] ?: ""
+        val nextStopEta   = prefs[KEY_NEXT_STOP_ETA] ?: ""
+        val targetStop    = prefs[KEY_TARGET_STOP] ?: ""
+        val targetStopEva = prefs[KEY_TARGET_STOP_EVA] ?: ""
+        val delay         = prefs[KEY_DELAY] ?: 0
+        val isMockMode    = prefs[KEY_MOCK_MODE] ?: false
 
-        val brandRed = ColorProvider(DBRot)
-        val bgColor = ColorProvider(com.nruge.iceinfo.R.color.widget_background)
-        val textColor = ColorProvider(com.nruge.iceinfo.R.color.widget_text_primary)
-        val grayText = ColorProvider(com.nruge.iceinfo.R.color.widget_text_secondary)
-        val dividerColor = ColorProvider(com.nruge.iceinfo.R.color.widget_divider)
+        val isAtTarget = targetStopEva.isNotEmpty() && nextStopEva == targetStopEva
 
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(bgColor)
-                .cornerRadius(16.dp)
+                .background(GlanceTheme.colors.widgetBackground)
+                .cornerRadius(28.dp)
                 .clickable(actionStartActivity<MainActivity>())
-                .padding(bottom = 4.dp) // Little space at bottom
+                .padding(16.dp)
         ) {
-            // ICE Red Top Bar
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .background(brandRed)
-            ) {}
-
-            Column(
-                modifier = GlanceModifier
-                    .fillMaxSize()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.Vertical.Top,
-                horizontalAlignment = Alignment.Horizontal.Start
-            ) {
-                if (!isConnected && !isMockMode) {
-                    Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "Suche Verbindung...",
-                            style = TextStyle(fontSize = 14.sp, color = grayText, fontWeight = FontWeight.Medium)
-                        )
-                    }
-                } else {
+            if (!isConnected && !isMockMode) {
+                DisconnectedState()
+            } else {
+                Column(modifier = GlanceModifier.fillMaxSize()) {
+                    // Header row: train chip + demo chip
                     Row(
                         modifier = GlanceModifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Vertical.Top
+                        verticalAlignment = Alignment.Vertical.CenterVertically
                     ) {
-                        Column(modifier = GlanceModifier.defaultWeight()) {
-                            Text(
-                                text = trainName,
-                                style = TextStyle(
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = grayText
-                                )
-                            )
-                            Row(verticalAlignment = Alignment.Vertical.Bottom) {
-                                Text(
-                                    text = "$speed",
-                                    style = TextStyle(
-                                        fontSize = 42.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = brandRed
-                                    )
-                                )
-                                Spacer(GlanceModifier.width(2.dp))
-                                Text(
-                                    text = "km/h",
-                                    style = TextStyle(
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = brandRed
-                                    ),
-                                    modifier = GlanceModifier.padding(bottom = 8.dp)
-                                )
-                            }
+                        if (trainName.isNotBlank()) {
+                            TrainChip(trainName)
                         }
-                        
+                        Spacer(GlanceModifier.defaultWeight())
                         if (isMockMode) {
-                            Box(
-                                modifier = GlanceModifier
-                                    .padding(top = 2.dp)
-                                    .background(ColorProvider(DBGelb))
-                                    .cornerRadius(4.dp)
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = "DEMO",
-                                    style = TextStyle(
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = ColorProvider(DBDunkelgrau)
-                                    )
-                                )
-                            }
+                            DemoChip()
                         }
                     }
 
-                    Spacer(GlanceModifier.height(2.dp))
-                    
-                    Box(
-                        modifier = GlanceModifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(dividerColor)
-                    ) {}
-                    
-                    Spacer(GlanceModifier.height(6.dp))
+                    Spacer(GlanceModifier.height(10.dp))
 
-                    Row(modifier = GlanceModifier.fillMaxWidth()) {
-                        // Nächster Halt
-                        Column(modifier = GlanceModifier.defaultWeight()) {
-                            Text(
-                                text = "Nächster Halt",
-                                style = TextStyle(fontSize = 10.sp, color = grayText, fontWeight = FontWeight.Bold)
+                    // Hero speed
+                    Row(verticalAlignment = Alignment.Vertical.Bottom) {
+                        Text(
+                            text = "$speed",
+                            style = TextStyle(
+                                fontSize = 44.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = GlanceTheme.colors.primary
                             )
-                            Text(
-                                text = nextStop,
-                                style = TextStyle(
-                                    fontSize = 15.sp, 
-                                    fontWeight = FontWeight.Bold,
-                                    color = textColor
-                                ),
-                                maxLines = 1
-                            )
-                            if (delay > 0) {
-                                Text(
-                                    text = "+$delay min",
-                                    style = TextStyle(fontSize = 11.sp, color = ColorProvider(DBRotDark), fontWeight = FontWeight.Bold)
-                                )
-                            } else {
-                                Text(
-                                    text = "pünktlich",
-                                    style = TextStyle(fontSize = 11.sp, color = ColorProvider(DBGruen), fontWeight = FontWeight.Bold)
-                                )
-                            }
-                        }
-
-                        Spacer(GlanceModifier.width(8.dp))
-
-                        // Ausstieg / Ziel
-                        Column(modifier = GlanceModifier.defaultWeight()) {
-                            Text(
-                                text = "Dein Ausstieg",
-                                style = TextStyle(fontSize = 10.sp, color = grayText, fontWeight = FontWeight.Bold)
-                            )
-                            Text(
-                                text = if (targetStop.isNotEmpty()) targetStop else "kein Ausstieg gewählt",
-                                style = TextStyle(
-                                    fontSize = 15.sp, 
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (targetStop.isNotEmpty()) textColor else grayText
-                                ),
-                                maxLines = 1
-                            )
-                        }
+                        )
+                        Spacer(GlanceModifier.width(4.dp))
+                        Text(
+                            text = "km/h",
+                            style = TextStyle(
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = GlanceTheme.colors.onSurfaceVariant
+                            ),
+                            modifier = GlanceModifier.padding(bottom = 9.dp)
+                        )
                     }
 
-                    if (targetStopEva.isNotEmpty() && nextStopEva == targetStopEva) {
-                        Spacer(GlanceModifier.height(8.dp))
-                        Box(
-                            modifier = GlanceModifier
-                                .fillMaxWidth()
-                                .background(ColorProvider(DBGruen))
-                                .cornerRadius(8.dp)
-                                .padding(vertical = 4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Am nächsten Bahnhof aussteigen!",
-                                style = TextStyle(
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = ColorProvider(DBWeiss)
-                                )
-                            )
-                        }
+                    Spacer(GlanceModifier.height(10.dp))
+
+                    if (isAtTarget) {
+                        ExitAlert()
+                    } else {
+                        val context = LocalContext.current
+                        InfoSection(
+                            label = context.getString(R.string.widget_next_stop),
+                            value = nextStop.ifBlank { context.getString(R.string.notif_no_eta) },
+                            trailing = {
+                                if (nextStopEta.isNotEmpty()) {
+                                    EtaPill(eta = nextStopEta, delayMinutes = delay)
+                                } else {
+                                    DelayPill(delayMinutes = delay)
+                                }
+                            }
+                        )
+
+                        Spacer(GlanceModifier.height(6.dp))
+
+                        InfoSection(
+                            label = context.getString(R.string.home_target_title),
+                            value = if (targetStop.isNotEmpty()) targetStop
+                                    else context.getString(R.string.widget_target_not_chosen),
+                            valueMuted = targetStop.isEmpty()
+                        )
                     }
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun DisconnectedState() {
+        val context = LocalContext.current
+        Box(
+            modifier = GlanceModifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.Horizontal.CenterHorizontally) {
+                Text(
+                    text = context.getString(R.string.widget_no_connection),
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = GlanceTheme.colors.onSurface
+                    )
+                )
+                Spacer(GlanceModifier.height(2.dp))
+                Text(
+                    text = context.getString(R.string.widget_tap_to_connect),
+                    style = TextStyle(
+                        fontSize = 11.sp,
+                        color = GlanceTheme.colors.onSurfaceVariant
+                    )
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun TrainChip(name: String) {
+        Box(
+            modifier = GlanceModifier
+                .background(GlanceTheme.colors.secondaryContainer)
+                .cornerRadius(8.dp)
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+        ) {
+            Text(
+                text = name,
+                style = TextStyle(
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GlanceTheme.colors.onSecondaryContainer
+                )
+            )
+        }
+    }
+
+    @Composable
+    private fun DemoChip() {
+        Box(
+            modifier = GlanceModifier
+                .background(GlanceTheme.colors.tertiaryContainer)
+                .cornerRadius(8.dp)
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+        ) {
+            Text(
+                text = LocalContext.current.getString(R.string.widget_demo_chip),
+                style = TextStyle(
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GlanceTheme.colors.onTertiaryContainer
+                )
+            )
+        }
+    }
+
+    @Composable
+    private fun InfoSection(
+        label: String,
+        value: String,
+        valueMuted: Boolean = false,
+        trailing: (@Composable () -> Unit)? = null
+    ) {
+        Box(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .background(GlanceTheme.colors.surfaceVariant)
+                .cornerRadius(16.dp)
+                .padding(horizontal = 12.dp, vertical = 10.dp)
+        ) {
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Vertical.CenterVertically
+            ) {
+                Column(modifier = GlanceModifier.defaultWeight()) {
+                    Text(
+                        text = label,
+                        style = TextStyle(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = GlanceTheme.colors.onSurfaceVariant
+                        )
+                    )
+                    Spacer(GlanceModifier.height(2.dp))
+                    Text(
+                        text = value,
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (valueMuted) GlanceTheme.colors.onSurfaceVariant
+                                    else GlanceTheme.colors.onSurface
+                        ),
+                        maxLines = 1
+                    )
+                }
+                if (trailing != null) {
+                    Spacer(GlanceModifier.width(8.dp))
+                    trailing()
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun EtaPill(eta: String, delayMinutes: Int) {
+        val (containerColor, textColor) = when {
+            delayMinutes >= 5 -> GlanceTheme.colors.errorContainer to GlanceTheme.colors.onErrorContainer
+            delayMinutes > 0  -> ColorProvider(Color(0xFFFFE0B2), Color(0xFF4A2800)) to
+                                 ColorProvider(Color(0xFF7A4A00), Color(0xFFFFDDB0))
+            else              -> ColorProvider(Color(0xFFC8E6C9), Color(0xFF0E3A1A)) to
+                                 ColorProvider(Color(0xFF1B5E20), Color(0xFFB8E6BD))
+        }
+        Box(
+            modifier = GlanceModifier
+                .background(containerColor)
+                .cornerRadius(10.dp)
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = if (delayMinutes > 0) "$eta  +$delayMinutes min" else eta,
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+            )
+        }
+    }
+
+    @Composable
+    private fun DelayPill(delayMinutes: Int) {
+        val context = LocalContext.current
+        val (containerColor, textColor, label) = when {
+            delayMinutes >= 5 -> Triple(
+                GlanceTheme.colors.errorContainer,
+                GlanceTheme.colors.onErrorContainer,
+                context.getString(R.string.widget_delay_format, delayMinutes)
+            )
+            delayMinutes > 0 -> Triple(
+                ColorProvider(Color(0xFFFFE0B2), Color(0xFF4A2800)),
+                ColorProvider(Color(0xFF7A4A00), Color(0xFFFFDDB0)),
+                context.getString(R.string.widget_delay_format, delayMinutes)
+            )
+            else -> Triple(
+                ColorProvider(Color(0xFFC8E6C9), Color(0xFF0E3A1A)),
+                ColorProvider(Color(0xFF1B5E20), Color(0xFFB8E6BD)),
+                context.getString(R.string.travel_on_time)
+            )
+        }
+        Box(
+            modifier = GlanceModifier
+                .background(containerColor)
+                .cornerRadius(10.dp)
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = label,
+                style = TextStyle(
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+            )
+        }
+    }
+
+    @Composable
+    private fun ExitAlert() {
+        val context = LocalContext.current
+        Box(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .background(GlanceTheme.colors.primaryContainer)
+                .cornerRadius(16.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp)
+        ) {
+            Column {
+                Text(
+                    text = context.getString(R.string.widget_exit_now_title),
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GlanceTheme.colors.onPrimaryContainer
+                    )
+                )
+                Spacer(GlanceModifier.height(2.dp))
+                Text(
+                    text = context.getString(R.string.widget_exit_now_subtitle),
+                    style = TextStyle(
+                        fontSize = 11.sp,
+                        color = GlanceTheme.colors.onPrimaryContainer
+                    )
+                )
             }
         }
     }

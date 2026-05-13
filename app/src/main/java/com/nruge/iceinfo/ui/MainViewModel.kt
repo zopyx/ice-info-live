@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.nruge.iceinfo.DepartureBoardRepository
 import com.nruge.iceinfo.TrainRepository
 import com.nruge.iceinfo.model.*
+import com.nruge.iceinfo.sampleConnections
+import com.nruge.iceinfo.sampleDepartures
+import com.nruge.iceinfo.samplePois
 import com.nruge.iceinfo.sampleTrainStatus
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -57,6 +60,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 isConnected = true,
                 targetStopEva = initialTarget
             )
+            _connections.value = sampleConnections
+            _departures.value = sampleDepartures
+            _pois.value = samplePois
             updateWidget(_trainStatus.value)
         } else {
             startPolling()
@@ -71,7 +77,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val status = _trainStatus.value
             val boardStop = relevantBoardStop(status)
-            _connections.value = TrainRepository.fetchConnections(boardStop?.evaNr ?: status.nextStopEva)
+            _connections.value = TrainRepository.fetchConnections(
+                boardStop?.evaNr ?: status.nextStopEva,
+                boardStop?.effectiveArrivalMs ?: 0L
+            )
             _departures.value = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
         }
         
@@ -99,9 +108,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 connectivityRemainingSeconds = sampleTrainStatus.connectivityRemainingSeconds
             )
             _trainStatus.value = status
+            _connections.value = sampleConnections
+            _departures.value = sampleDepartures
+            _pois.value = samplePois
             updateWidget(status)
         } else {
             _trainStatus.value = _trainStatus.value.copy(isConnected = false, targetStopEva = currentTarget)
+            _connections.value = emptyList()
+            _departures.value = emptyList()
+            _pois.value = emptyList()
             startPolling()
         }
     }
@@ -164,7 +179,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _pois.value = TrainRepository.fetchPois(status.latitude, status.longitude)
                     val boardStop = relevantBoardStop(updatedStatus)
                     _connections.value = TrainRepository.fetchConnections(
-                        boardStop?.evaNr ?: status.nextStopEva
+                        boardStop?.evaNr ?: status.nextStopEva,
+                        boardStop?.effectiveArrivalMs ?: 0L
                     )
                     _departures.value = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
                     updateWidget(updatedStatus)

@@ -1,21 +1,70 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ICE Info Live — ProGuard / R8 rules
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Keep line numbers for crash reports, but hide source file names.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Strip verbose/debug logging in release builds.
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ---------------------------------------------------------------
+# kotlinx.serialization
+# ---------------------------------------------------------------
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+
+-if @kotlinx.serialization.Serializable class **
+-keepclassmembers class <1> {
+    static <1>$Companion Companion;
+}
+
+-if @kotlinx.serialization.Serializable class ** {
+    static **$* *;
+}
+-keepclassmembers class <2>$<3> {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+-if @kotlinx.serialization.Serializable class **
+-keepclassmembers class <1> {
+    public static ** INSTANCE;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# Keep all model classes used by ktor/serialization.
+-keep,includedescriptorclasses class com.nruge.iceinfo.model.** { *; }
+-keep,includedescriptorclasses class com.nruge.iceinfo.TrainRepository$DebugData { *; }
+
+# ---------------------------------------------------------------
+# Ktor / OkHttp
+# ---------------------------------------------------------------
+-dontwarn io.ktor.**
+-dontwarn org.slf4j.**
+-keep class io.ktor.client.engine.okhttp.** { *; }
+
+-dontwarn okhttp3.internal.platform.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
+# ---------------------------------------------------------------
+# Glance / AppWidget
+# ---------------------------------------------------------------
+-keep class androidx.glance.** { *; }
+-keep class com.nruge.iceinfo.widget.** { *; }
+
+# ---------------------------------------------------------------
+# osmdroid
+# ---------------------------------------------------------------
+-keep class org.osmdroid.** { *; }
+-dontwarn org.osmdroid.**
+
+# ---------------------------------------------------------------
+# Google Play in-app updates
+# ---------------------------------------------------------------
+-keep class com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**

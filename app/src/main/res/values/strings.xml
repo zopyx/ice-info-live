@@ -56,12 +56,15 @@
     <string name="connections_none">Keine Anschlusszüge verfügbar</string>
     <string name="connection_reachable">erreichbar</string>
     <string name="connection_missed">verpasst</string>
+    <string name="connection_tight">knapp</string>
+    <string name="connection_transfer_minutes">%1$d min Umstieg</string>
+    <string name="connections_arrival">Ankunft %1$s</string>
 
     <!-- Map -->
     <string name="map_position_title">📍 Position</string>
 
     <!-- Info Dialog -->
-    <string name="info_version">Version 3.6</string>
+    <string name="info_version">Version %1$s</string>
     <string name="info_description">Diese App liest Live-Daten aus der ICE Portal API des Deutsche Bahn ICE-WLANs aus und zeigt sie übersichtlich an.</string>
     <string name="info_privacy_title">Datenschutz</string>
     <string name="info_privacy_text">Diese App speichert oder erfasst keine personenbezogenen Daten. Die API Abfragen erfolgen ausschließlich an die Interne API im Zug-WLAN.</string>
@@ -91,6 +94,26 @@
     <string name="onboarding_button">Los geht\'s!</string>
     <string name="widget_description">Zeigt die aktuelle Zug-Geschwindigkeit und den nächsten Halt.</string>
     <string name="widget_loading">Lade Zug-Daten…</string>
+    <string name="widget_next_stop">Nächster Halt</string>
+    <string name="widget_no_connection">Keine Verbindung</string>
+    <string name="widget_tap_to_connect">Tippen zum Verbinden</string>
+    <string name="widget_exit_now_title">Jetzt aussteigen</string>
+    <string name="widget_exit_now_subtitle">Nächster Halt ist dein Ziel</string>
+    <string name="widget_target_not_chosen">Nicht gewählt</string>
+    <string name="widget_demo_chip">DEMO</string>
+    <string name="widget_delay_format">+%1$d min</string>
+
+    <!-- Notification -->
+    <string name="notif_channel_name">ICE Tracker</string>
+    <string name="notif_channel_description">Zeigt Geschwindigkeit und nächsten Halt</string>
+    <string name="notif_label_next_stop">NÄCHSTER HALT</string>
+    <string name="notif_label_target_stop">DEIN AUSSTIEG</string>
+    <string name="notif_arrival_prefix">an. %1$s</string>
+    <string name="notif_destination_format">Ziel: %1$s %2$s</string>
+    <string name="notif_action_stop">Beenden</string>
+    <string name="notif_connecting">Verbinde…</string>
+    <string name="notif_arriving">Ankunft …</string>
+    <string name="notif_no_eta">—</string>
 
     <!-- Navigation -->
     <string name="nav_status">Status</string>
@@ -108,6 +131,12 @@
     <string name="settings_reduced_motion_title">Reduzierte Bewegung</string>
     <string name="settings_language_title">Sprache</string>
     <string name="settings_reduced_motion_desc">Zug-Animation und Übergänge deaktivieren</string>
+    <string name="settings_crash_reporting_title">Absturzberichte senden</string>
+    <string name="settings_crash_reporting_desc">Anonyme Crash- und Stabilitätsdaten an Firebase Crashlytics senden, um die App zu verbessern. Keine personenbezogenen Daten.</string>
+    <string name="crash_consent_title">Absturzberichte senden?</string>
+    <string name="crash_consent_body">Hilf mir, ICE Info Live zu verbessern: Im Falle eines Absturzes werden anonyme Daten (Stacktrace, App-Version, Android-Version, Gerätemodell) an Firebase Crashlytics gesendet. Es werden keine personenbezogenen Daten erfasst und es findet kein Tracking statt.\n\nDu kannst diese Einstellung jederzeit in den Einstellungen ändern.</string>
+    <string name="crash_consent_accept">Aktivieren</string>
+    <string name="crash_consent_decline">Nein, danke</string>
 
     <!-- Stop selection -->
     <string name="stop_selection_title">Ziel wählen</string>
@@ -125,6 +154,7 @@
     <string name="track_short">Gl. %1$s</string>
     <string name="track_full">Gleis %1$s</string>
     <string name="stop_additional">Zusatzhalt</string>
+    <string name="stop_cancelled">Entfällt</string>
 
     <!-- In-App Update -->
     <string name="update_downloaded">Update heruntergeladen</string>
@@ -132,4 +162,19 @@
 
     <!-- Service -->
     <string name="service_wip">Service Status (In Arbeit)</string>
+
+    <!-- Debug -->
+    <string name="settings_debug_title">Debug-Informationen</string>
+    <string name="settings_debug_desc">API-Antworten anzeigen und teilen</string>
+    <string name="debug_title">Debug</string>
+    <string name="debug_loading">API-Daten werden geladen…</string>
+    <string name="debug_copy">Kopieren</string>
+    <string name="debug_share">Als Datei teilen</string>
+    <string name="debug_share_chooser">Debug-Bericht teilen</string>
+    <string name="debug_os">Betriebssystem</string>
+    <string name="debug_device">Gerät</string>
+    <string name="debug_app_version">App-Version</string>
+    <string name="debug_section_device">Geräteinformationen</string>
+    <string name="debug_section_trip">API /trip</string>
+    <string name="debug_section_connection">API /connection</string>
 </resources>

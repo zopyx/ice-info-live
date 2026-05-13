@@ -39,8 +39,11 @@
     <string name="connections_none">No connecting trains</string>
     <string name="connection_reachable">reachable</string>
     <string name="connection_missed">missed</string>
+    <string name="connection_tight">tight</string>
+    <string name="connection_transfer_minutes">%1$d min transfer</string>
+    <string name="connections_arrival">Arrival %1$s</string>
     <string name="map_position_title">📍 Position</string>
-    <string name="info_version">Version 3.6</string>
+    <string name="info_version">Version %1$s</string>
     <string name="info_description">This app reads live data from the ICE Portal API of the Deutsche Bahn ICE Wi-Fi and displays it clearly.</string>
     <string name="info_privacy_title">Data protection</string>
     <string name="info_privacy_text">This app does not store or collect any personal data. API queries are made exclusively to the internal API within the train\'s Wi-Fi network.</string>
@@ -72,6 +75,26 @@
     <string name="onboarding_button">Let\'s go!</string>
     <string name="widget_description">Shows the current train speed and the next stop.</string>
     <string name="widget_loading">Loading train data...</string>
+    <string name="widget_next_stop">Next stop</string>
+    <string name="widget_no_connection">Not connected</string>
+    <string name="widget_tap_to_connect">Tap to connect</string>
+    <string name="widget_exit_now_title">Time to get off</string>
+    <string name="widget_exit_now_subtitle">Your destination is next</string>
+    <string name="widget_target_not_chosen">Not chosen</string>
+    <string name="widget_demo_chip">DEMO</string>
+    <string name="widget_delay_format">+%1$d min</string>
+
+    <!-- Notification -->
+    <string name="notif_channel_name">ICE Tracker</string>
+    <string name="notif_channel_description">Shows speed and next stop</string>
+    <string name="notif_label_next_stop">NEXT STOP</string>
+    <string name="notif_label_target_stop">YOUR DESTINATION</string>
+    <string name="notif_arrival_prefix">ETA %1$s</string>
+    <string name="notif_destination_format">Final: %1$s %2$s</string>
+    <string name="notif_action_stop">Stop</string>
+    <string name="notif_connecting">Connecting…</string>
+    <string name="notif_arriving">Arriving…</string>
+    <string name="notif_no_eta">—</string>
 
     <!-- Navigation -->
     <string name="nav_status">Status</string>
@@ -89,6 +112,12 @@
     <string name="settings_reduced_motion_title">Reduced motion</string>
     <string name="settings_language_title">Language</string>
     <string name="settings_reduced_motion_desc">Disable train animation and transitions</string>
+    <string name="settings_crash_reporting_title">Send crash reports</string>
+    <string name="settings_crash_reporting_desc">Send anonymous crash and stability data to Firebase Crashlytics to help improve the app. No personal data.</string>
+    <string name="crash_consent_title">Send crash reports?</string>
+    <string name="crash_consent_body">Help improve ICE Info Live: in case of a crash, anonymous data (stacktrace, app version, Android version, device model) is sent to Firebase Crashlytics. No personal data is collected and there is no tracking.\n\nYou can change this setting any time in Settings.</string>
+    <string name="crash_consent_accept">Enable</string>
+    <string name="crash_consent_decline">No thanks</string>
 
     <!-- Stop selection -->
     <string name="stop_selection_title">Choose destination</string>
@@ -106,6 +135,7 @@
     <string name="track_short">Pl. %1$s</string>
     <string name="track_full">Platform %1$s</string>
     <string name="stop_additional">Additional stop</string>
+    <string name="stop_cancelled">Cancelled</string>
 
     <!-- In-App Update -->
     <string name="update_downloaded">Update downloaded</string>
@@ -113,4 +143,19 @@
 
     <!-- Service -->
     <string name="service_wip">Service status (work in progress)</string>
+
+    <!-- Debug -->
+    <string name="settings_debug_title">Debug information</string>
+    <string name="settings_debug_desc">View and share raw API responses</string>
+    <string name="debug_title">Debug</string>
+    <string name="debug_loading">Loading API data…</string>
+    <string name="debug_copy">Copy</string>
+    <string name="debug_share">Share as file</string>
+    <string name="debug_share_chooser">Share debug report</string>
+    <string name="debug_os">Operating system</string>
+    <string name="debug_device">Device</string>
+    <string name="debug_app_version">App version</string>
+    <string name="debug_section_device">Device information</string>
+    <string name="debug_section_trip">API /trip</string>
+    <string name="debug_section_connection">API /connection</string>
 </resources>

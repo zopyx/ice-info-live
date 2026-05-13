@@ -1,13 +1,17 @@
 package com.nruge.iceinfo.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Animation
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ReportProblem
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.SettingsBrightness
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,6 +34,9 @@ fun SettingsSheet(
     onToggleReducedMotion: (Boolean) -> Unit,
     language: String,
     onLanguageChange: (String) -> Unit,
+    crashReportingEnabled: Boolean,
+    onToggleCrashReporting: (Boolean) -> Unit,
+    onDebug: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -137,6 +144,39 @@ fun SettingsSheet(
                     containerColor = androidx.compose.ui.graphics.Color.Transparent
                 ),
                 modifier = Modifier.align(Alignment.Start)
+            )
+
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_crash_reporting_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_crash_reporting_desc)) },
+                leadingContent = { Icon(Icons.Default.ReportProblem, contentDescription = null) },
+                trailingContent = {
+                    Switch(
+                        checked = crashReportingEnabled,
+                        onCheckedChange = onToggleCrashReporting
+                    )
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                ),
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_debug_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_debug_desc)) },
+                leadingContent = { Icon(Icons.Default.BugReport, contentDescription = null) },
+                trailingContent = {
+                    Icon(Icons.Default.ChevronRight, contentDescription = null)
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                ),
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .clickable(onClick = onDebug)
             )
         }
     }

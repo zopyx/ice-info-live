@@ -47,8 +47,15 @@ data class TrainStop(
     val isNext: Boolean,
     val distanceFromStart: Int = 0,
     val scheduledArrivalMs: Long = 0L,
-    val isAdditional: Boolean = false
-)
+    val isAdditional: Boolean = false,
+    val scheduledDeparture: String = "",
+    val actualDeparture: String = "",
+    val departureDelayMinutes: Int = 0,
+    val isCancelled: Boolean = false
+) {
+    val effectiveArrivalMs: Long
+        get() = if (scheduledArrivalMs > 0L) scheduledArrivalMs + delayMinutes * 60_000L else 0L
+}
 
 @Serializable
 data class Departure(
@@ -78,5 +85,6 @@ data class ConnectingTrain(
     val departure: String = "",
     val track: String = "",
     val delayMinutes: Int = 0,
-    val reachable: Boolean = true
+    val reachable: Boolean = true,
+    val transferMinutes: Int? = null
 )
