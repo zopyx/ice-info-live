@@ -37,6 +37,12 @@ private data class ChangelogEntry(
 
 private val changelog = listOf(
     ChangelogEntry(
+        version = "4.0.2",
+        fixes = listOf(
+            "Hotfix: App stürzte beim Start ab, ist gefixt"
+        )
+    ),
+    ChangelogEntry(
         version = "4.0 (Release Candidate 1)",
         newFeatures = listOf(
             "Erster Release-Kandidat für die öffentliche Veröffentlichung im Google Play Store",

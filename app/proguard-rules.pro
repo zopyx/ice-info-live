@@ -68,3 +68,37 @@
 # ---------------------------------------------------------------
 -keep class com.google.android.play.core.** { *; }
 -dontwarn com.google.android.play.core.**
+
+# ---------------------------------------------------------------
+# Room / WorkManager
+# WorkManager is pulled in transitively (Glance, Firebase) and uses Room.
+# Room loads generated `_Impl` classes via reflection — without these
+# keep rules WorkDatabase fails to instantiate at app startup.
+# ---------------------------------------------------------------
+-keep class * extends androidx.room.RoomDatabase {
+    <init>();
+}
+-keep @androidx.room.Entity class *
+-keep class **_Impl { *; }
+-dontwarn androidx.room.paging.**
+
+-keep class androidx.work.** { *; }
+-keep class androidx.work.impl.** { *; }
+-keep class * extends androidx.work.Worker
+-keep class * extends androidx.work.ListenableWorker {
+    public <init>(...);
+}
+-keepclassmembers class * extends androidx.work.Worker {
+    public <init>(android.content.Context, androidx.work.WorkerParameters);
+}
+
+# ---------------------------------------------------------------
+# Firebase Crashlytics
+# ---------------------------------------------------------------
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
+
+# Keep the Application class — referenced by manifest, but defensive.
+-keep class com.nruge.iceinfo.IceInfoApplication { *; }

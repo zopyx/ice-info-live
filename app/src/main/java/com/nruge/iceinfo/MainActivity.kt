@@ -114,6 +114,21 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+            // Resume an IMMEDIATE update that was interrupted (e.g. user
+            // backgrounded the app during the update flow). Without this,
+            // a half-finished high-priority update would be silently
+            // dropped on the floor.
+            if (info.updateAvailability() ==
+                UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS &&
+                info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            ) {
+                appUpdateManager.startUpdateFlowForResult(
+                    info,
+                    updateResultLauncher,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+                )
+                return@addOnSuccessListener
+            }
             if (info.installStatus() == InstallStatus.DOWNLOADED) {
                 lifecycleScope.launch {
                     val result = snackbarHostState.showSnackbar(
@@ -136,15 +151,24 @@ class MainActivity : ComponentActivity() {
 
     private fun checkForUpdate() {
         appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
-            if (info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
-                info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
-            ) {
-                appUpdateManager.startUpdateFlowForResult(
-                    info,
-                    updateResultLauncher,
-                    AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build()
-                )
+            if (info.updateAvailability() != UpdateAvailability.UPDATE_AVAILABLE) return@addOnSuccessListener
+
+            // High-priority updates (set via Play Publishing API, priority >= 4)
+            // are pushed as IMMEDIATE — the user must update before continuing.
+            // Used for critical hotfixes. Everything else stays FLEXIBLE.
+            val highPriority = info.updatePriority() >= 4
+            val type = when {
+                highPriority && info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE) ->
+                    AppUpdateType.IMMEDIATE
+                info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE) ->
+                    AppUpdateType.FLEXIBLE
+                else -> return@addOnSuccessListener
             }
+            appUpdateManager.startUpdateFlowForResult(
+                info,
+                updateResultLauncher,
+                AppUpdateOptions.newBuilder(type).build()
+            )
         }.addOnFailureListener {
             Log.w("AppUpdate", "Update check failed: ${it.message}")
         }

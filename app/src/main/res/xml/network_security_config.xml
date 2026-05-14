@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <!-- The on-train ICE portal is only reachable inside the train Wi-Fi
+         and historically serves plain HTTP. Cleartext is restricted to this
+         single host so the rest of the app is HTTPS-only. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">iceportal.de</domain>
+    </domain-config>
+</network-security-config>

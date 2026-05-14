@@ -18,8 +18,8 @@ android {
         applicationId = "com.nruge.iceinfo"
         minSdk = 33
         targetSdk = 36
-        versionCode = 8
-        versionName = "4.0"
+        versionCode = 10
+        versionName = "4.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,6 +28,10 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // Sign release builds with the debug key when running locally
+            // so we can install + smoke-test the R8'd APK before uploading.
+            // The Play Console resigns the AAB with the upload key anyway.
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
