@@ -83,7 +83,7 @@
 		65721EE0FF0F139007E5AFB9 /* TrainWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainWidget.swift; sourceTree = "<group>"; };
 		66CA8AE2EAEA6F14A21F5ADA /* StopTimePair.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopTimePair.swift; sourceTree = "<group>"; };
 		7532D6C03C0BF59463D054D2 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
-		7F742D63D16915E843E72DAD /* ICEInfo.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ICEInfo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7F742D63D16915E843E72DAD /* ICEInfo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ICEInfo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		803B018486F21D0FECAEE883 /* StatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusView.swift; sourceTree = "<group>"; };
 		825845E8CF47547E5390A560 /* ChangelogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogSheet.swift; sourceTree = "<group>"; };
 		85F39E217010ED3D4588A156 /* TrainRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainRepository.swift; sourceTree = "<group>"; };
@@ -316,7 +316,6 @@
 						ProvisioningStyle = Automatic;
 					};
 					C4BA63BA2B72BBC751B88992 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -474,6 +473,7 @@
 				CODE_SIGN_ENTITLEMENTS = ICEInfo/ICEInfo.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4PC9Z56E47;
 				INFOPLIST_FILE = ICEInfo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -494,6 +494,7 @@
 				CODE_SIGN_ENTITLEMENTS = ICEInfo/ICEInfo.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4PC9Z56E47;
 				INFOPLIST_FILE = ICEInfo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
