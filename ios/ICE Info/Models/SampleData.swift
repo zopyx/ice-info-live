@@ -8,17 +8,10 @@ let sampleTrainStatus = TrainStatus(
     destination: "München Hbf",
     eta: "14:34",
     delayMinutes: 21,
-    tzn: "ICE0701",
     track: "4",
     delayReason: "Kurzfristiger Personalausfall",
     distanceToNext: 86760,
     distanceLastToNext: 120000,
-    wagonClass: "FIRST",
-    connectivity: "STRONG",
-    nextConnectivity: "MIDDLE",
-    connectivityRemainingSeconds: 600,
-    latitude: 51.4825,
-    longitude: 11.9906,
     stops: [
         TrainStop(
             name: "Hamburg-Altona", evaNr: "8002545",
@@ -82,11 +75,18 @@ let sampleTrainStatus = TrainStatus(
             scheduledDeparture: "", actualDeparture: "", departureDelayMinutes: 0
         ),
     ],
+    wagonClass: "FIRST",
+    connectivity: "STRONG",
+    nextConnectivity: "MIDDLE",
+    connectivityRemainingSeconds: 600,
+    tzn: "ICE0701",
+    latitude: 51.4825,
+    longitude: 11.9906,
+    distanceToDestination: 467000,
+    actualPosition: 180000,
     destinationEta: "14:11",
     destinationTrack: "6",
-    destinationDelay: 21,
-    distanceToDestination: 467000,
-    actualPosition: 180000
+    destinationDelay: 21
 )
 
 let samplePois: [PoiItem] = [
