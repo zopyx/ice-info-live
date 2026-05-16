@@ -312,7 +312,6 @@
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					1A9029CA125F7147B4576C67 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					C4BA63BA2B72BBC751B88992 = {
@@ -521,6 +520,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ICEInfo/Widget/Widget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4PC9Z56E47;
 				INFOPLIST_FILE = ICEInfo/Widget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -538,6 +538,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ICEInfo/Widget/Widget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4PC9Z56E47;
 				INFOPLIST_FILE = ICEInfo/Widget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
