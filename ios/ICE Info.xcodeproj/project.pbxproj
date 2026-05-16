@@ -34,6 +34,7 @@
 		782658353A46B06D53CC3FD6 /* DepartureRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44439BBA0EE687181B54C8 /* DepartureRow.swift */; };
 		7A500E926F8F66B15083351E /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D275D10201998C921F3BD170 /* SettingsSheet.swift */; };
 		83B7E7F475B19B60072055D8 /* CrashConsentSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD51F6278398CCB8F9B2AFCE /* CrashConsentSheet.swift */; };
+		97D885EAB4DA8F36FC08AAA3 /* TrainModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B0DA951EB9E63F937839E0 /* TrainModels.swift */; };
 		9AB4D4B3F4594AE49E8D4583 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A2FE0F283977584EDCE689 /* SettingsManager.swift */; };
 		9B661D7892D95B76503E45E6 /* PoiCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF80D999EE0E0F87794EB45 /* PoiCard.swift */; };
 		B0F1D95494C96F363C05DD72 /* TrainTypeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3004FA938AE1473A6222380C /* TrainTypeBadge.swift */; };
@@ -45,7 +46,9 @@
 		CD2F9ACA5BBF46E3BB8CB9F4 /* NoWifiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F146CD67969F2E164FBFF4EB /* NoWifiView.swift */; };
 		CDEBF064480F97A861B9702C /* TimeUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E2936D566DB146A86F151A /* TimeUtils.swift */; };
 		CE2704AAE043237D8FAA85D8 /* DelayReasonCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80544B7EEEC8E7912E8C7F13 /* DelayReasonCard.swift */; };
+		D45093BB2607A8C20E82933C /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A2FE0F283977584EDCE689 /* SettingsManager.swift */; };
 		DB65D267425C4EFC8DBE9241 /* ChangelogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DA8DE3EB10E77207B0204F /* ChangelogSheet.swift */; };
+		F45669ECC96D336A719B48D9 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12C8A43D625B2A760E6DB1FB /* SampleData.swift */; };
 		F5ABF7EEF1BE2E3EE7EF1708 /* TrainModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B0DA951EB9E63F937839E0 /* TrainModels.swift */; };
 /* End PBXBuildFile section */
 
@@ -83,11 +86,11 @@
 		77B0DA951EB9E63F937839E0 /* TrainModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainModels.swift; sourceTree = "<group>"; };
 		80544B7EEEC8E7912E8C7F13 /* DelayReasonCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DelayReasonCard.swift; sourceTree = "<group>"; };
 		825032B20C14C7ED27E60249 /* InfoSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoSheet.swift; sourceTree = "<group>"; };
-		8BAB7839961458BF5F7DF4CC /* ICE Info.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ICE Info.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8BAB7839961458BF5F7DF4CC /* ICE Info.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "ICE Info.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		906E248871BAE9831B613889 /* StopTimePair.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopTimePair.swift; sourceTree = "<group>"; };
 		A1E2936D566DB146A86F151A /* TimeUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeUtils.swift; sourceTree = "<group>"; };
 		A88399EA77B2EF2A42DB5561 /* TimelineStopRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineStopRow.swift; sourceTree = "<group>"; };
-		A9B881E145509DE491A6C571 /* ICE Info Widget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "ICE Info Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9B881E145509DE491A6C571 /* ICE Info Widget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = "ICE Info Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE44439BBA0EE687181B54C8 /* DepartureRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureRow.swift; sourceTree = "<group>"; };
 		BA9074A6B601E455E6943B8C /* AppCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCard.swift; sourceTree = "<group>"; };
 		BF58812A9783679804DFD655 /* TrainWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainWidget.swift; sourceTree = "<group>"; };
@@ -309,9 +312,11 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					ABF136CB9F952BDEA6FD41C4 = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					FE8DDE90FD1A2DF5A8295A61 = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -386,6 +391,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F45669ECC96D336A719B48D9 /* SampleData.swift in Sources */,
+				D45093BB2607A8C20E82933C /* SettingsManager.swift in Sources */,
+				97D885EAB4DA8F36FC08AAA3 /* TrainModels.swift in Sources */,
 				18AF3F65A196282AC5DCCF74 /* TrainWidget.swift in Sources */,
 				CB7BEC78DE3194A5C299925B /* WidgetBundle.swift in Sources */,
 			);
@@ -407,7 +415,6 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "ICE Info/Widget/Widget.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4PC9Z56E47;
 				INFOPLIST_FILE = "ICE Info/Widget/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -427,7 +434,6 @@
 				CODE_SIGN_ENTITLEMENTS = "ICE Info/ICE Info.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4PC9Z56E47;
 				INFOPLIST_FILE = "ICE Info/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -448,7 +454,6 @@
 				CODE_SIGN_ENTITLEMENTS = "ICE Info/ICE Info.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4PC9Z56E47;
 				INFOPLIST_FILE = "ICE Info/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -588,7 +593,6 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "ICE Info/Widget/Widget.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4PC9Z56E47;
 				INFOPLIST_FILE = "ICE Info/Widget/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
