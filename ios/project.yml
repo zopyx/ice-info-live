@@ -1,4 +1,4 @@
-name: ICE Info
+name: ICEInfo
 options:
   bundleIdPrefix: com.nruge.iceinfo
   deploymentTarget:
@@ -14,11 +14,11 @@ settings:
     DEVELOPMENT_TEAM: ""
 
 targets:
-  ICE Info:
+  ICEInfo:
     type: application
     platform: iOS
     sources:
-      - path: ICE Info
+      - path: ICEInfo
         excludes:
           - "Info.plist"
           - "Widget/Info.plist"
@@ -28,30 +28,30 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nruge.iceinfo
-        INFOPLIST_FILE: ICE Info/Info.plist
+        INFOPLIST_FILE: ICEInfo/Info.plist
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: "NO"
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
         CODE_SIGN_STYLE: Automatic
     entitlements:
-      path: ICE Info/ICE Info.entitlements
+      path: ICEInfo/ICEInfo.entitlements
 
-  ICE Info Widget:
+  ICEInfo Widget:
     type: app-extension
     platform: iOS
     sources:
-      - path: ICE Info/Widget/TrainWidget.swift
-      - path: ICE Info/Widget/WidgetBundle.swift
-      - path: ICE Info/Widget/Info.plist
-      - path: ICE Info/Models/TrainModels.swift
-      - path: ICE Info/Models/SampleData.swift
-      - path: ICE Info/Utilities/SettingsManager.swift
+      - path: ICEInfo/Widget/TrainWidget.swift
+      - path: ICEInfo/Widget/WidgetBundle.swift
+      - path: ICEInfo/Widget/Info.plist
+      - path: ICEInfo/Models/TrainModels.swift
+      - path: ICEInfo/Models/SampleData.swift
+      - path: ICEInfo/Utilities/SettingsManager.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nruge.iceinfo.widget
-        INFOPLIST_FILE: ICE Info/Widget/Info.plist
+        INFOPLIST_FILE: ICEInfo/Widget/Info.plist
         CODE_SIGN_STYLE: Automatic
     dependencies:
-      - target: ICE Info
+      - target: ICEInfo
     entitlements:
-      path: ICE Info/Widget/Widget.entitlements
+      path: ICEInfo/Widget/Widget.entitlements
