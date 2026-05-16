@@ -99,13 +99,10 @@ private struct RawDeparture: Codable {
     let whenScheduled: String?
     let delay: Int?
     let platform: String?
-    let actualPlatform: String?
     let cancelled: Bool?
 
     enum CodingKeys: String, CodingKey {
-        case line, destination, delay, platform, cancelled
-        case whenScheduled = "whenScheduled"
-        case actualPlatform = "platform"
+        case line, destination, delay, platform, cancelled, when
     }
 
     init(from decoder: Decoder) throws {
@@ -113,12 +110,11 @@ private struct RawDeparture: Codable {
         line = try container.decode(RawLine.self, forKey: .line)
         destination = try container.decode(RawDestination.self, forKey: .destination)
 
-        let whenRaw = try container.decodeIfPresent(RawWhen.self, forKey: .whenScheduled)
+        let whenRaw = try container.decodeIfPresent(RawWhen.self, forKey: .when)
         whenScheduled = whenRaw?.scheduled
 
         delay = try container.decodeIfPresent(Int.self, forKey: .delay)
         platform = try container.decodeIfPresent(String.self, forKey: .platform)
-        actualPlatform = try container.decodeIfPresent(String.self, forKey: .actualPlatform)
         cancelled = try container.decodeIfPresent(Bool.self, forKey: .cancelled)
     }
 }
