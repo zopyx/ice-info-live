@@ -1,0 +1,547 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		023DDF1D7E1404132D081E96 /* TransportRestClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCEC1E393B0A834CA1843B /* TransportRestClient.swift */; };
+		06A49978230B06FC99C1BB6C /* ConnectivityRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2605A54A83AC145EA354993 /* ConnectivityRow.swift */; };
+		0C5F2DB96ADC542F7DAE0A05 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B96806961DC49C50052547A7 /* Localizable.xcstrings */; };
+		0FAEC7564C0081B5EC639068 /* DelayReasonCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B966BA01CFEA9541B45A7A /* DelayReasonCard.swift */; };
+		1EF955FA038DEF9F13C9C3D2 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F88AC70C53649703695966 /* LiveActivityManager.swift */; };
+		24AD590D48899B0BFDC4969E /* DepartureRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCFCD77B84B706112F427D94 /* DepartureRepository.swift */; };
+		276756FB2FE568ECBD415BA3 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FEE14289977AAC683254F48 /* MainTabView.swift */; };
+		28207645B0B46D73D2C99E35 /* TrainHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 317F4A9747271A03D06BB34D /* TrainHeader.swift */; };
+		286F6615A6DAE8AC9A96886C /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A197768D50149BF6E855B2EE /* Theme.swift */; };
+		320862AF2028D8DC7EFEB3B3 /* MapCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A27311AE75E7D9815488B2 /* MapCard.swift */; };
+		382E9BC3A63AE3CE42874AA4 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE1C659F3C43CE48E9E48B6 /* APIModels.swift */; };
+		3FE2057ADABC877E6A3C10A3 /* TravelSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682B408090C486C1C9B4D6E4 /* TravelSummaryCard.swift */; };
+		426E884496AAE0F30D52252A /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBCF10FE75BA5E25ECD98674 /* SettingsService.swift */; };
+		4E7D594DAE87BA7ADE653CA4 /* StopsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F49A865EB0E2EED964E6DD /* StopsView.swift */; };
+		5218FEE3C4318649DB55ADF5 /* DelayBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FDBE7067FB50F7159668EC /* DelayBadge.swift */; };
+		538126DD551DB4BB3A49E7A8 /* AppCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7B768C896FDB94EC8A713F6 /* AppCard.swift */; };
+		77F550A8387EFD69B38B5CE2 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26CE506F0ADD1617CC763E3 /* MapView.swift */; };
+		7BE2CD9FA3934C97CD5958D8 /* ServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B459887543CBB2553ED2F869 /* ServiceView.swift */; };
+		8989888B67E3D2662E2A9A54 /* TimelineStopRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D7333DC75D7C07BADD6E5E6 /* TimelineStopRow.swift */; };
+		8F4FA5F151A4A0369CED10C7 /* InfoSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BCAF8CEE96F6A116A24AF8 /* InfoSheet.swift */; };
+		9267A90DCAD2D9D1E58E1937 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85EE5943A655EFAD3C51034A /* APIError.swift */; };
+		943C140082F023FCF6DCE76D /* ConnectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36DD66B205728E35BCEA314 /* ConnectionsView.swift */; };
+		948E1B34DBAAF8A781C151D2 /* OnboardingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFB7A056012AA0461060FC7 /* OnboardingSheet.swift */; };
+		98FCA55815420F97F8E36D62 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8906903334CF110CED17CA0 /* HomeView.swift */; };
+		9A252925C010BC4C35AA34CE /* ICEPortalClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18C66358C1716A83DA64A10C /* ICEPortalClient.swift */; };
+		ACE4DEB0B81E328B1944790C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EA980B09CBB36A8447D0E54D /* Assets.xcassets */; };
+		B7AA5F084C73095A84443AA4 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B1D9459BA75E322DB461AE /* SettingsSheet.swift */; };
+		BBF9E0CA748247388D8CFB2B /* ICEInfoLiveApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A87D4D7FC9A250C324B69C2 /* ICEInfoLiveApp.swift */; };
+		C45493BBC6EDDBC8EC395516 /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7723B715268FE617B1F50E33 /* AppViewModel.swift */; };
+		CA9CB42C915A648E9D8E862F /* DomainModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64ADC05E953F9E0B0E08E3B7 /* DomainModels.swift */; };
+		D45572B42CB275B5C350440F /* WidgetUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27643FFAA18CEF6DFAE2829 /* WidgetUpdater.swift */; };
+		D95EC9B75F10A694BFF3B315 /* WiFiDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 232EF5ECBD50F8D308679760 /* WiFiDetectionService.swift */; };
+		EB95D785322A6DC6A181A21F /* NoWifiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75BD0EC56EC3F6912525C2A1 /* NoWifiView.swift */; };
+		EE1A3D80FD8E6368559185C6 /* DemoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6025E99911B8A53ACB8B4850 /* DemoData.swift */; };
+		F81ECE81A6FF208CBE4D020A /* TrainRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84ACBE8DAE595D02E68FE403 /* TrainRepository.swift */; };
+		FA6D9C7F013D74EA8BF4152A /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A421B83D0BB0ED29EA6EE95 /* Colors.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		18C66358C1716A83DA64A10C /* ICEPortalClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICEPortalClient.swift; sourceTree = "<group>"; };
+		232EF5ECBD50F8D308679760 /* WiFiDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiDetectionService.swift; sourceTree = "<group>"; };
+		2A87D4D7FC9A250C324B69C2 /* ICEInfoLiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICEInfoLiveApp.swift; sourceTree = "<group>"; };
+		317F4A9747271A03D06BB34D /* TrainHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainHeader.swift; sourceTree = "<group>"; };
+		3A421B83D0BB0ED29EA6EE95 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
+		50A27311AE75E7D9815488B2 /* MapCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCard.swift; sourceTree = "<group>"; };
+		53BCAF8CEE96F6A116A24AF8 /* InfoSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoSheet.swift; sourceTree = "<group>"; };
+		6025E99911B8A53ACB8B4850 /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
+		64ADC05E953F9E0B0E08E3B7 /* DomainModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainModels.swift; sourceTree = "<group>"; };
+		682B408090C486C1C9B4D6E4 /* TravelSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelSummaryCard.swift; sourceTree = "<group>"; };
+		6CE1C659F3C43CE48E9E48B6 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		72FDBE7067FB50F7159668EC /* DelayBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DelayBadge.swift; sourceTree = "<group>"; };
+		75BD0EC56EC3F6912525C2A1 /* NoWifiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoWifiView.swift; sourceTree = "<group>"; };
+		7723B715268FE617B1F50E33 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
+		84ACBE8DAE595D02E68FE403 /* TrainRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainRepository.swift; sourceTree = "<group>"; };
+		85EE5943A655EFAD3C51034A /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
+		8D7333DC75D7C07BADD6E5E6 /* TimelineStopRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineStopRow.swift; sourceTree = "<group>"; };
+		8FEE14289977AAC683254F48 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		9EFB7A056012AA0461060FC7 /* OnboardingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSheet.swift; sourceTree = "<group>"; };
+		A197768D50149BF6E855B2EE /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		A1A712F173B18F507B86F63A /* ICEInfoLive.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ICEInfoLive.entitlements; sourceTree = "<group>"; };
+		A2605A54A83AC145EA354993 /* ConnectivityRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivityRow.swift; sourceTree = "<group>"; };
+		A27643FFAA18CEF6DFAE2829 /* WidgetUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetUpdater.swift; sourceTree = "<group>"; };
+		A7F49A865EB0E2EED964E6DD /* StopsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopsView.swift; sourceTree = "<group>"; };
+		A8F88AC70C53649703695966 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
+		B459887543CBB2553ED2F869 /* ServiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceView.swift; sourceTree = "<group>"; };
+		B96806961DC49C50052547A7 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		B9B1D9459BA75E322DB461AE /* SettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSheet.swift; sourceTree = "<group>"; };
+		C36DD66B205728E35BCEA314 /* ConnectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionsView.swift; sourceTree = "<group>"; };
+		C78F419718F1DB745F63738B /* ICEInfoLive.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ICEInfoLive.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEBCEC1E393B0A834CA1843B /* TransportRestClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportRestClient.swift; sourceTree = "<group>"; };
+		D4B966BA01CFEA9541B45A7A /* DelayReasonCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DelayReasonCard.swift; sourceTree = "<group>"; };
+		D7B768C896FDB94EC8A713F6 /* AppCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCard.swift; sourceTree = "<group>"; };
+		D8906903334CF110CED17CA0 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		DCFCD77B84B706112F427D94 /* DepartureRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureRepository.swift; sourceTree = "<group>"; };
+		EA980B09CBB36A8447D0E54D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F26CE506F0ADD1617CC763E3 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
+		FBCF10FE75BA5E25ECD98674 /* SettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsService.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		357779A24129FAFB687AD232 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A8F88AC70C53649703695966 /* LiveActivityManager.swift */,
+				FBCF10FE75BA5E25ECD98674 /* SettingsService.swift */,
+				A27643FFAA18CEF6DFAE2829 /* WidgetUpdater.swift */,
+				232EF5ECBD50F8D308679760 /* WiFiDetectionService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		3D5016F9AD495630CAC505DE /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				D7B768C896FDB94EC8A713F6 /* AppCard.swift */,
+				A2605A54A83AC145EA354993 /* ConnectivityRow.swift */,
+				72FDBE7067FB50F7159668EC /* DelayBadge.swift */,
+				D4B966BA01CFEA9541B45A7A /* DelayReasonCard.swift */,
+				50A27311AE75E7D9815488B2 /* MapCard.swift */,
+				75BD0EC56EC3F6912525C2A1 /* NoWifiView.swift */,
+				8D7333DC75D7C07BADD6E5E6 /* TimelineStopRow.swift */,
+				317F4A9747271A03D06BB34D /* TrainHeader.swift */,
+				682B408090C486C1C9B4D6E4 /* TravelSummaryCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		4780B50E9A6AD83FE68D55C5 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				DCFCD77B84B706112F427D94 /* DepartureRepository.swift */,
+				84ACBE8DAE595D02E68FE403 /* TrainRepository.swift */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		4BEA9F8A73C4E55E1D8E7591 = {
+			isa = PBXGroup;
+			children = (
+				6AD67B12DA41DBC544C175A3 /* ICEInfoLive */,
+				FA5E9F4A2502F98DC3EC99C8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5A036245179E106DD559C99C /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				6025E99911B8A53ACB8B4850 /* DemoData.swift */,
+				AFF701D73282C4C4C438EB7B /* API */,
+				8A563F1D25BF30A4571C0D2F /* Models */,
+				4780B50E9A6AD83FE68D55C5 /* Repositories */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		6AD67B12DA41DBC544C175A3 /* ICEInfoLive */ = {
+			isa = PBXGroup;
+			children = (
+				A1A712F173B18F507B86F63A /* ICEInfoLive.entitlements */,
+				8236A827687395769256F4BE /* App */,
+				5A036245179E106DD559C99C /* Data */,
+				C17A68F5604EDE86CFA733D8 /* Resources */,
+				357779A24129FAFB687AD232 /* Services */,
+				EF0E95227B26B06DFD8CDDFD /* ViewModels */,
+				CD21C4B5E1641F36B4C88A08 /* Views */,
+			);
+			path = ICEInfoLive;
+			sourceTree = "<group>";
+		};
+		8236A827687395769256F4BE /* App */ = {
+			isa = PBXGroup;
+			children = (
+				2A87D4D7FC9A250C324B69C2 /* ICEInfoLiveApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		8A563F1D25BF30A4571C0D2F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				6CE1C659F3C43CE48E9E48B6 /* APIModels.swift */,
+				64ADC05E953F9E0B0E08E3B7 /* DomainModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		AFF701D73282C4C4C438EB7B /* API */ = {
+			isa = PBXGroup;
+			children = (
+				85EE5943A655EFAD3C51034A /* APIError.swift */,
+				18C66358C1716A83DA64A10C /* ICEPortalClient.swift */,
+				CEBCEC1E393B0A834CA1843B /* TransportRestClient.swift */,
+			);
+			path = API;
+			sourceTree = "<group>";
+		};
+		B4A230C3074391AF897E18EA /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				C36DD66B205728E35BCEA314 /* ConnectionsView.swift */,
+				D8906903334CF110CED17CA0 /* HomeView.swift */,
+				F26CE506F0ADD1617CC763E3 /* MapView.swift */,
+				B459887543CBB2553ED2F869 /* ServiceView.swift */,
+				A7F49A865EB0E2EED964E6DD /* StopsView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		BAD4C6C10FC9DC3D0C473919 /* Sheets */ = {
+			isa = PBXGroup;
+			children = (
+				53BCAF8CEE96F6A116A24AF8 /* InfoSheet.swift */,
+				9EFB7A056012AA0461060FC7 /* OnboardingSheet.swift */,
+				B9B1D9459BA75E322DB461AE /* SettingsSheet.swift */,
+			);
+			path = Sheets;
+			sourceTree = "<group>";
+		};
+		C17A68F5604EDE86CFA733D8 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				EA980B09CBB36A8447D0E54D /* Assets.xcassets */,
+				B96806961DC49C50052547A7 /* Localizable.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		CD21C4B5E1641F36B4C88A08 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				8FEE14289977AAC683254F48 /* MainTabView.swift */,
+				3D5016F9AD495630CAC505DE /* Components */,
+				B4A230C3074391AF897E18EA /* Screens */,
+				BAD4C6C10FC9DC3D0C473919 /* Sheets */,
+				FC01B91244400B15F2B60705 /* Theme */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		EF0E95227B26B06DFD8CDDFD /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				7723B715268FE617B1F50E33 /* AppViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		FA5E9F4A2502F98DC3EC99C8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C78F419718F1DB745F63738B /* ICEInfoLive.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FC01B91244400B15F2B60705 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				3A421B83D0BB0ED29EA6EE95 /* Colors.swift */,
+				A197768D50149BF6E855B2EE /* Theme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2D3E1F1ADA609BFCC054FD94 /* ICEInfoLive */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C2F981A0D4B686335C5C1A10 /* Build configuration list for PBXNativeTarget "ICEInfoLive" */;
+			buildPhases = (
+				9D723E372F8F55178346F7BD /* Sources */,
+				BF85BB7F284FF7C34CA5788F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ICEInfoLive;
+			packageProductDependencies = (
+			);
+			productName = ICEInfoLive;
+			productReference = C78F419718F1DB745F63738B /* ICEInfoLive.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		ECCB859053300338C95F330D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = E3E41E0C157E6F1897D1FE1B /* Build configuration list for PBXProject "ICEInfoLive" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				de,
+				en,
+			);
+			mainGroup = 4BEA9F8A73C4E55E1D8E7591;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = FA5E9F4A2502F98DC3EC99C8 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2D3E1F1ADA609BFCC054FD94 /* ICEInfoLive */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BF85BB7F284FF7C34CA5788F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ACE4DEB0B81E328B1944790C /* Assets.xcassets in Resources */,
+				0C5F2DB96ADC542F7DAE0A05 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9D723E372F8F55178346F7BD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9267A90DCAD2D9D1E58E1937 /* APIError.swift in Sources */,
+				382E9BC3A63AE3CE42874AA4 /* APIModels.swift in Sources */,
+				538126DD551DB4BB3A49E7A8 /* AppCard.swift in Sources */,
+				C45493BBC6EDDBC8EC395516 /* AppViewModel.swift in Sources */,
+				FA6D9C7F013D74EA8BF4152A /* Colors.swift in Sources */,
+				943C140082F023FCF6DCE76D /* ConnectionsView.swift in Sources */,
+				06A49978230B06FC99C1BB6C /* ConnectivityRow.swift in Sources */,
+				5218FEE3C4318649DB55ADF5 /* DelayBadge.swift in Sources */,
+				0FAEC7564C0081B5EC639068 /* DelayReasonCard.swift in Sources */,
+				EE1A3D80FD8E6368559185C6 /* DemoData.swift in Sources */,
+				24AD590D48899B0BFDC4969E /* DepartureRepository.swift in Sources */,
+				CA9CB42C915A648E9D8E862F /* DomainModels.swift in Sources */,
+				98FCA55815420F97F8E36D62 /* HomeView.swift in Sources */,
+				BBF9E0CA748247388D8CFB2B /* ICEInfoLiveApp.swift in Sources */,
+				9A252925C010BC4C35AA34CE /* ICEPortalClient.swift in Sources */,
+				8F4FA5F151A4A0369CED10C7 /* InfoSheet.swift in Sources */,
+				1EF955FA038DEF9F13C9C3D2 /* LiveActivityManager.swift in Sources */,
+				276756FB2FE568ECBD415BA3 /* MainTabView.swift in Sources */,
+				320862AF2028D8DC7EFEB3B3 /* MapCard.swift in Sources */,
+				77F550A8387EFD69B38B5CE2 /* MapView.swift in Sources */,
+				EB95D785322A6DC6A181A21F /* NoWifiView.swift in Sources */,
+				948E1B34DBAAF8A781C151D2 /* OnboardingSheet.swift in Sources */,
+				7BE2CD9FA3934C97CD5958D8 /* ServiceView.swift in Sources */,
+				426E884496AAE0F30D52252A /* SettingsService.swift in Sources */,
+				B7AA5F084C73095A84443AA4 /* SettingsSheet.swift in Sources */,
+				4E7D594DAE87BA7ADE653CA4 /* StopsView.swift in Sources */,
+				286F6615A6DAE8AC9A96886C /* Theme.swift in Sources */,
+				8989888B67E3D2662E2A9A54 /* TimelineStopRow.swift in Sources */,
+				28207645B0B46D73D2C99E35 /* TrainHeader.swift in Sources */,
+				F81ECE81A6FF208CBE4D020A /* TrainRepository.swift in Sources */,
+				023DDF1D7E1404132D081E96 /* TransportRestClient.swift in Sources */,
+				3FE2057ADABC877E6A3C10A3 /* TravelSummaryCard.swift in Sources */,
+				D95EC9B75F10A694BFF3B315 /* WiFiDetectionService.swift in Sources */,
+				D45572B42CB275B5C350440F /* WidgetUpdater.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3570C613ED28480E892D7CB5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = ICEInfoLive/ICEInfoLive.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = ICEInfoLive/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.nruge.iceinfo;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C24EF57896F48428AB45B1B8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = ICEInfoLive/ICEInfoLive.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = ICEInfoLive/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.nruge.iceinfo;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E1BD3724F9EE964B41A5910F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		FC32963E4C9A5F6994416D59 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C2F981A0D4B686335C5C1A10 /* Build configuration list for PBXNativeTarget "ICEInfoLive" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C24EF57896F48428AB45B1B8 /* Debug */,
+				3570C613ED28480E892D7CB5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E3E41E0C157E6F1897D1FE1B /* Build configuration list for PBXProject "ICEInfoLive" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FC32963E4C9A5F6994416D59 /* Debug */,
+				E1BD3724F9EE964B41A5910F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = ECCB859053300338C95F330D /* Project object */;
+}
