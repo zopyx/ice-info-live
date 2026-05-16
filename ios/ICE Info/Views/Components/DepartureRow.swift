@@ -25,7 +25,7 @@ struct DepartureRow: View {
                     TrainTypeBadge(type: String(parts[0]), muted: dep.cancelled)
                     Text(String(parts[1]))
                         .font(.body.weight(.bold))
-                        .foregroundStyle(dep.cancelled ? .secondary.opacity(0.4) as! Color : .primary)
+                        .foregroundStyle(dep.cancelled ? Color.secondary.opacity(0.4) : Color.primary)
                 } else {
                     Text(dep.line)
                         .font(.body.weight(.bold))

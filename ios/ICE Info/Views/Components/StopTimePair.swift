@@ -10,6 +10,20 @@ struct StopTimePair: View {
 
     private var isDelayed: Bool { delay > 0 && !isPassed && !isCancelled && !actual.isEmpty }
 
+    private var scheduledColor: Color {
+        if isCancelled { return Color.secondary.opacity(0.35) }
+        if isDelayed { return Color.secondary.opacity(0.5) }
+        if isPassed { return Color.primary.opacity(0.4) }
+        return .primary
+    }
+
+    private var actualColor: Color {
+        if isCancelled { return Color.secondary.opacity(0.35) }
+        if isPassed { return Color.primary.opacity(0.4) }
+        if isDelayed && delay >= 5 { return .red }
+        return .green
+    }
+
     var body: some View {
         let displayActual = actual.isEmpty ? scheduled : actual
 
@@ -17,31 +31,15 @@ struct StopTimePair: View {
             Text(scheduled)
                 .font(.system(.caption, design: .monospaced))
                 .fontWeight(isNext && !isDelayed && !isCancelled ? .semibold : .regular)
-                .foregroundStyle {
-                    if isCancelled { return .secondary.opacity(0.35) }
-                    if isDelayed { return .secondary.opacity(0.5) }
-                    if isPassed { return .primary.opacity(0.4) }
-                    return .primary
-                }
+                .foregroundStyle(scheduledColor)
                 .strikethrough(isDelayed || isCancelled)
 
             Text(displayActual)
                 .font(.system(.caption, design: .monospaced))
                 .fontWeight(isDelayed || isNext ? .bold : .regular)
-                .foregroundStyle {
-                    if isCancelled { return .secondary.opacity(0.35) }
-                    if isPassed { return .primary.opacity(0.4) }
-                    if isDelayed && delay >= 5 { return .red }
-                    return .green
-                }
+                .foregroundStyle(actualColor)
                 .strikethrough(isCancelled)
         }
     }
 }
 
-extension Text {
-    @ViewBuilder
-    func foregroundStyle(_ color: Color) -> some View {
-        self.foregroundColor(color)
-    }
-}

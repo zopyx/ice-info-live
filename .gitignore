@@ -21,3 +21,19 @@ local.properties
 **/release/output-metadata.json
 **/release/mapping.txt
 
+# Xcode
+*.xcuserdata
+*.xcuserstate
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+Pods/
+build/
+*.build/
+
+
