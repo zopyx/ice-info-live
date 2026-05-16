@@ -3,7 +3,7 @@ import Network
 import SystemConfiguration.CaptiveNetwork
 
 @Observable
-final class NetworkMonitor {
+final class NetworkMonitor: @unchecked Sendable {
     var isWIFIonICE = false
     var isChecking = false
 

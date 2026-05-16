@@ -43,6 +43,9 @@ targets:
       - path: ICE Info/Widget/TrainWidget.swift
       - path: ICE Info/Widget/WidgetBundle.swift
       - path: ICE Info/Widget/Info.plist
+      - path: ICE Info/Models/TrainModels.swift
+      - path: ICE Info/Models/SampleData.swift
+      - path: ICE Info/Utilities/SettingsManager.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nruge.iceinfo.widget

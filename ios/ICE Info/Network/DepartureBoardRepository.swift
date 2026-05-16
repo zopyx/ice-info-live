@@ -56,14 +56,7 @@ actor DepartureBoardRepository {
             return rawDepartures.map { raw in
                 let scheduledTime = formatTime(isoString: raw.whenScheduled)
                 let delayMin = (raw.delay ?? 0) / 60
-                let platform: String
-                if let plannedPlatform = raw.platform {
-                    platform = plannedPlatform
-                } else if let actualPlatform = raw.actualPlatform {
-                    platform = actualPlatform
-                } else {
-                    platform = ""
-                }
+                let platform = raw.platform ?? ""
                 return Departure(
                     line: raw.line.name,
                     destination: raw.destination.name,
@@ -93,7 +86,7 @@ actor DepartureBoardRepository {
     }
 }
 
-private struct RawDeparture: Codable {
+private struct RawDeparture: Decodable {
     let line: RawLine
     let destination: RawDestination
     let whenScheduled: String?
