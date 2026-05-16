@@ -28,14 +28,14 @@ enum SettingsKeys {
 
     var wrappedValue: T {
         get { suite.object(forKey: key) as? T ?? defaultValue }
-        set { suite.set(newValue, forKey: key) }
+        nonmutating set { suite.set(newValue, forKey: key) }
     }
 }
 
-struct SettingsManager {
-    static var shared = SettingsManager()
+final class SettingsManager: @unchecked Sendable {
+    static let shared = SettingsManager()
 
-    private let suite: UserDefaults = {
+    private lazy var suite: UserDefaults = {
         UserDefaults(suiteName: SettingsKeys.appGroupID) ?? .standard
     }()
 
