@@ -85,23 +85,27 @@ struct DepartureTimePairView: View {
             Text(scheduled)
                 .font(.system(.body, design: .monospaced))
                 .fontWeight(.semibold)
-                .foregroundStyle {
-                    if cancelled { return .secondary.opacity(0.35) as! Color }
-                    if isDelayed { return .secondary.opacity(0.5) as! Color }
-                    return .primary
-                }
+                .foregroundStyle(scheduledColor)
                 .strikethrough(isDelayed || cancelled)
 
             Text(actual)
                 .font(.system(.body, design: .monospaced))
                 .fontWeight(.bold)
-                .foregroundStyle {
-                    if cancelled { return .secondary.opacity(0.35) as! Color }
-                    if isDelayed && delayMinutes >= 5 { return .red }
-                    return .green
-                }
+                .foregroundStyle(actualColor)
                 .strikethrough(cancelled)
         }
+    }
+
+    private var scheduledColor: Color {
+        if cancelled { return .secondary.opacity(0.35) }
+        if isDelayed { return .secondary.opacity(0.5) }
+        return .primary
+    }
+
+    private var actualColor: Color {
+        if cancelled { return .secondary.opacity(0.35) }
+        if isDelayed && delayMinutes >= 5 { return .red }
+        return .green
     }
 
     private func addMinutesToTime(_ time: String, _ minutes: Int) -> String {

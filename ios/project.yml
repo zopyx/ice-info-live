@@ -1,0 +1,54 @@
+name: ICE Info
+options:
+  bundleIdPrefix: com.nruge.iceinfo
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "16.0"
+  groupSortPosition: top
+  generateEmptyDirectories: true
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: ""
+
+targets:
+  ICE Info:
+    type: application
+    platform: iOS
+    sources:
+      - path: ICE Info
+        excludes:
+          - "Info.plist"
+          - "Widget/Info.plist"
+          - "Widget/TrainWidget.swift"
+          - "Widget/WidgetBundle.swift"
+          - "Widget/Widget.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nruge.iceinfo
+        INFOPLIST_FILE: ICE Info/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MACCATALYST: "NO"
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        CODE_SIGN_STYLE: Automatic
+    entitlements:
+      path: ICE Info/ICE Info.entitlements
+
+  ICE Info Widget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ICE Info/Widget/TrainWidget.swift
+      - path: ICE Info/Widget/WidgetBundle.swift
+      - path: ICE Info/Widget/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nruge.iceinfo.widget
+        INFOPLIST_FILE: ICE Info/Widget/Info.plist
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - target: ICE Info
+    entitlements:
+      path: ICE Info/Widget/Widget.entitlements

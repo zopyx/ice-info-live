@@ -1,5 +1,5 @@
 import Foundation
-import Combine
+import SystemConfiguration.CaptiveNetwork
 
 @MainActor @Observable
 final class MainViewModel {
@@ -201,6 +201,3 @@ extension TrainStatus {
     }
 }
 
-#if canImport(CoreTelephony)
-import CoreTelephony
-#endif

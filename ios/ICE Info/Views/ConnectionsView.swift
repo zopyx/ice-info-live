@@ -43,7 +43,7 @@ struct ConnectionsView: View {
                         HStack(spacing: 4) {
                             Text("Ankunft \(stop.scheduledArrival)")
                                 .font(.caption)
-                                .foregroundStyle(isDelayed ? .secondary.opacity(0.5) as! Color : .secondary)
+                                .foregroundStyle(isDelayed ? Color.secondary.opacity(0.5) : Color.secondary)
                                 .strikethrough(isDelayed)
                             if isDelayed {
                                 Text(displayTime)

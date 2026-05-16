@@ -8,6 +8,13 @@ struct TimelineStopRow: View {
     private var isPassed: Bool { stop.passed }
     private var isNext: Bool { stop.isNext }
 
+    private var nameColor: Color {
+        if stop.isCancelled { return .red.opacity(0.7) }
+        if isPassed { return .primary.opacity(0.45) }
+        if isNext { return Color(.systemBackground) }
+        return .primary
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             timeColumn
@@ -87,12 +94,7 @@ struct TimelineStopRow: View {
             Text(stop.name)
                 .font(isNext ? .title3 : .body)
                 .fontWeight(isNext ? .bold : (isPassed ? .regular : .medium))
-                .foregroundStyle {
-                    if stop.isCancelled { return .red.opacity(0.7) as! Color }
-                    if isPassed { return .primary.opacity(0.45) as! Color }
-                    if isNext { return Color(.systemBackground) as! Color }
-                    return .primary
-                }
+                .foregroundStyle(nameColor)
                 .strikethrough(stop.isCancelled)
 
             if stop.isCancelled {
