@@ -51,7 +51,7 @@ fun TravelSummaryCard(status: TrainStatus) {
                 text = " ➜ $displayDestination",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(7.dp))
 
@@ -63,30 +63,30 @@ fun TravelSummaryCard(status: TrainStatus) {
                 Text(
                     text = stringResource(R.string.travel_remaining_km, remainingDistanceToTarget / 1000),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     text = if (targetStop != null)
                         stringResource(R.string.travel_remaining_stops, stopsToTarget.size)
                         else stringResource(R.string.travel_stops_progress, passedStops, totalStopsInJourney),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                 )
             }
             if (status.speed > 0) {
                 LinearWavyProgressIndicator(
                     progress = { progressPercent },
                     modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                     waveSpeed = (status.speed / 15f).coerceAtMost(20f).dp
                 )
             } else {
                 LinearProgressIndicator(
                     progress = { progressPercent },
                     modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                 )
             }
             Spacer(modifier = Modifier.height(7.dp))
@@ -100,7 +100,7 @@ fun TravelSummaryCard(status: TrainStatus) {
                         text = stringResource(R.string.travel_arrival, displayEta),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         text = stringResource(
@@ -111,20 +111,20 @@ fun TravelSummaryCard(status: TrainStatus) {
                             )
                         ),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                     )
                 }
                 if (displayDelay > 0) {
                     DelayBadge(delayMinutes = displayDelay)
                 } else {
                     Surface(
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f), 
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), 
                         shape = MaterialTheme.shapes.small
                     ) {
                         Text(
                             text = stringResource(R.string.travel_on_time),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold
                         )

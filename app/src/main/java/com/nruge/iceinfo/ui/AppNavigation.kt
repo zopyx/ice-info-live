@@ -2,6 +2,8 @@ package com.nruge.iceinfo.ui
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -30,7 +32,6 @@ fun AppNavigation(
     pois: List<PoiItem>,
     connections: List<ConnectingTrain>,
     departures: List<Departure>,
-    isDarkTheme: Boolean,
     isMockMode: Boolean,
     demoSpeed: Int,
     showDemoSpeed: Boolean,
@@ -38,8 +39,10 @@ fun AppNavigation(
     onDemoSpeedChange: (Int) -> Unit,
     onTargetStopChange: (String?) -> Unit
 ) {
-    val enter: EnterTransition = if (reducedMotion) EnterTransition.None else fadeIn(animationSpec = tween(220))
-    val exit: ExitTransition = if (reducedMotion) ExitTransition.None else fadeOut(animationSpec = tween(220))
+    val enter: EnterTransition = if (reducedMotion) EnterTransition.None else
+        fadeIn(animationSpec = tween(durationMillis = 300, delayMillis = 90, easing = LinearOutSlowInEasing))
+    val exit: ExitTransition = if (reducedMotion) ExitTransition.None else
+        fadeOut(animationSpec = tween(durationMillis = 90, easing = FastOutLinearInEasing))
 
     NavHost(
         navController = navController,
@@ -53,7 +56,6 @@ fun AppNavigation(
         composable(Screen.Home.route) {
             HomeScreen(
                 status = if (isMockMode) trainStatus.copy(speed = demoSpeed) else trainStatus,
-                isDarkTheme = isDarkTheme,
                 isMockMode = isMockMode,
                 demoSpeed = demoSpeed,
                 showDemoSpeed = showDemoSpeed,

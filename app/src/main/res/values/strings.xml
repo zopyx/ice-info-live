@@ -5,6 +5,7 @@
     <!-- Top Bar -->
     <string name="status_demo">Demo Modus</string>
     <string name="status_live">🟢 Live</string>
+    <string name="status_api_unreachable">Keine API-Daten</string>
     <string name="demo_end">Demo beenden</string>
     <string name="notifications_cd">Benachrichtigung</string>
     <string name="menu_cd">Menü</string>
@@ -13,6 +14,7 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
+    <string name="theme_dynamic">Dynamisch</string>
     <string name="menu_info">Informationen</string>
     <string name="menu_changelog">Änderungsprotokoll</string>
     <string name="changelog_title">Änderungsprotokoll</string>
@@ -20,6 +22,11 @@
     <string name="changelog_fixes">Fehlerbehebungen</string>
 
     <!-- No WiFi Screen -->
+    <string name="welcome_title">Willkommen an Bord</string>
+    <string name="welcome_subtitle">Verbinde dich mit dem ICE-WLAN für Live-Daten zu deinem Zug — oder probiere den Demo-Modus.</string>
+    <string name="welcome_connect_title">Mit WIFIonICE verbinden</string>
+    <string name="welcome_connect_desc">Öffne die WLAN-Einstellungen und wähle das Zug-Netzwerk.</string>
+    <string name="welcome_demo_desc">Sieh dir die App mit Beispieldaten an, auch ohne Zugfahrt.</string>
     <string name="no_wifi_title">Kein ICE WLAN gefunden</string>
     <string name="no_wifi_text">Verbinde dich mit \"WIFIonICE\"\nund tippe auf Verbinden.</string>
     <string name="no_wifi_connect">🔄 Verbinden</string>

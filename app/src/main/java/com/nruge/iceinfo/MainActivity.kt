@@ -9,11 +9,14 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +28,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,7 +56,7 @@ import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import kotlinx.coroutines.launch
 import com.nruge.iceinfo.model.*
-import com.nruge.iceinfo.ui.AppBottomBar
+import com.nruge.iceinfo.ui.AppFloatingNavBar
 import com.nruge.iceinfo.ui.AppNavigation
 import com.nruge.iceinfo.ui.AppTopBar
 import com.nruge.iceinfo.ui.ChangelogDialog
@@ -258,11 +262,15 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
-                val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+                val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+                LaunchedEffect(currentRoute) {
+                    scrollBehavior.state.contentOffset = 0f
+                }
 
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     snackbarHost = {
                         SnackbarHost(snackbarHostState) { data ->
                             Snackbar(snackbarData = data)
@@ -272,6 +280,7 @@ class MainActivity : ComponentActivity() {
                         AppTopBar(
                             isMockMode = isMockMode,
                             isConnected = trainStatus.isConnected,
+                            isOnTrainWifi = isWIFIonICEStatus,
                             serviceRunning = serviceRunning,
                             onToggleService = {
                                 if (serviceRunning) {
@@ -306,44 +315,84 @@ class MainActivity : ComponentActivity() {
                         )
                     },
                 ) { innerPadding ->
+                    var demoBackProgress by remember { mutableFloatStateOf(0f) }
+                    var demoBackInProgress by remember { mutableStateOf(false) }
+
+                    PredictiveBackHandler(enabled = isMockMode) { events ->
+                        try {
+                            events.collect { e ->
+                                demoBackInProgress = true
+                                demoBackProgress = e.progress
+                            }
+                            viewModel.setMockMode(false)
+                        } catch (_: kotlinx.coroutines.CancellationException) {
+                        } finally {
+                            demoBackInProgress = false
+                            demoBackProgress = 0f
+                        }
+                    }
+
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (!trainStatus.isConnected && !isMockMode) {
+                        if (demoBackInProgress) {
                             NoWifiScreen(
                                 modifier = Modifier.padding(innerPadding),
                                 status = trainStatus,
                                 isWIFIonICE = isWIFIonICEStatus,
-                                onRetry = { viewModel.retryConnection() },
-                                onMockMode = { viewModel.setMockMode(true) }
-                            )
-                        } else {
-                            AppNavigation(
-                                navController = navController,
-                                innerPadding = innerPadding,
-                                trainStatus = trainStatus,
-                                pois = pois,
-                                connections = connections,
-                                departures = departures,
-                                isDarkTheme = isDark,
-                                isMockMode = isMockMode,
-                                demoSpeed = demoSpeed,
-                                showDemoSpeed = showDemoSpeed,
-                                reducedMotion = reducedMotion,
-                                onDemoSpeedChange = {
-                                    viewModel.setDemoSpeed(it)
-                                    if (serviceRunning && isMockMode) {
-                                        val intent = Intent(context, IceNotificationService::class.java).apply {
-                                            putExtra(IceNotificationService.EXTRA_DEMO_SPEED, it)
-                                        }
-                                        context.startForegroundService(intent)
-                                    }
-                                },
-                                onTargetStopChange = { viewModel.setTargetStop(it) }
+                                onRetry = {},
+                                onMockMode = {}
                             )
                         }
 
-                        AppBottomBar(
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    if (demoBackInProgress) {
+                                        val s = 1f - (demoBackProgress * 0.15f)
+                                        scaleX = s
+                                        scaleY = s
+                                        alpha = 1f - demoBackProgress * 0.9f
+                                    }
+                                }
+                        ) {
+                            if (!trainStatus.isConnected && !isMockMode && !isWIFIonICEStatus) {
+                                NoWifiScreen(
+                                    modifier = Modifier.padding(innerPadding),
+                                    status = trainStatus,
+                                    isWIFIonICE = isWIFIonICEStatus,
+                                    onRetry = { viewModel.retryConnection() },
+                                    onMockMode = { viewModel.setMockMode(true) }
+                                )
+                            } else {
+                                AppNavigation(
+                                    navController = navController,
+                                    innerPadding = innerPadding,
+                                    trainStatus = trainStatus,
+                                    pois = pois,
+                                    connections = connections,
+                                    departures = departures,
+                                    isMockMode = isMockMode,
+                                    demoSpeed = demoSpeed,
+                                    showDemoSpeed = showDemoSpeed,
+                                    reducedMotion = reducedMotion,
+                                    onDemoSpeedChange = {
+                                        viewModel.setDemoSpeed(it)
+                                        if (serviceRunning && isMockMode) {
+                                            val intent = Intent(context, IceNotificationService::class.java).apply {
+                                                putExtra(IceNotificationService.EXTRA_DEMO_SPEED, it)
+                                            }
+                                            context.startForegroundService(intent)
+                                        }
+                                    },
+                                    onTargetStopChange = { viewModel.setTargetStop(it) }
+                                )
+                            }
+                        }
+
+                        if ((trainStatus.isConnected || isMockMode || isWIFIonICEStatus) && !demoBackInProgress)
+                        AppFloatingNavBar(
                             currentRoute = currentRoute,
-                            enabled = trainStatus.isConnected || isMockMode,
+                            enabled = true,
                             onNavigate = { route ->
                                 navController.navigate(route) {
                                     popUpTo(navController.graph.findStartDestination().id) {
@@ -353,7 +402,10 @@ class MainActivity : ComponentActivity() {
                                     restoreState = true
                                 }
                             },
-                            modifier = Modifier.align(Alignment.BottomCenter)
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .navigationBarsPadding()
+                                .padding(bottom = 16.dp)
                         )
                     }
                 }

@@ -51,10 +51,10 @@ val sampleTrainStatus = TrainStatus(
             track = "4", passed = false, isNext = true, distanceFromStart = 150000,
             scheduledDeparture = "09:33", actualDeparture = "09:36", departureDelayMinutes = 3
         ),
-        // 0 min Delay — pünktlich, kein Highlight
+        // -5 min → überpünktlich → Rainbow 🌈
         TrainStop(
             name = "Göttingen", evaNr = "8000128",
-            scheduledArrival = "10:15", actualArrival = "10:15", delayMinutes = 0,
+            scheduledArrival = "10:15", actualArrival = "10:10", delayMinutes = -5,
             track = "10", passed = false, isNext = false, distanceFromStart = 250000,
             scheduledDeparture = "10:17", actualDeparture = "10:17", departureDelayMinutes = 0
         ),

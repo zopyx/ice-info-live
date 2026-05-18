@@ -2,7 +2,6 @@ package com.nruge.iceinfo.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -33,7 +32,6 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.color.ColorProvider
 import androidx.glance.LocalContext
 import com.nruge.iceinfo.MainActivity
 import com.nruge.iceinfo.R
@@ -278,10 +276,8 @@ class TrainWidget : GlanceAppWidget() {
     private fun EtaPill(eta: String, delayMinutes: Int) {
         val (containerColor, textColor) = when {
             delayMinutes >= 5 -> GlanceTheme.colors.errorContainer to GlanceTheme.colors.onErrorContainer
-            delayMinutes > 0  -> ColorProvider(Color(0xFFFFE0B2), Color(0xFF4A2800)) to
-                                 ColorProvider(Color(0xFF7A4A00), Color(0xFFFFDDB0))
-            else              -> ColorProvider(Color(0xFFC8E6C9), Color(0xFF0E3A1A)) to
-                                 ColorProvider(Color(0xFF1B5E20), Color(0xFFB8E6BD))
+            delayMinutes > 0  -> GlanceTheme.colors.secondaryContainer to GlanceTheme.colors.onSecondaryContainer
+            else              -> GlanceTheme.colors.primaryContainer to GlanceTheme.colors.onPrimaryContainer
         }
         Box(
             modifier = GlanceModifier
@@ -310,13 +306,13 @@ class TrainWidget : GlanceAppWidget() {
                 context.getString(R.string.widget_delay_format, delayMinutes)
             )
             delayMinutes > 0 -> Triple(
-                ColorProvider(Color(0xFFFFE0B2), Color(0xFF4A2800)),
-                ColorProvider(Color(0xFF7A4A00), Color(0xFFFFDDB0)),
+                GlanceTheme.colors.secondaryContainer,
+                GlanceTheme.colors.onSecondaryContainer,
                 context.getString(R.string.widget_delay_format, delayMinutes)
             )
             else -> Triple(
-                ColorProvider(Color(0xFFC8E6C9), Color(0xFF0E3A1A)),
-                ColorProvider(Color(0xFF1B5E20), Color(0xFFB8E6BD)),
+                GlanceTheme.colors.primaryContainer,
+                GlanceTheme.colors.onPrimaryContainer,
                 context.getString(R.string.travel_on_time)
             )
         }

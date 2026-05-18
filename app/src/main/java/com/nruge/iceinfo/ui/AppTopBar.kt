@@ -12,7 +12,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -24,6 +23,7 @@ import com.nruge.iceinfo.R
 fun AppTopBar(
     isMockMode: Boolean,
     isConnected: Boolean,
+    isOnTrainWifi: Boolean,
     serviceRunning: Boolean,
     onToggleService: () -> Unit,
     onExitDemo: () -> Unit,
@@ -32,7 +32,13 @@ fun AppTopBar(
     onShowChangelog: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    TopAppBar(
+    val apiUnreachable = isOnTrainWifi && !isConnected && !isMockMode
+    val barContainerColor = MaterialTheme.colorScheme.surfaceContainer
+    val barContentColor = MaterialTheme.colorScheme.onSurface
+    val scrolledFraction = scrollBehavior?.state?.overlappedFraction ?: 0f
+
+    Column {
+        TopAppBar(
         title = {
             Column {
                 Text(
@@ -43,8 +49,13 @@ fun AppTopBar(
                     isMockMode -> Text(
                         text = stringResource(R.string.status_demo),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = barContentColor,
                         fontStyle = FontStyle.Italic
+                    )
+                    apiUnreachable -> Text(
+                        text = stringResource(R.string.status_api_unreachable),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = barContentColor
                     )
                     isConnected -> Text(
                         text = stringResource(R.string.status_live),
@@ -68,44 +79,15 @@ fun AppTopBar(
             var menuExpanded by remember { mutableStateOf(false) }
 
             if (isConnected || isMockMode) {
-                SplitButtonLayout(
-                    leadingButton = {
-                        SplitButtonDefaults.TonalLeadingButton(
-                            onClick = onToggleService,
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        ) {
-                            Icon(
-                                imageVector = if (serviceRunning) Icons.Default.NotificationsActive else Icons.Default.Notifications,
-                                contentDescription = stringResource(R.string.notifications_cd)
-                            )
-                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text(stringResource(R.string.notifications_cd))
-                        }
-                    },
-                    trailingButton = {
-                        SplitButtonDefaults.TonalTrailingButton(
-                            checked = menuExpanded,
-                            onCheckedChange = { menuExpanded = it },
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        ) {
-                            Icon(
-                                imageVector = if (menuExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = stringResource(R.string.menu_cd),
-                                modifier = Modifier.size(SplitButtonDefaults.TrailingIconSize)
-                            )
-                        }
-                    }
-                )
-            } else {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.menu_cd))
+                IconButton(onClick = onToggleService) {
+                    Icon(
+                        imageVector = if (serviceRunning) Icons.Default.NotificationsActive else Icons.Default.Notifications,
+                        contentDescription = stringResource(R.string.notifications_cd)
+                    )
                 }
+            }
+            IconButton(onClick = { menuExpanded = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.menu_cd))
             }
 
             DropdownMenu(
@@ -131,85 +113,54 @@ fun AppTopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            scrolledContainerColor = MaterialTheme.colorScheme.background,
-            titleContentColor = MaterialTheme.colorScheme.onBackground,
-            navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-            actionIconContentColor = MaterialTheme.colorScheme.onBackground
+            containerColor = barContainerColor,
+            scrolledContainerColor = barContainerColor,
+            titleContentColor = barContentColor,
+            navigationIconContentColor = barContentColor,
+            actionIconContentColor = barContentColor
         ),
         scrollBehavior = scrollBehavior
     )
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = scrolledFraction)
+    )
+    } // Column
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AppBottomBar(
+fun AppFloatingNavBar(
     currentRoute: String?,
     enabled: Boolean,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 4.dp)
-            .padding(bottom = 20.dp),
-        contentAlignment = Alignment.Center
+    HorizontalFloatingToolbar(
+        expanded = true,
+        modifier = modifier,
+        colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+            toolbarContainerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-            tonalElevation = 0.dp,
-            shadowElevation = 12.dp,
-            border = BorderStroke(0.75.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier.wrapContentSize()
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
-                    .selectableGroup()
-                    .animateContentSize(),
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                verticalAlignment = Alignment.CenterVertically
+        navigationItems.forEach { screen ->
+            val isSelected = currentRoute == screen.route
+            ToggleButton(
+                checked = isSelected,
+                onCheckedChange = { if (!isSelected) onNavigate(screen.route) },
+                enabled = enabled,
+                colors = ToggleButtonDefaults.toggleButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             ) {
-                navigationItems.forEach { screen ->
-                    val isSelected = currentRoute == screen.route
-
-                    Surface(
-                        onClick = { onNavigate(screen.route) },
-                        enabled = enabled,
-                        shape = CircleShape,
-                        color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
-                                else Color.Transparent,
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(
-                                    horizontal = if (isSelected) 14.dp else 8.dp,
-                                    vertical = 12.dp
-                                ),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = screen.icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                                Spacer(Modifier.width(8.dp))
-                            }
-                            Text(
-                                text = stringResource(screen.labelRes),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
-                                color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
-                            )
-                        }
-                    }
+                Icon(
+                    imageVector = screen.icon,
+                    contentDescription = stringResource(screen.labelRes)
+                )
+                if (isSelected) {
+                    Spacer(Modifier.width(ToggleButtonDefaults.IconSpacing))
+                    Text(stringResource(screen.labelRes))
                 }
             }
         }

@@ -1,87 +1,28 @@
 package com.nruge.iceinfo.ui.theme
+
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.platform.LocalContext
 
-private val DBLightColorScheme = lightColorScheme(
-
-    primary = DBRot,
-    onPrimary = DBWeiss,
-    primaryContainer = DBRotHell,
-    onPrimaryContainer = DBDunkelgrau,
-
-    secondary = DBMittelgrau,
-    onSecondary = DBWeiss,
-    secondaryContainer = DBGrauContainer,
-    onSecondaryContainer = DBDunkelgrau,
-
-    tertiary = DBBlau,
-    onTertiary = DBWeiss,
-    tertiaryContainer = DBBlauHell,
-    onTertiaryContainer = DBDunkelgrau,
-
-    error = DBRot,
-    onError = DBWeiss,
-    errorContainer = DBRotHell,
-    onErrorContainer = DBRotDark,
-
-    background = DBHellgrau,
-    onBackground = DBDunkelgrau,
-
-    surface = DBWeiss,
-    onSurface = DBDunkelgrau,
-    surfaceVariant = DBHellgrau,
-    onSurfaceVariant = DBMittelgrau,
-
-    outline = DBMittelgrau,
-    outlineVariant = Color(0xFFB8C2CA)
-)
-
-private val DBDarkColorScheme = darkColorScheme(
-    primary = DBRot,
-    onPrimary = DBWeiss,
-    primaryContainer = DBDarkPrimaryContainer,
-    onPrimaryContainer = DBDarkOnPrimaryContainer,
-
-    secondary = DBDarkSecondary,
-    onSecondary = DBDunkelblau,
-    secondaryContainer = DBDarkSecondaryContainer,
-    onSecondaryContainer = DBDarkOnSecondaryContainer,
-
-    tertiary = DBDarkTertiary,
-    onTertiary = DBDunkelblau,
-    tertiaryContainer = DBDarkTertiaryContainer,
-    onTertiaryContainer = DBDarkOnTertiaryContainer,
-
-    error = DBDarkError,
-    onError = DBDunkelblau,
-    errorContainer = DBDarkErrorContainer,
-    onErrorContainer = DBDarkOnErrorContainer,
-
-    background = DBDarkBackground,
-    onBackground = DBDarkOnBackground,
-
-    surface = DBDarkSurface,
-    onSurface = DBDarkOnSurface,
-    surfaceVariant = DBDarkSurfaceVariant,
-    onSurfaceVariant = DBDarkOnSurfaceVariant,
-
-    outline = DBDarkOutline,
-    outlineVariant = DBDarkOutlineVariant
-)
+val LocalDarkTheme = compositionLocalOf { false }
 
 @Composable
 fun ICEInfoTheme(
     darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DBDarkColorScheme else DBLightColorScheme
+    val ctx = LocalContext.current
+    val colorScheme = if (darkTheme) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalDarkTheme provides darkTheme) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

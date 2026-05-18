@@ -37,6 +37,21 @@ private data class ChangelogEntry(
 
 private val changelog = listOf(
     ChangelogEntry(
+        version = "5.0",
+        newFeatures = listOf(
+            "Live Update (Android 16+): Die Reise wird jetzt als interaktive Fortschritts-Notification auf dem Sperrbildschirm und im Always-On-Display angezeigt",
+            "Status-Chip in der Statusleiste: zeigt die aktuelle Geschwindigkeit; bei Verspätung wechselt es zwischen Speed und Verspätungs-Minuten",
+            "Dynamische Material You Farben wieder eingebaut",
+            "Zurück-Gesten um zum Status oder zum Willkommensbildschirm zurückzukehren"
+        ),
+        fixes = listOf(
+            "Statusbildschirm angepasst. Konsistenters Material Design.",
+            "Neu Gestalteter Willkommensbildschirm",
+            "[Issue #9] Bei Aktiver Wlan-Verbindung fällt die App nicht mehr in den Willkommensbildschirm, sondern zeigt eine 'Keine API Verbingung'-Meldung an.",
+            "[Issue #7] Textfarben von normalem Text nicht mehr Hellrot"
+        )
+    ),
+    ChangelogEntry(
         version = "4.0.2",
         fixes = listOf(
             "Hotfix: App stürzte beim Start ab, ist gefixt"

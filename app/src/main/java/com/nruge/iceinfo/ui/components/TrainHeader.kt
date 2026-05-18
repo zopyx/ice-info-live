@@ -19,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.sampleTrainStatus
-import com.nruge.iceinfo.ui.theme.DBRot
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
 import com.nruge.iceinfo.util.getIceClass
 import com.nruge.iceinfo.util.getIceDrawable
@@ -104,7 +103,7 @@ fun TrainHeader(status: TrainStatus, reducedMotion: Boolean = false) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 50.dp),
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         ) {
             Row(
                 modifier = Modifier
@@ -119,19 +118,19 @@ fun TrainHeader(status: TrainStatus, reducedMotion: Boolean = false) {
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         fontStyle = FontStyle.Italic,
-                        color = DBRot
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                     Text(
                         text = getIceClass(status.tzn),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                     )
                 }
                 Text(
                     text = "${status.speed} km/h",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Black,
-                    color = DBRot
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }

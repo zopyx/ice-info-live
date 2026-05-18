@@ -36,6 +36,8 @@ import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.PoiItem
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.model.TrainStop
+import com.nruge.iceinfo.ui.theme.onSuccessContainer
+import com.nruge.iceinfo.ui.theme.rainbowColor
 
 @Composable
 fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
@@ -64,34 +66,58 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
     ) {
-        // Times column LEFT of timeline — 2×2 grid (sched|actual per row)
-        Column(
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.Center,
+        // Times + delay column LEFT of timeline
+        Row(
             modifier = Modifier
-                .width(88.dp)
                 .fillMaxHeight()
-                .padding(end = 6.dp, top = if (isNext) 12.dp else 8.dp, bottom = if (isNext) 12.dp else 8.dp)
+                .padding(end = 4.dp, top = if (isNext) 12.dp else 8.dp, bottom = if (isNext) 12.dp else 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (stop.scheduledArrival.isNotEmpty()) {
-                StopTimePair(
-                    scheduled = stop.scheduledArrival,
-                    actual = stop.actualArrival,
-                    delay = stop.delayMinutes,
-                    isPassed = isPassed,
-                    isNext = isNext,
-                    isCancelled = isCancelled
-                )
+            // 2×2 time grid
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxHeight()
+            ) {
+                if (stop.scheduledArrival.isNotEmpty()) {
+                    StopTimePair(
+                        scheduled = stop.scheduledArrival,
+                        actual = stop.actualArrival,
+                        delay = stop.delayMinutes,
+                        isPassed = isPassed,
+                        isNext = isNext,
+                        isCancelled = isCancelled
+                    )
+                }
+                if (stop.scheduledDeparture.isNotEmpty()) {
+                    StopTimePair(
+                        scheduled = stop.scheduledDeparture,
+                        actual = stop.actualDeparture,
+                        delay = stop.departureDelayMinutes,
+                        isPassed = isPassed,
+                        isNext = isNext,
+                        isCancelled = isCancelled
+                    )
+                }
             }
-            if (stop.scheduledDeparture.isNotEmpty()) {
-                StopTimePair(
-                    scheduled = stop.scheduledDeparture,
-                    actual = stop.actualDeparture,
-                    delay = stop.departureDelayMinutes,
-                    isPassed = isPassed,
-                    isNext = isNext,
-                    isCancelled = isCancelled
-                )
+
+            // Delay column — zentriert neben dem 2×2 Block
+            Column(
+                modifier = Modifier
+                    .width(34.dp)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                if (!isPassed && !isCancelled) {
+                    if (stop.scheduledArrival.isNotEmpty() && stop.delayMinutes != 0) {
+                        StopDelayLabel(stop.delayMinutes)
+                    }
+                    val depDiffersFromArr = stop.departureDelayMinutes != stop.delayMinutes
+                    if (stop.scheduledDeparture.isNotEmpty() && stop.departureDelayMinutes != 0 && depDiffersFromArr) {
+                        StopDelayLabel(stop.departureDelayMinutes)
+                    }
+                }
             }
         }
 
@@ -220,18 +246,37 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
                         imageVector = Icons.Default.AddCircle,
                         contentDescription = null,
                         modifier = Modifier.size(11.dp),
-                        tint = MaterialTheme.colorScheme.tertiary
+                        tint = onSuccessContainer()
                             .copy(alpha = if (isPassed) 0.5f else 1f)
                     )
                     Text(
                         text = stringResource(R.string.stop_additional),
-                        color = MaterialTheme.colorScheme.tertiary
+                        color = onSuccessContainer()
                             .copy(alpha = if (isPassed) 0.5f else 1f),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun StopDelayLabel(delay: Int) {
+    if (delay < 0) {
+        Text(
+            text = "($delay)",
+            style = MaterialTheme.typography.labelSmall,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+            color = rainbowColor()
+        )
+    } else {
+        Text(
+            text = "(+$delay)",
+            style = MaterialTheme.typography.labelSmall,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+            color = if (delay >= 5) MaterialTheme.colorScheme.error else onSuccessContainer()
+        )
     }
 }
 
@@ -244,6 +289,7 @@ private fun StopTimePair(
     isNext: Boolean,
     isCancelled: Boolean = false
 ) {
+    val isEarly = delay < 0 && !isPassed && !isCancelled && actual.isNotEmpty()
     val isDelayed = delay > 0 && !isPassed && !isCancelled && actual.isNotEmpty()
     val displayActual = actual.ifEmpty { scheduled }
 
@@ -252,28 +298,38 @@ private fun StopTimePair(
             text = scheduled,
             style = MaterialTheme.typography.bodySmall,
             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-            fontWeight = if (isNext && !isDelayed && !isCancelled) FontWeight.SemiBold else FontWeight.Normal,
+            fontWeight = if (isNext && !isDelayed && !isEarly && !isCancelled) FontWeight.SemiBold else FontWeight.Normal,
             color = when {
-                isCancelled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                isDelayed   -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                isPassed    -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                else        -> MaterialTheme.colorScheme.onSurface
+                isCancelled        -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                isDelayed || isEarly -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                isPassed           -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                else               -> MaterialTheme.colorScheme.onSurface
             },
-            textDecoration = if (isDelayed || isCancelled) TextDecoration.LineThrough else TextDecoration.None
+            textDecoration = if (isDelayed || isEarly || isCancelled) TextDecoration.LineThrough else TextDecoration.None
         )
-        Text(
-            text = displayActual,
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-            fontWeight = if (isDelayed || isNext) FontWeight.Bold else FontWeight.Normal,
-            color = when {
-                isCancelled            -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                isPassed               -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                isDelayed && delay >= 5 -> MaterialTheme.colorScheme.error
-                else                   -> Color(0xFF4CAF50)
-            },
-            textDecoration = if (isCancelled) TextDecoration.LineThrough else TextDecoration.None
-        )
+        if (isEarly) {
+            Text(
+                text = displayActual,
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                color = rainbowColor()
+            )
+        } else {
+            Text(
+                text = displayActual,
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontWeight = if (isDelayed || isNext) FontWeight.Bold else FontWeight.Normal,
+                color = when {
+                    isCancelled             -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                    isPassed                -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    isDelayed && delay >= 5 -> MaterialTheme.colorScheme.error
+                    else                    -> onSuccessContainer()
+                },
+                textDecoration = if (isCancelled) TextDecoration.LineThrough else TextDecoration.None
+            )
+        }
     }
 }
 @Composable
@@ -286,7 +342,7 @@ fun StopsScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {

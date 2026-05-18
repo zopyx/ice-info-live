@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -19,6 +18,11 @@ import androidx.compose.ui.unit.dp
 import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.ConnectingTrain
 import com.nruge.iceinfo.model.Departure
+import com.nruge.iceinfo.ui.theme.onSuccessContainer
+import com.nruge.iceinfo.ui.theme.onWarningContainer
+import com.nruge.iceinfo.ui.theme.rainbowColor
+import com.nruge.iceinfo.ui.theme.successContainer
+import com.nruge.iceinfo.ui.theme.warningContainer
 import com.nruge.iceinfo.model.TrainStatus
 
 @Composable
@@ -32,7 +36,7 @@ fun ConnectionsScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -76,15 +80,24 @@ fun ConnectionsScreen(
                                                      else androidx.compose.ui.text.style.TextDecoration.None
                                 )
                                 if (isDelayed) {
-                                    Text(
-                                        text = displayTime,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = if (stop.delayMinutes >= 5)
-                                            MaterialTheme.colorScheme.error
-                                        else
-                                            Color(0xFF4CAF50)
-                                    )
+                                    if (stop.delayMinutes < 0) {
+                                        Text(
+                                            text = displayTime,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = rainbowColor()
+                                        )
+                                    } else {
+                                        Text(
+                                            text = displayTime,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = if (stop.delayMinutes >= 5)
+                                                MaterialTheme.colorScheme.error
+                                            else
+                                                onSuccessContainer()
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -158,7 +171,8 @@ private fun addMinutesToTime(time: String, minutes: Int): String {
 @Composable
 private fun DepartureTimePair(scheduled: String, delayMinutes: Int, cancelled: Boolean = false) {
     val actual = addMinutesToTime(scheduled, delayMinutes)
-    val isDelayed = delayMinutes > 0 && !cancelled
+    val isDelayed = delayMinutes != 0 && !cancelled
+    val isEarly = delayMinutes < 0 && !cancelled
     Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = scheduled,
@@ -166,24 +180,34 @@ private fun DepartureTimePair(scheduled: String, delayMinutes: Int, cancelled: B
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.SemiBold,
             color = when {
-                cancelled  -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                isDelayed  -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                else       -> MaterialTheme.colorScheme.onSurface
+                cancelled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                isDelayed -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                else      -> MaterialTheme.colorScheme.onSurface
             },
             textDecoration = if (isDelayed || cancelled) TextDecoration.LineThrough else TextDecoration.None
         )
-        Text(
-            text = actual,
-            style = MaterialTheme.typography.bodyMedium,
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            color = when {
-                cancelled                  -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                isDelayed && delayMinutes >= 5 -> MaterialTheme.colorScheme.error
-                else                       -> Color(0xFF4CAF50)
-            },
-            textDecoration = if (cancelled) TextDecoration.LineThrough else TextDecoration.None
-        )
+        if (isEarly) {
+            Text(
+                text = actual,
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                color = rainbowColor()
+            )
+        } else {
+            Text(
+                text = actual,
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                color = when {
+                    cancelled                      -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                    isDelayed && delayMinutes >= 5 -> MaterialTheme.colorScheme.error
+                    else                           -> onSuccessContainer()
+                },
+                textDecoration = if (cancelled) TextDecoration.LineThrough else TextDecoration.None
+            )
+        }
     }
 }
 
@@ -243,24 +267,24 @@ private fun ConnectionRow(conn: ConnectingTrain) {
             Surface(
                 color = when {
                     !conn.reachable -> MaterialTheme.colorScheme.errorContainer
-                    isTight -> Color(0xFFFF6F00).copy(alpha = 0.15f)
-                    else -> Color(0xFF4CAF50).copy(alpha = 0.15f)
+                    isTight         -> warningContainer()
+                    else            -> successContainer()
                 },
                 shape = MaterialTheme.shapes.extraSmall
             ) {
                 Text(
                     text = when {
                         !conn.reachable -> stringResource(R.string.connection_missed)
-                        isTight -> stringResource(R.string.connection_tight)
-                        else -> stringResource(R.string.connection_reachable)
+                        isTight         -> stringResource(R.string.connection_tight)
+                        else            -> stringResource(R.string.connection_reachable)
                     },
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = when {
                         !conn.reachable -> MaterialTheme.colorScheme.onErrorContainer
-                        isTight -> Color(0xFFFF6F00)
-                        else -> Color(0xFF4CAF50)
+                        isTight         -> onWarningContainer()
+                        else            -> onSuccessContainer()
                     }
                 )
             }
@@ -270,8 +294,8 @@ private fun ConnectionRow(conn: ConnectingTrain) {
                     style = MaterialTheme.typography.labelSmall,
                     color = when {
                         !conn.reachable -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        isTight -> Color(0xFFFF6F00)
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        isTight         -> onWarningContainer()
+                        else            -> onSuccessContainer()
                     }
                 )
             }

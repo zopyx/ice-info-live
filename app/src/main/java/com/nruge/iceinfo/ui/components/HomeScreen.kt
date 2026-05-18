@@ -1,6 +1,7 @@
 package com.nruge.iceinfo.ui.components
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,7 +26,6 @@ import com.nruge.iceinfo.ui.theme.ICEInfoTheme
 fun HomeScreen(
     modifier: Modifier = Modifier,
     status: TrainStatus = sampleTrainStatus,
-    isDarkTheme: Boolean = false,
     isMockMode: Boolean = false,
     demoSpeed: Int = 114,
     showDemoSpeed: Boolean = true,
@@ -36,8 +36,7 @@ fun HomeScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -50,7 +49,7 @@ fun HomeScreen(
         )
         TravelSummaryCard(status = status)
 
-        ConnectivityRow(status = status, isDarkTheme = isDarkTheme)
+        ConnectivityRow(status = status)
 
         if (status.delayReason.isNotEmpty()) {
             DelayReasonCard(reason = status.delayReason)
@@ -75,7 +74,7 @@ private fun StopSelectionCard(
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 text = stringResource(R.string.home_target_title),
@@ -93,8 +92,8 @@ private fun StopSelectionCard(
                         .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         .fillMaxWidth(),
                     shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
                     Row(
                         modifier = Modifier
@@ -169,14 +168,11 @@ private fun StopSelectionCard(
 private fun DemoSpeedCard(demoSpeed: Int, onDemoSpeedChange: (Int) -> Unit) {
     var isExpanded by remember { mutableStateOf(true) }
 
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        )
+        containerColor = MaterialTheme.colorScheme.primaryContainer
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

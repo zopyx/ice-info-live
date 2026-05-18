@@ -16,28 +16,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.nruge.iceinfo.R
 import com.nruge.iceinfo.sampleTrainStatus
 import com.nruge.iceinfo.model.TrainStatus
-import com.nruge.iceinfo.ui.theme.*
+import com.nruge.iceinfo.ui.theme.ICEInfoTheme
+import com.nruge.iceinfo.ui.theme.onSuccessContainer
+import com.nruge.iceinfo.ui.theme.onWarningContainer
+import com.nruge.iceinfo.ui.theme.successContainer
+import com.nruge.iceinfo.ui.theme.warningContainer
 
 private data class ConnectivityColors(val container: Color, val content: Color)
 
 @Composable
-private fun connectivityColors(connectivity: String, isDark: Boolean): ConnectivityColors {
+private fun connectivityColors(connectivity: String): ConnectivityColors {
     return when (connectivity) {
-        "STRONG" -> ConnectivityColors(
-            container = if (isDark) Green20 else Green90,
-            content = if (isDark) Green90 else Green40
+        "STRONG", "HIGH" -> ConnectivityColors(
+            container = successContainer(),
+            content = onSuccessContainer()
         )
-        "WEAK" -> ConnectivityColors(
-            container = if (isDark) Orange20 else Orange90,
-            content = if (isDark) Orange90 else Orange40
+        "WEAK", "MIDDLE" -> ConnectivityColors(
+            container = warningContainer(),
+            content = onWarningContainer()
         )
-        "NO_CONNECTION" -> ConnectivityColors(
+        "NO_CONNECTION", "LOW" -> ConnectivityColors(
             container = MaterialTheme.colorScheme.errorContainer,
-            content = MaterialTheme.colorScheme.error
+            content = MaterialTheme.colorScheme.onErrorContainer
         )
         else -> ConnectivityColors(
-            container = if (isDark) Grey20 else Grey90,
-            content = if (isDark) Grey90 else Grey40
+            container = MaterialTheme.colorScheme.surfaceContainerHigh,
+            content = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -65,63 +69,59 @@ private fun wagonClassLabel(wagonClass: String): String = when (wagonClass) {
 }
 
 @Composable
-fun ConnectivityRow(status: TrainStatus, isDarkTheme: Boolean) {
-    val colors = connectivityColors(status.connectivity, isDarkTheme)
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        AppCard(
-            modifier = Modifier.weight(1f),
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.wagon_class_label),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Text(
-                    text = wagonClassLabel(status.wagonClass),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-        }
-        AppCard(
-            modifier = Modifier
-                .weight(1f)
-                .height(IntrinsicSize.Min),
-            containerColor = colors.container
-        ) {
-            val nextColors = if (status.nextConnectivity != null) {
-                connectivityColors(status.nextConnectivity, isDarkTheme)
-            } else null
+fun ConnectivityRow(status: TrainStatus) {
+    val colors = connectivityColors(status.connectivity)
+    val nextColors = if (status.nextConnectivity != null) {
+        connectivityColors(status.nextConnectivity)
+    } else null
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (nextColors != null) {
-                            Modifier.drawBehind {
+    AppCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.wagon_class_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = wagonClassLabel(status.wagonClass),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .drawBehind {
+                            drawRect(color = colors.container)
+                            if (nextColors != null) {
                                 val path = Path().apply {
-                                    moveTo(size.width * 0.5f, 0f)
+                                    moveTo(size.width * 0.70f, 0f)
                                     lineTo(size.width, 0f)
                                     lineTo(size.width, size.height)
-                                    lineTo(size.width * 0.6f, size.height)
+                                    lineTo(size.width * 0.80f, size.height)
                                     close()
                                 }
                                 drawPath(path, color = nextColors.container)
                             }
-                        } else Modifier
-                    )
-                    .padding(16.dp)
-            ) {
+                        }
+                        .padding(16.dp)
+                ) {
                 Column(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Row(
@@ -131,7 +131,7 @@ fun ConnectivityRow(status: TrainStatus, isDarkTheme: Boolean) {
                         Text(
                             text = stringResource(R.string.wifi_label),
                             style = MaterialTheme.typography.labelMedium,
-                            color = colors.content
+                            color = colors.content.copy(alpha = 0.8f)
                         )
                         if (status.nextConnectivity != null) {
                             Text(
@@ -174,22 +174,20 @@ fun ConnectivityRowPreview() {
     ICEInfoTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                ConnectivityRow(status = sampleTrainStatus, isDarkTheme = false)
+                ConnectivityRow(status = sampleTrainStatus)
                 ConnectivityRow(
                     status = sampleTrainStatus.copy(
                         connectivity = "WEAK",
                         nextConnectivity = "NO_CONNECTION",
                         connectivityRemainingSeconds = 300
-                    ),
-                    isDarkTheme = false
+                    )
                 )
                 ConnectivityRow(
                     status = sampleTrainStatus.copy(
                         connectivity = "NO_CONNECTION",
                         nextConnectivity = "STRONG",
                         connectivityRemainingSeconds = 120
-                    ),
-                    isDarkTheme = false
+                    )
                 )
             }
         }
@@ -201,7 +199,7 @@ fun ConnectivityRowPreview() {
 fun ConnectivityRowDarkPreview() {
     ICEInfoTheme(darkTheme = true) {
         Box(modifier = Modifier.padding(16.dp)) {
-            ConnectivityRow(status = sampleTrainStatus, isDarkTheme = true)
+            ConnectivityRow(status = sampleTrainStatus)
         }
     }
 }
