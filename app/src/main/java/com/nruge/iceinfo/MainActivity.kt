@@ -203,6 +203,7 @@ class MainActivity : ComponentActivity() {
             val reducedMotion: Boolean by viewModel.reducedMotion.collectAsStateWithLifecycle()
             val connections: List<ConnectingTrain> by viewModel.connections.collectAsStateWithLifecycle()
             val departures: List<Departure> by viewModel.departures.collectAsStateWithLifecycle()
+            val weather by viewModel.weather.collectAsStateWithLifecycle()
             val isWIFIonICEStatus: Boolean by viewModel.isWIFIonICE.collectAsStateWithLifecycle()
 
             val initialContext = LocalContext.current
@@ -371,6 +372,7 @@ class MainActivity : ComponentActivity() {
                                     pois = pois,
                                     connections = connections,
                                     departures = departures,
+                                    weather = weather,
                                     isMockMode = isMockMode,
                                     demoSpeed = demoSpeed,
                                     showDemoSpeed = showDemoSpeed,

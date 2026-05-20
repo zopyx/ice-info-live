@@ -5,11 +5,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.nruge.iceinfo.DepartureBoardRepository
 import com.nruge.iceinfo.TrainRepository
+import com.nruge.iceinfo.WeatherRepository
 import com.nruge.iceinfo.model.*
 import com.nruge.iceinfo.sampleConnections
 import com.nruge.iceinfo.sampleDepartures
 import com.nruge.iceinfo.samplePois
 import com.nruge.iceinfo.sampleTrainStatus
+import com.nruge.iceinfo.sampleWeather
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +54,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _departures: MutableStateFlow<List<Departure>> = MutableStateFlow<List<Departure>>(emptyList())
     val departures: StateFlow<List<Departure>> = _departures.asStateFlow()
 
+    private val _weather: MutableStateFlow<WeatherInfo?> = MutableStateFlow(null)
+    val weather: StateFlow<WeatherInfo?> = _weather.asStateFlow()
+
+    private var lastWeatherEva: String = ""
+
 
     init {
         val initialTarget = SettingsManager.getTargetStopEva(application)
@@ -63,6 +70,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _connections.value = sampleConnections
             _departures.value = sampleDepartures
             _pois.value = samplePois
+            _weather.value = sampleWeather
             updateWidget(_trainStatus.value)
         } else {
             startPolling()
@@ -82,6 +90,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 boardStop?.effectiveArrivalMs ?: 0L
             )
             _departures.value = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
+            refreshWeatherIfNeeded(status.copy(targetStopEva = eva))
         }
         
         // Notify the service about the target change.
@@ -111,12 +120,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _connections.value = sampleConnections
             _departures.value = sampleDepartures
             _pois.value = samplePois
+            _weather.value = sampleWeather
             updateWidget(status)
         } else {
             _trainStatus.value = _trainStatus.value.copy(isConnected = false, targetStopEva = currentTarget)
             _connections.value = emptyList()
             _departures.value = emptyList()
             _pois.value = emptyList()
+            _weather.value = null
+            lastWeatherEva = ""
             startPolling()
         }
     }
@@ -183,6 +195,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         boardStop?.effectiveArrivalMs ?: 0L
                     )
                     _departures.value = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
+                    refreshWeatherIfNeeded(updatedStatus)
                     updateWidget(updatedStatus)
                 }
                 delay(3000)
@@ -204,5 +217,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (stop.evaNr.isBlank() || stop.scheduledArrivalMs <= 0L) return emptyList()
         val arrivalMs = stop.scheduledArrivalMs + stop.delayMinutes * 60_000L
         return DepartureBoardRepository.fetchDepartures(stop.evaNr, arrivalMs)
+    }
+
+    private fun weatherStop(status: TrainStatus): TrainStop? {
+        val targetEva = status.targetStopEva
+        return if (targetEva != null) {
+            status.stops.find { it.evaNr == targetEva && !it.passed }
+        } else {
+            status.stops.lastOrNull()
+        }
+    }
+
+    private suspend fun refreshWeatherIfNeeded(status: TrainStatus) {
+        val stop = weatherStop(status) ?: return
+        if (stop.evaNr == lastWeatherEva) return
+        lastWeatherEva = stop.evaNr
+        _weather.value = WeatherRepository.fetchWeatherForStation(stop.name)
     }
 }

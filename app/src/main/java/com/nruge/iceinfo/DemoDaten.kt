@@ -197,6 +197,14 @@ val sampleConnections = listOf(
     )
 )
 
+val sampleWeather = WeatherInfo(
+    stationName = "München Hbf",
+    temperature = 14.0,
+    precipitation = 0.0,
+    windspeed = 18.0,
+    weatherCode = 2
+)
+
 val sampleDepartures = listOf(
     Departure(line = "ICE 372", destination = "Basel SBB", scheduledTime = "11:08", delayMinutes = 0, platform = "9"),
     Departure(line = "RE 7", destination = "Kassel-Wilhelmshöhe", scheduledTime = "11:14", delayMinutes = 3, platform = "4"),

@@ -17,15 +17,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStatus
+import com.nruge.iceinfo.model.WeatherInfo
 import com.nruge.iceinfo.sampleTrainStatus
+import com.nruge.iceinfo.sampleWeather
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
+import kotlin.math.roundToInt
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     status: TrainStatus = sampleTrainStatus,
+    weather: WeatherInfo? = sampleWeather,
     isMockMode: Boolean = false,
     demoSpeed: Int = 114,
     showDemoSpeed: Boolean = true,
@@ -45,6 +50,7 @@ fun HomeScreen(
 
         StopSelectionCard(
             status = status,
+            weather = weather,
             onTargetStopChange = onTargetStopChange
         )
         TravelSummaryCard(status = status)
@@ -65,6 +71,7 @@ fun HomeScreen(
 @Composable
 private fun StopSelectionCard(
     status: TrainStatus,
+    weather: WeatherInfo?,
     onTargetStopChange: (String?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -160,8 +167,81 @@ private fun StopSelectionCard(
                     }
                 }
             }
+
+            if (weather != null) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                WeatherRow(weather = weather)
+            }
         }
     }
+}
+
+@Composable
+private fun WeatherRow(weather: WeatherInfo) {
+    val jacket = weather.jacketRecommendation
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = weatherCodeToIcon(weather.weatherCode),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+        Text(
+            text = "${weather.temperature.roundToInt()}°C",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        if (weather.windspeed >= 15) {
+            Icon(
+                imageVector = Icons.Default.Air,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = "${weather.windspeed.roundToInt()} km/h",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        if (jacket != WeatherInfo.JacketType.NONE) {
+            Surface(
+                shape = MaterialTheme.shapes.extraSmall,
+                color = MaterialTheme.colorScheme.secondaryContainer
+            ) {
+                Text(
+                    text = jacket.label,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        } else {
+            Text(
+                text = jacket.label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private fun weatherCodeToIcon(code: Int): ImageVector = when (code) {
+    0 -> Icons.Default.WbSunny
+    1, 2 -> Icons.Default.WbCloudy
+    in 45..48 -> Icons.Default.Cloud
+    in 51..57 -> Icons.Default.WaterDrop
+    in 61..67 -> Icons.Default.Umbrella
+    in 71..77 -> Icons.Default.AcUnit
+    in 80..82 -> Icons.Default.Umbrella
+    in 85..86 -> Icons.Default.AcUnit
+    in 95..99 -> Icons.Default.Thunderstorm
+    else -> Icons.Default.Cloud
 }
 
 @Composable

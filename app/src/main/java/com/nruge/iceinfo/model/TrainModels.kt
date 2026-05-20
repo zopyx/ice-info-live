@@ -77,6 +77,31 @@ data class PoiItem(
     val description: String = ""
 )
 
+data class WeatherInfo(
+    val stationName: String,
+    val temperature: Double,
+    val precipitation: Double,
+    val windspeed: Double,
+    val weatherCode: Int
+) {
+    enum class JacketType(val label: String) {
+        NONE("Keine Jacke nötig"),
+        LIGHT("Leichte Jacke"),
+        WARM("Warme Jacke"),
+        RAIN("Regenjacke"),
+        WIND("Windjacke")
+    }
+
+    val jacketRecommendation: JacketType
+        get() = when {
+            precipitation > 0.1 -> JacketType.RAIN
+            temperature < 8 -> JacketType.WARM
+            temperature < 16 -> JacketType.LIGHT
+            windspeed > 40 -> JacketType.WIND
+            else -> JacketType.NONE
+        }
+}
+
 @Serializable
 data class ConnectingTrain(
     val trainType: String = "",

@@ -18,6 +18,7 @@ import com.nruge.iceinfo.model.ConnectingTrain
 import com.nruge.iceinfo.model.Departure
 import com.nruge.iceinfo.model.PoiItem
 import com.nruge.iceinfo.model.TrainStatus
+import com.nruge.iceinfo.model.WeatherInfo
 import com.nruge.iceinfo.ui.components.ConnectionsScreen
 import com.nruge.iceinfo.ui.components.HomeScreen
 import com.nruge.iceinfo.ui.components.MapScreen
@@ -32,6 +33,7 @@ fun AppNavigation(
     pois: List<PoiItem>,
     connections: List<ConnectingTrain>,
     departures: List<Departure>,
+    weather: WeatherInfo?,
     isMockMode: Boolean,
     demoSpeed: Int,
     showDemoSpeed: Boolean,
@@ -56,6 +58,7 @@ fun AppNavigation(
         composable(Screen.Home.route) {
             HomeScreen(
                 status = if (isMockMode) trainStatus.copy(speed = demoSpeed) else trainStatus,
+                weather = weather,
                 isMockMode = isMockMode,
                 demoSpeed = demoSpeed,
                 showDemoSpeed = showDemoSpeed,
