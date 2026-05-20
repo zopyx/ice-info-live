@@ -17,6 +17,8 @@ import androidx.navigation.compose.composable
 import com.nruge.iceinfo.model.ConnectingTrain
 import com.nruge.iceinfo.model.Departure
 import com.nruge.iceinfo.model.PoiItem
+import com.nruge.iceinfo.model.StationInfo
+import com.nruge.iceinfo.model.StationSearchResult
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.model.WeatherInfo
 import com.nruge.iceinfo.ui.components.ConnectionsScreen
@@ -39,7 +41,12 @@ fun AppNavigation(
     showDemoSpeed: Boolean,
     reducedMotion: Boolean,
     onDemoSpeedChange: (Int) -> Unit,
-    onTargetStopChange: (String?) -> Unit
+    onTargetStopChange: (String?) -> Unit,
+    serviceStation: StationInfo?,
+    stationSearchResults: List<StationSearchResult>,
+    onStationSearchQueryChange: (String) -> Unit,
+    onStationSelect: (StationSearchResult) -> Unit,
+    onLoadTrainStation: (evaNr: String, name: String) -> Unit
 ) {
     val enter: EnterTransition = if (reducedMotion) EnterTransition.None else
         fadeIn(animationSpec = tween(durationMillis = 300, delayMillis = 90, easing = LinearOutSlowInEasing))
@@ -74,7 +81,14 @@ fun AppNavigation(
             MapScreen(status = trainStatus)
         }
         composable(Screen.Service.route) {
-            ServiceScreen(status = trainStatus)
+            ServiceScreen(
+                status = trainStatus,
+                serviceStation = serviceStation,
+                searchResults = stationSearchResults,
+                onSearchQueryChange = onStationSearchQueryChange,
+                onStationSelect = onStationSelect,
+                onLoadTrainStation = onLoadTrainStation,
+            )
         }
         composable(Screen.Connections.route) {
             ConnectionsScreen(

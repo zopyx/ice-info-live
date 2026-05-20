@@ -1,9 +1,11 @@
 package com.nruge.iceinfo.ui.components
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.Image
+import com.nruge.iceinfo.ui.theme.LocalDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.PlayArrow
@@ -13,25 +15,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import android.content.Intent
-import android.provider.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
-import com.nruge.iceinfo.util.getIceDrawable
 
 @Composable
 fun NoWifiScreen(
@@ -42,117 +44,101 @@ fun NoWifiScreen(
     onMockMode: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    val background = MaterialTheme.colorScheme.background
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 21.dp)
+            .clip(RoundedCornerShape(28.dp))
     ) {
-        HeroIllustration(tzn = status?.tzn ?: "")
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(R.string.welcome_title),
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 24.dp)
+        // Background photo: blur + background color tint on one layer
+        Image(
+            painter = painterResource(id = R.drawable.welcome_background),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            colorFilter = ColorFilter.tint(background.copy(alpha = 0.6f), BlendMode.SrcOver),
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(16.dp)
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = stringResource(R.string.welcome_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 32.dp)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
+        // Content
+        val textColor = if (LocalDarkTheme.current) Color.White else Color.Black
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            WelcomeActionCard(
-                icon = if (isWIFIonICE) Icons.Default.WifiTetheringError else Icons.Default.Wifi,
-                title = stringResource(
-                    if (isWIFIonICE) R.string.no_wifi_api_hint
-                    else R.string.welcome_connect_title
-                ),
-                description = stringResource(
-                    if (isWIFIonICE) R.string.no_wifi_text
-                    else R.string.welcome_connect_desc
-                ),
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                onClick = {
-                    context.startActivity(
-                        Intent(Settings.ACTION_WIFI_SETTINGS).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
+            // Title + subtitle shifted upward
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(bottom = 120.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.welcome_title),
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
-                    onRetry()
+                    Text(
+                        text = stringResource(R.string.welcome_subtitle),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = textColor.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
                 }
-            )
+            }
 
-            WelcomeActionCard(
-                icon = Icons.Default.PlayArrow,
-                title = stringResource(R.string.demo_mode),
-                description = stringResource(R.string.welcome_demo_desc),
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                onClick = onMockMode
-            )
-        }
+            // Action cards
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                WelcomeActionCard(
+                    icon = if (isWIFIonICE) Icons.Default.WifiTetheringError else Icons.Default.Wifi,
+                    title = stringResource(
+                        if (isWIFIonICE) R.string.no_wifi_api_hint
+                        else R.string.welcome_connect_title
+                    ),
+                    description = stringResource(
+                        if (isWIFIonICE) R.string.no_wifi_text
+                        else R.string.welcome_connect_desc
+                    ),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    onClick = {
+                        context.startActivity(
+                            Intent(Settings.ACTION_WIFI_SETTINGS).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                        )
+                        onRetry()
+                    }
+                )
 
-        Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-@Composable
-private fun HeroIllustration(tzn: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(220.dp)
-            .graphicsLayer { clip = false },
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp)
-                .align(Alignment.BottomStart)
-                .wrapContentWidth(unbounded = true, align = Alignment.Start)
-                .offset(x = (-20).dp, y = (-30).dp)
-                .zIndex(1f)
-        ) {
-            repeat(3) {
-                Image(
-                    painter = painterResource(id = R.drawable.traintracks),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillHeight,
-                    modifier = Modifier
-                        .height(100.dp)
-                        .wrapContentWidth(unbounded = true)
+                WelcomeActionCard(
+                    icon = Icons.Default.PlayArrow,
+                    title = stringResource(R.string.demo_mode),
+                    description = stringResource(R.string.welcome_demo_desc),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    onClick = onMockMode
                 )
             }
         }
-        Image(
-            painter = painterResource(id = getIceDrawable(tzn)),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .height(71.dp)
-                .wrapContentWidth(unbounded = true, align = Alignment.Start)
-                .align(Alignment.BottomStart)
-                .offset(x = (-190).dp, y = (-33).dp)
-                .zIndex(2f)
-                .graphicsLayer { clip = false }
-        )
     }
 }
 
@@ -161,8 +147,8 @@ private fun WelcomeActionCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     description: String,
-    containerColor: androidx.compose.ui.graphics.Color,
-    contentColor: androidx.compose.ui.graphics.Color,
+    containerColor: Color,
+    contentColor: Color,
     onClick: () -> Unit
 ) {
     Surface(

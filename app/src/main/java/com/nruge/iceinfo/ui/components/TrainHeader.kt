@@ -1,6 +1,8 @@
 package com.nruge.iceinfo.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -9,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -20,11 +23,13 @@ import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.sampleTrainStatus
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
-import com.nruge.iceinfo.util.getIceClass
+import com.nruge.iceinfo.util.getIceClassFromSeries
 import com.nruge.iceinfo.util.getIceDrawable
+import com.nruge.iceinfo.util.getIceVmax
 
 @Composable
 fun TrainHeader(status: TrainStatus, reducedMotion: Boolean = false) {
+    val context = LocalContext.current
     val density = LocalDensity.current
     var trackWidthPx by remember { mutableStateOf(300f) }
     var trackOffset by remember { mutableStateOf(0f) }
@@ -120,11 +125,27 @@ fun TrainHeader(status: TrainStatus, reducedMotion: Boolean = false) {
                         fontStyle = FontStyle.Italic,
                         color = MaterialTheme.colorScheme.tertiary
                     )
-                    Text(
-                        text = getIceClass(status.tzn),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                    )
+                    val seriesLabel = getIceClassFromSeries(status.series)
+                    val Vmax = getIceVmax(status.series)
+                    val seriesText = when {
+                        seriesLabel.isNotEmpty() && Vmax != null -> "$seriesLabel • Vmax = $Vmax km/h*"
+                        seriesLabel.isNotEmpty() -> seriesLabel
+                        else -> ""
+                    }
+                    if (seriesText.isNotEmpty()) {
+                        Text(
+                            text = seriesText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                            modifier = Modifier.clickable {
+                                Toast.makeText(
+                                    context,
+                                    "Zugelassene Höchstgeschwindigkeit dieser Baureihe in Deutschland – nicht auf jeder Strecke erreichbar.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        )
+                    }
                 }
                 Text(
                     text = "${status.speed} km/h",

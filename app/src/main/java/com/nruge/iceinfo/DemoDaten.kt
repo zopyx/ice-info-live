@@ -12,6 +12,7 @@ val sampleTrainStatus = TrainStatus(
     eta = "14:34",
     delayMinutes = 21,
     tzn = "ICE0701",
+    series = "408",
     track = "4",
     delayReason = "Kurzfristiger Personalausfall",
     distanceToNext = 86760,
@@ -98,7 +99,7 @@ val sampleTrainStatus = TrainStatus(
     destinationTrack = "6",
     destinationDelay = 21,
     distanceToDestination = 467000,
-    actualPosition = 180000
+    actualPosition = 130000
 )
 
 val samplePois = listOf(

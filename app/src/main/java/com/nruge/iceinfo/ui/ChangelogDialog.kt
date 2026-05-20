@@ -1,26 +1,35 @@
 package com.nruge.iceinfo.ui
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.NewReleases
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -42,13 +51,15 @@ private val changelog = listOf(
             "Live Update (Android 16+): Die Reise wird jetzt als interaktive Fortschritts-Notification auf dem Sperrbildschirm und im Always-On-Display angezeigt",
             "Status-Chip in der Statusleiste: zeigt die aktuelle Geschwindigkeit; bei Verspätung wechselt es zwischen Speed und Verspätungs-Minuten",
             "Dynamische Material You Farben wieder eingebaut",
-            "Zurück-Gesten um zum Status oder zum Willkommensbildschirm zurückzukehren"
+            "Zurück-Gesten um zum Status oder zum Willkommensbildschirm zurückzukehren",
+            "Service-Seite in Bahnhof umgewandelt. Mit Live Daten zu Aufzügen, Rolltreppen und Ausstattung"
         ),
         fixes = listOf(
             "Statusbildschirm angepasst. Konsistenters Material Design.",
             "Neu Gestalteter Willkommensbildschirm",
             "[Issue #9] Bei Aktiver Wlan-Verbindung fällt die App nicht mehr in den Willkommensbildschirm, sondern zeigt eine 'Keine API Verbingung'-Meldung an.",
-            "[Issue #7] Textfarben von normalem Text nicht mehr Hellrot"
+            "[Issue #7] Textfarben von normalem Text nicht mehr Hellrot",
+            "Neues, stabileres Mapping der Baureihe"
         )
     ),
     ChangelogEntry(
@@ -185,75 +196,102 @@ private val changelog = listOf(
 
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangelogDialog(onDismiss: () -> Unit) {
-    AlertDialog(
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Default.NewReleases, contentDescription = null) },
-        title = {
-            Text(
-                stringResource(R.string.changelog_title),
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                changelog.forEach { entry ->
-                    VersionSection(entry)
+        sheetState = sheetState
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = 24.dp, end = 24.dp, bottom = 24.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(Icons.Default.NewReleases, contentDescription = null)
+                    Text(
+                        stringResource(R.string.changelog_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.info_close))
+            itemsIndexed(changelog) { index, entry ->
+                VersionSection(entry, expandedByDefault = index == 0)
             }
         }
-    )
+    }
 }
 
 @Composable
-private fun VersionSection(entry: ChangelogEntry) {
+private fun VersionSection(entry: ChangelogEntry, expandedByDefault: Boolean = false) {
+    var expanded by rememberSaveable { mutableStateOf(expandedByDefault) }
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            AssistChip(
-                onClick = {},
-                enabled = false,
-                label = {
-                    Text(
-                        "v${entry.version}",
-                        fontWeight = FontWeight.Bold
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                AssistChip(
+                    onClick = { expanded = !expanded },
+                    label = {
+                        Text(
+                            "v${entry.version}",
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        labelColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                },
-                colors = AssistChipDefaults.assistChipColors(
-                    disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    disabledLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-            )
-
-            if (entry.newFeatures.isNotEmpty()) {
-                ChangeGroup(
-                    icon = Icons.Default.AutoAwesome,
-                    title = stringResource(R.string.changelog_new_features),
-                    items = entry.newFeatures
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            if (entry.fixes.isNotEmpty()) {
-                ChangeGroup(
-                    icon = Icons.Default.BugReport,
-                    title = stringResource(R.string.changelog_fixes),
-                    items = entry.fixes
-                )
+            if (expanded) {
+                Column(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (entry.newFeatures.isNotEmpty()) {
+                        ChangeGroup(
+                            icon = Icons.Default.AutoAwesome,
+                            title = stringResource(R.string.changelog_new_features),
+                            items = entry.newFeatures
+                        )
+                    }
+                    if (entry.fixes.isNotEmpty()) {
+                        ChangeGroup(
+                            icon = Icons.Default.BugReport,
+                            title = stringResource(R.string.changelog_fixes),
+                            items = entry.fixes
+                        )
+                    }
+                }
             }
         }
     }

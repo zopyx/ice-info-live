@@ -24,6 +24,7 @@ data class TrainStatus(
     val nextConnectivity: String? = null,
     val connectivityRemainingSeconds: Int? = null,
     val tzn: String = "",
+    val series: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val distanceToDestination: Int = 0,

@@ -1,0 +1,11 @@
+[
+  { "baureihe": "401", "bezeichnung": "ICE 1",            "vmax_kmh": 280 },
+  { "baureihe": "402", "bezeichnung": "ICE 2",            "vmax_kmh": 280 },
+  { "baureihe": "403", "bezeichnung": "ICE 3",            "vmax_kmh": 300 },
+  { "baureihe": "406", "bezeichnung": "ICE 3M",           "vmax_kmh": 300 },
+  { "baureihe": "407", "bezeichnung": "ICE 3 Velaro D",   "vmax_kmh": 320 },
+  { "baureihe": "408", "bezeichnung": "ICE 3neo",         "vmax_kmh": 320 },
+  { "baureihe": "411", "bezeichnung": "ICE T",            "vmax_kmh": 230 },
+  { "baureihe": "412", "bezeichnung": "ICE 4",            "vmax_kmh": 265 },
+  { "baureihe": "415", "bezeichnung": "ICE T (5-teilig)", "vmax_kmh": 230 }
+]

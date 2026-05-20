@@ -2,21 +2,24 @@ package com.nruge.iceinfo.util
 
 import com.nruge.iceinfo.R
 
-@Suppress("UNUSED_PARAMETER")
-fun getIceDrawable(tzn: String): Int = R.drawable.ice  // single drawable for all ICE types currently
+// Derived from assets/ice_series.json
+private data class SeriesInfo(val bezeichnung: String, val vmaxKmh: Int)
 
-fun getIceClass(tzn: String): String {
-    val number = tzn.removePrefix("ICE").toIntOrNull() ?: return ""
-    return when (number) {
-        in 1..59 -> "ICE 1"
-        in 60..99 -> "ICE 2"
-        in 101..159 -> "ICE 1"
-        in 201..299 -> "ICE T (BR 415)"
-        in 301..399 -> "ICE T (BR 411)"
-        in 401..499 -> "ICE 3"
-        in 701..799 -> "ICE 3neo"
-        in 801..899 -> "ICE 3neo"
-        in 901..999 -> "ICE 4"
-        else -> ""
-    }
-}
+private val SERIES_MAP: Map<String, SeriesInfo> = mapOf(
+    "401" to SeriesInfo("ICE 1",            280),
+    "402" to SeriesInfo("ICE 2",            280),
+    "403" to SeriesInfo("ICE 3",            300),
+    "406" to SeriesInfo("ICE 3M",           300),
+    "407" to SeriesInfo("ICE 3 Velaro D",   320),
+    "408" to SeriesInfo("ICE 3neo",         320),
+    "411" to SeriesInfo("ICE T",            230),
+    "412" to SeriesInfo("ICE 4",            265),
+    "415" to SeriesInfo("ICE T (5-teilig)", 230)
+)
+
+@Suppress("UNUSED_PARAMETER")
+fun getIceDrawable(tzn: String): Int = R.drawable.ice
+
+fun getIceClassFromSeries(series: String): String = SERIES_MAP[series]?.bezeichnung ?: ""
+
+fun getIceVmax(series: String): Int? = SERIES_MAP[series]?.vmaxKmh

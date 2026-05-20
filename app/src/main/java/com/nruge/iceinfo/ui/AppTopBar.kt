@@ -1,16 +1,11 @@
 package com.nruge.iceinfo.ui
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -18,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nruge.iceinfo.R
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
     isMockMode: Boolean,
@@ -127,41 +122,32 @@ fun AppTopBar(
     } // Column
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AppFloatingNavBar(
+fun AppNavigationBar(
     currentRoute: String?,
     enabled: Boolean,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    HorizontalFloatingToolbar(
-        expanded = true,
-        modifier = modifier,
-        colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-            toolbarContainerColor = MaterialTheme.colorScheme.surface
+    Column(modifier = modifier) {
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
         )
-    ) {
-        navigationItems.forEach { screen ->
-            val isSelected = currentRoute == screen.route
-            ToggleButton(
-                checked = isSelected,
-                onCheckedChange = { if (!isSelected) onNavigate(screen.route) },
-                enabled = enabled,
-                colors = ToggleButtonDefaults.toggleButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        NavigationBar {
+            navigationItems.forEach { screen ->
+                val isSelected = currentRoute == screen.route
+                NavigationBarItem(
+                    selected = isSelected,
+                    onClick = { if (!isSelected) onNavigate(screen.route) },
+                    enabled = enabled,
+                    icon = {
+                        Icon(
+                            imageVector = screen.icon,
+                            contentDescription = stringResource(screen.labelRes)
+                        )
+                    },
+                    label = { Text(stringResource(screen.labelRes)) }
                 )
-            ) {
-                Icon(
-                    imageVector = screen.icon,
-                    contentDescription = stringResource(screen.labelRes)
-                )
-                if (isSelected) {
-                    Spacer(Modifier.width(ToggleButtonDefaults.IconSpacing))
-                    Text(stringResource(screen.labelRes))
-                }
             }
         }
     }

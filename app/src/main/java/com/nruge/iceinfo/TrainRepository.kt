@@ -215,6 +215,7 @@ object TrainRepository {
             nextConnectivity = status.connectivity?.nextState,
             connectivityRemainingSeconds = status.connectivity?.remainingTimeSeconds,
             tzn = status.tzn,
+            series = status.series,
             latitude = status.latitude,
             longitude = status.longitude,
             distanceToDestination = distanceToDestination,

@@ -15,8 +15,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,7 +54,7 @@ import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import kotlinx.coroutines.launch
 import com.nruge.iceinfo.model.*
-import com.nruge.iceinfo.ui.AppFloatingNavBar
+import com.nruge.iceinfo.ui.AppNavigationBar
 import com.nruge.iceinfo.ui.AppNavigation
 import com.nruge.iceinfo.ui.AppTopBar
 import com.nruge.iceinfo.ui.ChangelogDialog
@@ -205,6 +203,8 @@ class MainActivity : ComponentActivity() {
             val departures: List<Departure> by viewModel.departures.collectAsStateWithLifecycle()
             val weather by viewModel.weather.collectAsStateWithLifecycle()
             val isWIFIonICEStatus: Boolean by viewModel.isWIFIonICE.collectAsStateWithLifecycle()
+            val serviceStation by viewModel.serviceStation.collectAsStateWithLifecycle()
+            val stationSearchResults by viewModel.stationSearchResults.collectAsStateWithLifecycle()
 
             val initialContext = LocalContext.current
             var appTheme by rememberSaveable {
@@ -269,6 +269,9 @@ class MainActivity : ComponentActivity() {
                     scrollBehavior.state.contentOffset = 0f
                 }
 
+                var demoBackProgress by remember { mutableFloatStateOf(0f) }
+                var demoBackInProgress by remember { mutableStateOf(false) }
+
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -315,10 +318,24 @@ class MainActivity : ComponentActivity() {
                             scrollBehavior = scrollBehavior
                         )
                     },
+                    bottomBar = {
+                        if ((trainStatus.isConnected || isMockMode || isWIFIonICEStatus) && !demoBackInProgress) {
+                            AppNavigationBar(
+                                currentRoute = currentRoute,
+                                enabled = true,
+                                onNavigate = { route ->
+                                    navController.navigate(route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            )
+                        }
+                    }
                 ) { innerPadding ->
-                    var demoBackProgress by remember { mutableFloatStateOf(0f) }
-                    var demoBackInProgress by remember { mutableStateOf(false) }
-
                     PredictiveBackHandler(enabled = isMockMode) { events ->
                         try {
                             events.collect { e ->
@@ -386,29 +403,15 @@ class MainActivity : ComponentActivity() {
                                             context.startForegroundService(intent)
                                         }
                                     },
-                                    onTargetStopChange = { viewModel.setTargetStop(it) }
+                                    onTargetStopChange = { viewModel.setTargetStop(it) },
+                                    serviceStation = serviceStation,
+                                    stationSearchResults = stationSearchResults,
+                                    onStationSearchQueryChange = { viewModel.searchStations(it) },
+                                    onStationSelect = { viewModel.selectServiceStation(it) },
+                                    onLoadTrainStation = { eva, name -> viewModel.loadServiceStationFromTrain(eva, name) }
                                 )
                             }
                         }
-
-                        if ((trainStatus.isConnected || isMockMode || isWIFIonICEStatus) && !demoBackInProgress)
-                        AppFloatingNavBar(
-                            currentRoute = currentRoute,
-                            enabled = true,
-                            onNavigate = { route ->
-                                navController.navigate(route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .navigationBarsPadding()
-                                .padding(bottom = 16.dp)
-                        )
                     }
                 }
 
