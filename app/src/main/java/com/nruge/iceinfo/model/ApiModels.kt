@@ -8,6 +8,7 @@ data class StatusResponse(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val tzn: String = "",
+    val series: String = "",
     val wagonClass: String = "",
     val connectivity: Connectivity? = null
 )

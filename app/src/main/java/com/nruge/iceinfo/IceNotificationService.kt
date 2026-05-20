@@ -79,10 +79,20 @@ class IceNotificationService : Service() {
             return START_NOT_STICKY
         }
 
-        val newTargetEva = intent?.getStringExtra(EXTRA_TARGET_EVA)
-        if (newTargetEva != null) {
-            targetStopEva = newTargetEva
-            com.nruge.iceinfo.util.SettingsManager.setTargetStopEva(this, newTargetEva)
+        if (intent?.action == ACTION_UPDATE_TARGET) {
+            val newTargetEva = intent.getStringExtra(EXTRA_TARGET_EVA)
+            if (newTargetEva != null) {
+                targetStopEva = newTargetEva
+                com.nruge.iceinfo.util.SettingsManager.setTargetStopEva(this, newTargetEva)
+            }
+            if (pollingJob?.isActive == true) {
+                val status = buildCurrentStatus()
+                notificationManager.notify(NOTIFICATION_ID, buildNotification(status))
+            } else {
+                stopSelfCleanly()
+                return START_NOT_STICKY
+            }
+            return START_STICKY
         }
 
         val demoSpeed = intent?.getIntExtra(EXTRA_DEMO_SPEED, -1) ?: -1

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -22,6 +24,13 @@ android {
         versionName = "5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProps = Properties().apply {
+            val f = rootProject.file("local.properties")
+            if (f.exists()) load(f.inputStream())
+        }
+        buildConfigField("String", "DB_CLIENT_ID",     "\"${localProps.getProperty("DB_CLIENT_ID", "")}\"")
+        buildConfigField("String", "DB_CLIENT_SECRET", "\"${localProps.getProperty("DB_CLIENT_SECRET", "")}\"")
     }
 
     buildTypes {
@@ -80,6 +89,7 @@ dependencies {
     implementation("com.google.android.play:app-update-ktx:2.1.0")
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

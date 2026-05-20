@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.nruge.iceinfo.DepartureBoardRepository
+import com.nruge.iceinfo.StationFacilitiesRepository
 import com.nruge.iceinfo.TrainRepository
 import com.nruge.iceinfo.model.*
 import com.nruge.iceinfo.sampleConnections
@@ -52,6 +53,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _departures: MutableStateFlow<List<Departure>> = MutableStateFlow<List<Departure>>(emptyList())
     val departures: StateFlow<List<Departure>> = _departures.asStateFlow()
 
+    private val _serviceStation = MutableStateFlow<StationInfo?>(null)
+    val serviceStation: StateFlow<StationInfo?> = _serviceStation.asStateFlow()
+
+    private val _stationSearchResults = MutableStateFlow<List<StationSearchResult>>(emptyList())
+    val stationSearchResults: StateFlow<List<StationSearchResult>> = _stationSearchResults.asStateFlow()
+
+    private var searchJob: Job? = null
 
     init {
         val initialTarget = SettingsManager.getTargetStopEva(application)
@@ -84,14 +92,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _departures.value = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
         }
         
-        // Notify the service about the target change.
-        // We use startService (not startForegroundService) so it doesn't 
-        // trigger a notification if the service wasn't already running.
-        val intent = android.content.Intent(getApplication(), com.nruge.iceinfo.IceNotificationService::class.java).apply {
-            action = com.nruge.iceinfo.IceNotificationService.ACTION_UPDATE_TARGET
-            putExtra(com.nruge.iceinfo.IceNotificationService.EXTRA_TARGET_EVA, eva)
+        if (com.nruge.iceinfo.IceNotificationService.isRunning.value) {
+            val intent = android.content.Intent(getApplication(), com.nruge.iceinfo.IceNotificationService::class.java).apply {
+                action = com.nruge.iceinfo.IceNotificationService.ACTION_UPDATE_TARGET
+                putExtra(com.nruge.iceinfo.IceNotificationService.EXTRA_TARGET_EVA, eva)
+            }
+            getApplication<android.app.Application>().startService(intent)
         }
-        getApplication<android.app.Application>().startService(intent)
     }
 
     fun setMockMode(enabled: Boolean) {
@@ -187,6 +194,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 delay(3000)
             }
+        }
+    }
+
+    fun searchStations(query: String) {
+        searchJob?.cancel()
+        if (query.length < 4) {
+            _stationSearchResults.value = emptyList()
+            return
+        }
+        searchJob = viewModelScope.launch {
+            delay(300)
+            _stationSearchResults.value = StationFacilitiesRepository.searchStations(query)
+        }
+    }
+
+    fun selectServiceStation(result: StationSearchResult) {
+        _stationSearchResults.value = emptyList()
+        _serviceStation.value = StationInfo(evaNr = result.evaNr, name = result.name, isLoading = true)
+        viewModelScope.launch {
+            _serviceStation.value = StationFacilitiesRepository.fetchFacilities(result.evaNr, result.name)
+        }
+    }
+
+    fun loadServiceStationFromTrain(evaNr: String, name: String) {
+        _serviceStation.value = StationInfo(evaNr = evaNr, name = name, isLoading = true)
+        viewModelScope.launch {
+            _serviceStation.value = StationFacilitiesRepository.fetchFacilities(evaNr, name)
         }
     }
 
