@@ -126,7 +126,7 @@ object TrainRepository {
         val destTimetable = lastStop?.timetable
         val destScheduledMs = destTimetable?.scheduledArrivalTime ?: 0L
         val destActualMs = destTimetable?.actualArrivalTime ?: 0L
-        val destinationEta = formatTime(destScheduledMs)
+        val destinationEta = formatTime(if (destActualMs > 0L) destActualMs else destScheduledMs)
         val destinationTrack = lastStop?.track?.actual ?: ""
         val destinationDelay = calculateDelayMinutes(destActualMs, destScheduledMs)
         val totalDistance = lastStop?.info?.distanceFromStart ?: 0
