@@ -169,7 +169,6 @@ private fun StopSelectionCard(
             }
 
             if (weather != null) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 WeatherRow(weather = weather)
             }
         }

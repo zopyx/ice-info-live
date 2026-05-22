@@ -3,26 +3,18 @@ package com.nruge.iceinfo.ui.components
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.Image
-import com.nruge.iceinfo.ui.theme.LocalDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiTetheringError
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -34,7 +26,23 @@ import androidx.compose.ui.unit.dp
 import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
+import com.nruge.iceinfo.ui.theme.LocalDarkTheme
 
+private val carouselScreenshotsLight = listOf(
+    R.drawable.screenshot_1_light,
+    R.drawable.screenshot_2_light,
+    R.drawable.screenshot_3_light,
+    R.drawable.screenshot_4_light,
+)
+
+private val carouselScreenshotsDark = listOf(
+    R.drawable.screenshot_1_dark,
+    R.drawable.screenshot_2_dark,
+    R.drawable.screenshot_3_dark,
+    R.drawable.screenshot_4_dark,
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoWifiScreen(
     modifier: Modifier = Modifier,
@@ -44,101 +52,89 @@ fun NoWifiScreen(
     onMockMode: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val background = MaterialTheme.colorScheme.background
+    val screenshots = if (LocalDarkTheme.current) carouselScreenshotsDark else carouselScreenshotsLight
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 21.dp)
-            .clip(RoundedCornerShape(28.dp))
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Background photo: blur + background color tint on one layer
-        Image(
-            painter = painterResource(id = R.drawable.welcome_background),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            colorFilter = ColorFilter.tint(background.copy(alpha = 0.6f), BlendMode.SrcOver),
+        // Screenshot carousel with parallax
+        val carouselState = rememberCarouselState { screenshots.size }
+
+        HorizontalUncontainedCarousel(
+            state = carouselState,
+            itemWidth = 220.dp,
+            itemSpacing = 8.dp,
+            contentPadding = PaddingValues(horizontal = 16.dp),
             modifier = Modifier
-                .fillMaxSize()
-                .blur(16.dp)
+                .fillMaxWidth()
+                .height(440.dp)
+                .padding(top = 16.dp)
+        ) { index ->
+            val drawable = screenshots[index]
+            Image(
+                painter = painterResource(id = drawable),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .height(450.dp)
+                    .maskClip(MaterialTheme.shapes.extraLarge)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(60.dp))
+
+        Text(
+            text = stringResource(R.string.welcome_title),
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 24.dp)
         )
 
-        // Content
-        val textColor = if (LocalDarkTheme.current) Color.White else Color.Black
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = stringResource(R.string.welcome_subtitle),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(60.dp))
 
         Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Title + subtitle shifted upward
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(bottom = 120.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.welcome_title),
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 24.dp)
+            WelcomeActionCard(
+                icon = if (isWIFIonICE) Icons.Default.WifiTetheringError else Icons.Default.Wifi,
+                title = stringResource(
+                    if (isWIFIonICE) R.string.no_wifi_api_hint
+                    else R.string.welcome_connect_title
+                ),
+                description = stringResource(
+                    if (isWIFIonICE) R.string.no_wifi_text
+                    else R.string.welcome_connect_desc
+                ),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                onClick = {
+                    context.startActivity(
+                        Intent(Settings.ACTION_WIFI_SETTINGS).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
                     )
-                    Text(
-                        text = stringResource(R.string.welcome_subtitle),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = textColor.copy(alpha = 0.7f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 32.dp)
-                    )
+                    onRetry()
                 }
-            }
+            )
 
-            // Action cards
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                WelcomeActionCard(
-                    icon = if (isWIFIonICE) Icons.Default.WifiTetheringError else Icons.Default.Wifi,
-                    title = stringResource(
-                        if (isWIFIonICE) R.string.no_wifi_api_hint
-                        else R.string.welcome_connect_title
-                    ),
-                    description = stringResource(
-                        if (isWIFIonICE) R.string.no_wifi_text
-                        else R.string.welcome_connect_desc
-                    ),
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    onClick = {
-                        context.startActivity(
-                            Intent(Settings.ACTION_WIFI_SETTINGS).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                        )
-                        onRetry()
-                    }
-                )
-
-                WelcomeActionCard(
-                    icon = Icons.Default.PlayArrow,
-                    title = stringResource(R.string.demo_mode),
-                    description = stringResource(R.string.welcome_demo_desc),
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    onClick = onMockMode
-                )
-            }
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -202,7 +198,7 @@ private fun WelcomeActionCard(
     }
 }
 
-@Preview(showBackground = true, heightDp = 800)
+@Preview(showBackground = true, heightDp = 900)
 @Composable
 fun NoWifiScreenPreview() {
     ICEInfoTheme {
@@ -210,7 +206,7 @@ fun NoWifiScreenPreview() {
     }
 }
 
-@Preview(showBackground = true, heightDp = 800)
+@Preview(showBackground = true, heightDp = 900)
 @Composable
 fun NoWifiScreenApiDownPreview() {
     ICEInfoTheme {

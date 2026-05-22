@@ -117,10 +117,11 @@ class IceNotificationService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        super.onDestroy()
         pollingJob?.cancel()
         serviceScope.cancel()
+        runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
         _isRunning.value = false
+        super.onDestroy()
     }
 
     private fun stopSelfCleanly() {

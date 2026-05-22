@@ -66,7 +66,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.nruge.iceinfo.R
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nruge.iceinfo.model.FacilityStatus
@@ -128,7 +130,7 @@ fun ServiceScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Search,
-                contentDescription = "Bahnhof suchen"
+                contentDescription = stringResource(R.string.service_search_station)
             )
         }
 
@@ -201,7 +203,7 @@ private fun SearchOverlay(
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
-                    placeholder = { Text("Bahnhof suchen") },
+                    placeholder = { Text(stringResource(R.string.service_search_station)) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = if (query.isNotEmpty()) {
                         {
@@ -209,7 +211,7 @@ private fun SearchOverlay(
                                 query = ""
                                 onSearchQueryChange("")
                             }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Löschen")
+                                Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.service_clear))
                             }
                         }
                     } else null,
@@ -274,13 +276,13 @@ private fun ServiceEmptyState(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            "Bahnhof auswählen",
+            stringResource(R.string.service_select_station_title),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Tippe auf die Suche oder nutze deinen gewählten Ausstieg.",
+            stringResource(R.string.service_select_station_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -347,7 +349,7 @@ private fun StationFacilitiesContent(station: StationInfo) {
 
         if (station.staticFacilities.isNotEmpty()) {
             item(key = "static") {
-                FacilitySectionHeader(title = "Ausstattung")
+                FacilitySectionHeader(title = stringResource(R.string.service_facilities))
                 Spacer(Modifier.height(8.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -362,7 +364,7 @@ private fun StationFacilitiesContent(station: StationInfo) {
 
         item {
             Text(
-                text = "Quelle: DB StaDa & FaSta (CC BY 4.0)",
+                text = stringResource(R.string.service_source),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)
@@ -456,7 +458,7 @@ private fun FacilityTypeGroup(type: FacilityType, facilities: List<StationFacili
                         color = MaterialTheme.colorScheme.errorContainer
                     ) {
                         Text(
-                            text = "Außer Betrieb",
+                            text = stringResource(R.string.service_out_of_order),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onErrorContainer,
@@ -531,15 +533,16 @@ private fun FacilityType.icon(): ImageVector = when (this) {
     FacilityType.WAITING_ROOM -> Icons.Default.Chair
 }
 
+@Composable
 private fun FacilityType.label(): String = when (this) {
-    FacilityType.ELEVATOR  -> "Aufzüge"
-    FacilityType.ESCALATOR -> "Rolltreppen"
-    FacilityType.TOILET    -> "Toiletten"
-    FacilityType.WIFI      -> "WLAN"
-    FacilityType.INFO_DESK -> "DB Info"
-    FacilityType.DEPARTURE_MONITOR -> "Abfahrtsanzeige"
-    FacilityType.RAMP      -> "Rampe"
-    FacilityType.PARKING   -> "Parken"
-    FacilityType.BIKE_PARKING -> "Fahrradstellplätze"
-    FacilityType.WAITING_ROOM -> "Schließfächer"
+    FacilityType.ELEVATOR         -> stringResource(R.string.facility_elevator)
+    FacilityType.ESCALATOR        -> stringResource(R.string.facility_escalator)
+    FacilityType.TOILET           -> stringResource(R.string.facility_toilet)
+    FacilityType.WIFI             -> stringResource(R.string.facility_wifi)
+    FacilityType.INFO_DESK        -> stringResource(R.string.facility_info_desk)
+    FacilityType.DEPARTURE_MONITOR -> stringResource(R.string.facility_departure_monitor)
+    FacilityType.RAMP             -> stringResource(R.string.facility_ramp)
+    FacilityType.PARKING          -> stringResource(R.string.facility_parking)
+    FacilityType.BIKE_PARKING     -> stringResource(R.string.facility_bike_parking)
+    FacilityType.WAITING_ROOM     -> stringResource(R.string.facility_waiting_room)
 }

@@ -23,7 +23,7 @@
 
     <!-- No WiFi Screen -->
     <string name="welcome_title">Willkommen an Bord</string>
-    <string name="welcome_subtitle">Verbinde dich mit dem ICE-WLAN für Live-Daten zu deinem Zug — oder probiere den Demo-Modus.</string>
+    <string name="welcome_subtitle">Verbinde dich mit dem ICE-WLAN für Live-Daten zu deinem Zug.</string>
     <string name="welcome_connect_title">Mit WIFIonICE verbinden</string>
     <string name="welcome_connect_desc">Öffne die WLAN-Einstellungen und wähle das Zug-Netzwerk.</string>
     <string name="welcome_demo_desc">Sieh dir die App mit Beispieldaten an, auch ohne Zugfahrt.</string>
@@ -169,6 +169,31 @@
 
     <!-- Service -->
     <string name="service_wip">Service Status (In Arbeit)</string>
+
+    <!-- Service Screen -->
+    <string name="service_search_station">Bahnhof suchen</string>
+    <string name="service_clear">Löschen</string>
+    <string name="service_select_station_title">Bahnhof auswählen</string>
+    <string name="service_select_station_desc">Tippe auf die Suche oder nutze deinen gewählten Ausstieg.</string>
+    <string name="service_facilities">Ausstattung</string>
+    <string name="service_source">Quelle: DB StaDa &amp; FaSta (CC BY 4.0)</string>
+    <string name="service_out_of_order">Außer Betrieb</string>
+    <string name="facility_elevator">Aufzüge</string>
+    <string name="facility_escalator">Rolltreppen</string>
+    <string name="facility_toilet">Toiletten</string>
+    <string name="facility_wifi">WLAN</string>
+    <string name="facility_info_desk">DB Info</string>
+    <string name="facility_departure_monitor">Abfahrtsanzeige</string>
+    <string name="facility_ramp">Rampe</string>
+    <string name="facility_parking">Parken</string>
+    <string name="facility_bike_parking">Fahrradstellplätze</string>
+    <string name="facility_waiting_room">Schließfächer</string>
+
+    <!-- Connections section headers -->
+    <string name="connections_section_reachable">Erreichbar</string>
+    <string name="connections_section_tight">Knapp</string>
+    <string name="connections_section_missed">Verpasst</string>
+    <string name="connections_section_departures">Weitere Abfahrten</string>
 
     <!-- Debug -->
     <string name="settings_debug_title">Debug-Informationen</string>

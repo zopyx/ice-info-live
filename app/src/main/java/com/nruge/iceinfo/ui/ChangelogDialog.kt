@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,9 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.NewReleases
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,19 +42,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nruge.iceinfo.R
 
-private data class ChangelogEntry(
+internal data class ChangelogEntry(
     val version: String,
     val newFeatures: List<String> = emptyList(),
     val fixes: List<String> = emptyList()
 )
 
-private val changelog = listOf(
+internal val changelog = listOf(
     ChangelogEntry(
         version = "5.0",
         newFeatures = listOf(
             "Live Update (Android 16+): Die Reise wird jetzt als interaktive Fortschritts-Notification auf dem Sperrbildschirm und im Always-On-Display angezeigt",
             "Status-Chip in der Statusleiste: zeigt die aktuelle Geschwindigkeit; bei Verspätung wechselt es zwischen Speed und Verspätungs-Minuten",
             "Dynamische Material You Farben wieder eingebaut",
+            "'Bahnhof'-Seite listet Live Infos zum gewählten Zielbahnhof auf",
             "Zurück-Gesten um zum Status oder zum Willkommensbildschirm zurückzukehren",
             "Service-Seite in Bahnhof umgewandelt. Mit Live Daten zu Aufzügen, Rolltreppen und Ausstattung"
         ),
@@ -335,4 +340,67 @@ private fun ChangeGroup(
             }
         }
     }
+}
+
+@Composable
+fun WhatsNewDialog(onDismiss: () -> Unit) {
+    val entry = changelog.first()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Default.NewReleases, contentDescription = null) },
+        title = { Text("Version ${entry.version}") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (entry.newFeatures.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.changelog_new_features),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        entry.newFeatures.forEach { feature ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Icon(
+                                    Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp).padding(top = 2.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Text(feature, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+                if (entry.fixes.isNotEmpty()) {
+                    if (entry.newFeatures.isNotEmpty()) HorizontalDivider()
+                    Text(
+                        text = stringResource(R.string.changelog_fixes),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        entry.fixes.forEach { fix ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Icon(
+                                    Icons.Default.BugReport,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp).padding(top = 2.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(fix, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text(stringResource(R.string.info_close))
+            }
+        }
+    )
 }

@@ -18,7 +18,7 @@
     <string name="changelog_new_features">New features</string>
     <string name="changelog_fixes">Fixes</string>
     <string name="welcome_title">Welcome aboard</string>
-    <string name="welcome_subtitle">Connect to the train Wi-Fi for live data from your ICE — or try the demo mode.</string>
+    <string name="welcome_subtitle">Connect to the train Wi-Fi for live data from your ICE.</string>
     <string name="welcome_connect_title">Connect to WIFIonICE</string>
     <string name="welcome_connect_desc">Open Wi-Fi settings and pick the train network.</string>
     <string name="welcome_demo_desc">Explore the app with sample data, even when you\'re not on a train.</string>
@@ -150,6 +150,31 @@
 
     <!-- Service -->
     <string name="service_wip">Service status (work in progress)</string>
+
+    <!-- Service Screen -->
+    <string name="service_search_station">Search station</string>
+    <string name="service_clear">Clear</string>
+    <string name="service_select_station_title">Select station</string>
+    <string name="service_select_station_desc">Tap the search button or use your selected exit stop.</string>
+    <string name="service_facilities">Facilities</string>
+    <string name="service_source">Source: DB StaDa &amp; FaSta (CC BY 4.0)</string>
+    <string name="service_out_of_order">Out of order</string>
+    <string name="facility_elevator">Elevators</string>
+    <string name="facility_escalator">Escalators</string>
+    <string name="facility_toilet">Toilets</string>
+    <string name="facility_wifi">Wi-Fi</string>
+    <string name="facility_info_desk">DB Info</string>
+    <string name="facility_departure_monitor">Departure board</string>
+    <string name="facility_ramp">Ramp</string>
+    <string name="facility_parking">Parking</string>
+    <string name="facility_bike_parking">Bike parking</string>
+    <string name="facility_waiting_room">Lockers</string>
+
+    <!-- Connections section headers -->
+    <string name="connections_section_reachable">Reachable</string>
+    <string name="connections_section_tight">Tight</string>
+    <string name="connections_section_missed">Missed</string>
+    <string name="connections_section_departures">More departures</string>
 
     <!-- Debug -->
     <string name="settings_debug_title">Debug information</string>

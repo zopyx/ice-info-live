@@ -1,15 +1,23 @@
 package com.nruge.iceinfo.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nruge.iceinfo.R
 
@@ -20,8 +28,10 @@ fun AppTopBar(
     isConnected: Boolean,
     isOnTrainWifi: Boolean,
     serviceRunning: Boolean,
+    showPrideBadge: Boolean = false,
     onToggleService: () -> Unit,
     onExitDemo: () -> Unit,
+    onStartDemo: () -> Unit,
     onShowSettings: () -> Unit,
     onShowInfo: () -> Unit,
     onShowChangelog: () -> Unit,
@@ -31,10 +41,19 @@ fun AppTopBar(
     val barContainerColor = MaterialTheme.colorScheme.surfaceContainer
     val barContentColor = MaterialTheme.colorScheme.onSurface
     val scrolledFraction = scrollBehavior?.state?.overlappedFraction ?: 0f
+    var showPrideDialog by remember { mutableStateOf(false) }
+
+    if (showPrideDialog) {
+        PrideDialog(onDismiss = { showPrideDialog = false })
+    }
 
     Column {
         TopAppBar(
         title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
             Column {
                 Text(
                     text = stringResource(R.string.app_title),
@@ -59,6 +78,16 @@ fun AppTopBar(
                     )
                 }
             }
+            Image(
+                painter = painterResource(R.drawable.progressive_pride),
+                contentDescription = "Pride Flag",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(width = 32.dp, height = 22.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable { showPrideDialog = true }
+            )
+            } // Row
         },
         navigationIcon = {
             if (isMockMode) {
@@ -90,6 +119,13 @@ fun AppTopBar(
                 onDismissRequest = { menuExpanded = false },
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
+                if (!isMockMode) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.demo_mode)) },
+                        onClick = { onStartDemo(); menuExpanded = false },
+                        leadingIcon = { Icon(Icons.Default.PlayArrow, null) }
+                    )
+                }
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.menu_settings)) },
                     onClick = { onShowSettings(); menuExpanded = false },
@@ -120,6 +156,33 @@ fun AppTopBar(
         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = scrolledFraction)
     )
     } // Column
+}
+
+@Composable
+private fun PrideDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+        },
+        title = {
+            Text(
+                text = "Für Vielfalt und Toleranz, gegen Hass und Hetze",
+                textAlign = TextAlign.Center
+            )
+        },
+        text = {
+            Text(
+                text = "Diese App ist für alle Menschen - unabhängig von Herkunft, Identität oder wen sie lieben. Aber nicht für dich, wenn du damit ein Problem hast. Gute Reise!",
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Slay ✨")
+            }
+        }
+    )
 }
 
 @Composable

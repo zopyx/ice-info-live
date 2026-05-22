@@ -32,7 +32,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _pois: MutableStateFlow<List<PoiItem>> = MutableStateFlow<List<PoiItem>>(emptyList())
     val pois: StateFlow<List<PoiItem>> = _pois.asStateFlow()
 
-    private val _isMockMode: MutableStateFlow<Boolean> = MutableStateFlow(SettingsManager.isMockMode(application))
+    private val _isMockMode: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isMockMode: StateFlow<Boolean> = _isMockMode.asStateFlow()
 
     private val _demoSpeed: MutableStateFlow<Int> = MutableStateFlow(SettingsManager.getDemoSpeed(application))
@@ -60,6 +60,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _stationSearchResults = MutableStateFlow<List<StationSearchResult>>(emptyList())
     val stationSearchResults: StateFlow<List<StationSearchResult>> = _stationSearchResults.asStateFlow()
+
+    private val _weather = MutableStateFlow<WeatherInfo?>(null)
+    val weather: StateFlow<WeatherInfo?> = _weather.asStateFlow()
+
+    private var lastWeatherEva = ""
 
     private var searchJob: Job? = null
 
@@ -107,7 +112,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setMockMode(enabled: Boolean) {
         _isMockMode.value = enabled
-        SettingsManager.setMockMode(getApplication(), enabled)
         val currentTarget = SettingsManager.getTargetStopEva(getApplication())
         if (enabled) {
             stopPolling()
@@ -167,7 +171,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun retryConnection() {
         _isMockMode.value = false
-        SettingsManager.setMockMode(getApplication(), false)
         _isChecking.value = true
         viewModelScope.launch {
             val status = TrainRepository.fetchTrainStatus()

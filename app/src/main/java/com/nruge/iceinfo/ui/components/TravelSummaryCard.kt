@@ -179,7 +179,7 @@ fun TravelSummaryCard(status: TrainStatus) {
                                    else (stop.distanceFromStart.toFloat() / totalDistanceForProgress)
                                        .coerceIn(0f, 1f) * size.width
 
-                        val labelYOffset = 0.dp.toPx()
+                        val labelYOffset = -10.dp.toPx()
                         withTransform({
                             translate(left = dotX, top = labelYOffset)
                             rotate(degrees = -45f, pivot = Offset.Zero)

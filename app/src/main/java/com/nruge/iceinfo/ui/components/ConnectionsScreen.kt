@@ -3,6 +3,7 @@ package com.nruge.iceinfo.ui.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -112,12 +113,12 @@ fun ConnectionsScreen(
             item(key = "header_reachable") {
                 ConnectionSectionHeader(
                     icon = Icons.Default.CheckCircle,
-                    title = "Erreichbar",
+                    title = stringResource(R.string.connections_section_reachable),
                     tint = onSuccessContainer()
                 )
             }
-            items(reachable, key = { "reach_${it.trainNumber}_${it.departure}" }) { conn ->
-                ConnectionCard(conn)
+            item(key = "group_reachable") {
+                ConnectionGroup(reachable) { conn -> ConnectionCardContent(conn) }
             }
         }
 
@@ -126,12 +127,12 @@ fun ConnectionsScreen(
             item(key = "header_tight") {
                 ConnectionSectionHeader(
                     icon = Icons.Default.Warning,
-                    title = "Knapp",
+                    title = stringResource(R.string.connections_section_tight),
                     tint = onWarningContainer()
                 )
             }
-            items(tight, key = { "tight_${it.trainNumber}_${it.departure}" }) { conn ->
-                ConnectionCard(conn)
+            item(key = "group_tight") {
+                ConnectionGroup(tight) { conn -> ConnectionCardContent(conn) }
             }
         }
 
@@ -140,12 +141,12 @@ fun ConnectionsScreen(
             item(key = "header_missed") {
                 ConnectionSectionHeader(
                     icon = Icons.Default.Cancel,
-                    title = "Verpasst",
+                    title = stringResource(R.string.connections_section_missed),
                     tint = MaterialTheme.colorScheme.error
                 )
             }
-            items(missed, key = { "missed_${it.trainNumber}_${it.departure}" }) { conn ->
-                ConnectionCard(conn)
+            item(key = "group_missed") {
+                ConnectionGroup(missed) { conn -> ConnectionCardContent(conn) }
             }
         }
 
@@ -154,11 +155,11 @@ fun ConnectionsScreen(
             item(key = "header_departures") {
                 ConnectionSectionHeader(
                     icon = Icons.Default.DirectionsTransit,
-                    title = "Weitere Abfahrten"
+                    title = stringResource(R.string.connections_section_departures)
                 )
             }
-            items(departures, key = { "dep_${it.line}_${it.scheduledTime}" }) { dep ->
-                DepartureCard(dep)
+            item(key = "group_departures") {
+                ConnectionGroup(departures) { dep -> DepartureCardContent(dep) }
             }
         }
     }
@@ -190,14 +191,38 @@ private fun ConnectionSectionHeader(
 }
 
 @Composable
-private fun ConnectionCard(conn: ConnectingTrain) {
+private fun <T> ConnectionGroup(
+    items: List<T>,
+    containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.surface,
+    content: @Composable (T) -> Unit
+) {
+    Surface(
+        shape = MaterialTheme.shapes.extraLarge,
+        color = containerColor,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column {
+            items.forEachIndexed { index, item ->
+                content(item)
+                if (index < items.lastIndex) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConnectionCardContent(conn: ConnectingTrain) {
     val isTight = conn.reachable && conn.transferMinutes != null && conn.transferMinutes < 5
 
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -279,18 +304,16 @@ private fun ConnectionCard(conn: ConnectingTrain) {
                 }
             }
         }
-    }
 }
 
 @Composable
-private fun DepartureCard(dep: Departure) {
+private fun DepartureCardContent(dep: Departure) {
     val isCancelled = dep.cancelled
 
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -381,7 +404,6 @@ private fun DepartureCard(dep: Departure) {
                 }
             }
         }
-    }
 }
 
 private fun addMinutesToTime(time: String, minutes: Int): String {

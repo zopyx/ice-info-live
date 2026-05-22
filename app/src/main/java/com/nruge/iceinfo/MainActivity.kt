@@ -29,6 +29,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +59,7 @@ import com.nruge.iceinfo.ui.AppNavigationBar
 import com.nruge.iceinfo.ui.AppNavigation
 import com.nruge.iceinfo.ui.AppTopBar
 import com.nruge.iceinfo.ui.ChangelogDialog
+import com.nruge.iceinfo.ui.WhatsNewDialog
 import com.nruge.iceinfo.ui.CrashReportingConsentDialog
 import com.nruge.iceinfo.ui.DebugDialog
 import com.nruge.iceinfo.ui.InfoDialog
@@ -257,6 +259,15 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                val lastSeenVersion = com.nruge.iceinfo.util.SettingsManager.getLastSeenVersion(context)
+                val currentVersion = com.nruge.iceinfo.BuildConfig.VERSION_CODE
+                var showWhatsNew by remember {
+                    mutableStateOf(lastSeenVersion > 0 && lastSeenVersion < currentVersion)
+                }
+                if (lastSeenVersion != currentVersion) {
+                    com.nruge.iceinfo.util.SettingsManager.setLastSeenVersion(context, currentVersion)
+                }
+
                 LaunchedEffect(intent) {
                     // Action select target is now handled by dropdown in HomeScreen
                 }
@@ -286,6 +297,7 @@ class MainActivity : ComponentActivity() {
                             isConnected = trainStatus.isConnected,
                             isOnTrainWifi = isWIFIonICEStatus,
                             serviceRunning = serviceRunning,
+                            showPrideBadge = !trainStatus.isConnected && !isMockMode && !isWIFIonICEStatus,
                             onToggleService = {
                                 if (serviceRunning) {
                                     val stopIntent = Intent(context, IceNotificationService::class.java).apply {
@@ -312,6 +324,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             onExitDemo = { viewModel.setMockMode(false) },
+                            onStartDemo = { viewModel.setMockMode(true) },
                             onShowSettings = { showSettings = true },
                             onShowInfo = { showInfo = true },
                             onShowChangelog = { showChangelog = true },
@@ -421,6 +434,10 @@ class MainActivity : ComponentActivity() {
 
                 if (showChangelog) {
                     ChangelogDialog(onDismiss = { showChangelog = false })
+                }
+
+                if (showWhatsNew) {
+                    WhatsNewDialog(onDismiss = { showWhatsNew = false })
                 }
 
                 if (showSettings) {

@@ -12,6 +12,7 @@ object SettingsManager {
     private const val KEY_IS_MOCK_MODE = "is_mock_mode"
     private const val KEY_DEMO_SPEED = "demo_speed"
     private const val KEY_ONBOARDING_SHOWN = "onboarding_shown"
+    private const val KEY_LAST_SEEN_VERSION = "last_seen_version"
     private const val KEY_REDUCED_MOTION = "reduced_motion"
     private const val KEY_APP_THEME = "app_theme"
     private const val KEY_CRASH_REPORTING = "crash_reporting_enabled"
@@ -117,6 +118,15 @@ object SettingsManager {
     fun setOnboardingShown(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putBoolean(KEY_ONBOARDING_SHOWN, true).apply()
+    }
+
+    fun getLastSeenVersion(context: Context): Int =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getInt(KEY_LAST_SEEN_VERSION, 0)
+
+    fun setLastSeenVersion(context: Context, versionCode: Int) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_LAST_SEEN_VERSION, versionCode).apply()
     }
 
     fun isOnboardingShown(context: Context): Boolean {

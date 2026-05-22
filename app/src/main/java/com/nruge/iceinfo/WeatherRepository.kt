@@ -38,8 +38,8 @@ object WeatherRepository {
         try {
             val searchName = stationName
                 .replace(Regex("\\(.*?\\)"), "")
-                .replace("Hbf", "Hauptbahnhof")
-                .replace("Bhf", "Bahnhof")
+                .replace("Hbf", "")
+                .replace("Bhf", "")
                 .trim()
 
             val geo = client.get("https://geocoding-api.open-meteo.com/v1/search") {
