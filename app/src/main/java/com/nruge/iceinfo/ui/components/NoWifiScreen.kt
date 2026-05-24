@@ -3,6 +3,7 @@ package com.nruge.iceinfo.ui.components
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import com.nruge.iceinfo.ui.theme.LocalDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +46,7 @@ fun NoWifiScreen(
     onMockMode: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val background = MaterialTheme.colorScheme.background
 
     Box(
@@ -137,6 +140,36 @@ fun NoWifiScreen(
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     onClick = onMockMode
                 )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Nicos ICEinfo",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.ic_bluesky),
+                        contentDescription = "BlueSky",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { uriHandler.openUri("https://bsky.app/profile/nico-ruge.de") }
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.ic_github),
+                        contentDescription = "GitHub",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { uriHandler.openUri("https://github.com/nicoruge/ice-info-live") }
+                    )
+                }
             }
         }
     }
