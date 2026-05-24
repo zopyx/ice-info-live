@@ -13,8 +13,19 @@ import androidx.compose.material.icons.filled.DirectionsTransit
 import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import com.nruge.iceinfo.util.formatRemainingTimeUntil
+import java.time.LocalTime
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -38,6 +49,7 @@ fun ConnectionsScreen(
     status: TrainStatus,
     connections: List<ConnectingTrain>,
     departures: List<Departure> = emptyList(),
+    isMockMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val targetStop = status.stops.find { it.evaNr == status.targetStopEva && !it.passed }
@@ -46,6 +58,15 @@ fun ConnectionsScreen(
     val missed = connections.filter { !it.reachable }
     val tight = connections.filter { it.reachable && it.transferMinutes != null && it.transferMinutes < 5 }
     val reachable = connections.filter { it.reachable && (it.transferMinutes == null || it.transferMinutes >= 5) }
+
+    var showRelative by remember { mutableStateOf(false) }
+    val referenceTime = if (isMockMode) LocalTime.of(8, 30) else LocalTime.now()
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            showRelative = !showRelative
+        }
+    }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -69,30 +90,50 @@ fun ConnectionsScreen(
                 if (stop != null && stop.scheduledArrival.isNotEmpty()) {
                     val isDelayed = stop.delayMinutes > 0
                     val displayTime = stop.actualArrival.ifEmpty { stop.scheduledArrival }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.connections_arrival, stop.scheduledArrival),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isDelayed)
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant,
-                            textDecoration = if (isDelayed) TextDecoration.LineThrough
-                            else TextDecoration.None
-                        )
-                        if (isDelayed) {
+                    val relativeArrival = formatRemainingTimeUntil(stop.scheduledArrival, stop.delayMinutes, referenceTime)
+                        .takeIf { it != "--" }?.let { "in $it" }
+                    val headerRelAlpha by animateFloatAsState(
+                        targetValue = if (showRelative && relativeArrival != null) 1f else 0f,
+                        animationSpec = tween(350),
+                        label = "arrival_header_alpha"
+                    )
+                    Box(contentAlignment = Alignment.CenterStart) {
+                        Row(
+                            modifier = Modifier.alpha(1f - headerRelAlpha),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = displayTime,
+                                text = stringResource(R.string.connections_arrival, stop.scheduledArrival),
                                 style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (stop.delayMinutes < 0) rainbowColor()
-                                else if (stop.delayMinutes >= 5) MaterialTheme.colorScheme.error
-                                else onSuccessContainer()
+                                color = if (isDelayed)
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant,
+                                textDecoration = if (isDelayed) TextDecoration.LineThrough else TextDecoration.None
                             )
+                            if (isDelayed) {
+                                Text(
+                                    text = displayTime,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (stop.delayMinutes < 0) rainbowColor()
+                                    else if (stop.delayMinutes >= 5) MaterialTheme.colorScheme.error
+                                    else onSuccessContainer()
+                                )
+                            }
                         }
+                        Text(
+                            text = relativeArrival ?: "",
+                            modifier = Modifier.alpha(headerRelAlpha),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = when {
+                                stop.delayMinutes < 0  -> rainbowColor()
+                                stop.delayMinutes >= 5 -> MaterialTheme.colorScheme.error
+                                else                   -> onSuccessContainer()
+                            }
+                        )
                     }
                 }
             }
@@ -118,7 +159,7 @@ fun ConnectionsScreen(
                 )
             }
             item(key = "group_reachable") {
-                ConnectionGroup(reachable) { conn -> ConnectionCardContent(conn) }
+                ConnectionGroup(reachable) { conn -> ConnectionCardContent(conn, showRelative, referenceTime) }
             }
         }
 
@@ -132,7 +173,7 @@ fun ConnectionsScreen(
                 )
             }
             item(key = "group_tight") {
-                ConnectionGroup(tight) { conn -> ConnectionCardContent(conn) }
+                ConnectionGroup(tight) { conn -> ConnectionCardContent(conn, showRelative, referenceTime) }
             }
         }
 
@@ -146,7 +187,7 @@ fun ConnectionsScreen(
                 )
             }
             item(key = "group_missed") {
-                ConnectionGroup(missed) { conn -> ConnectionCardContent(conn) }
+                ConnectionGroup(missed) { conn -> ConnectionCardContent(conn, showRelative, referenceTime) }
             }
         }
 
@@ -159,7 +200,7 @@ fun ConnectionsScreen(
                 )
             }
             item(key = "group_departures") {
-                ConnectionGroup(departures) { dep -> DepartureCardContent(dep) }
+                ConnectionGroup(departures) { dep -> DepartureCardContent(dep, showRelative, referenceTime) }
             }
         }
     }
@@ -216,7 +257,7 @@ private fun <T> ConnectionGroup(
 }
 
 @Composable
-private fun ConnectionCardContent(conn: ConnectingTrain) {
+private fun ConnectionCardContent(conn: ConnectingTrain, showRelative: Boolean = false, referenceTime: LocalTime = LocalTime.now()) {
     val isTight = conn.reachable && conn.transferMinutes != null && conn.transferMinutes < 5
 
     Row(
@@ -270,7 +311,7 @@ private fun ConnectionCardContent(conn: ConnectingTrain) {
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                DepartureTimePair(scheduled = conn.departure, delayMinutes = conn.delayMinutes)
+                DepartureTimePair(scheduled = conn.departure, delayMinutes = conn.delayMinutes, showRelative = showRelative, referenceTime = referenceTime, cancelled = false)
             }
 
             // Track + transfer time
@@ -307,7 +348,7 @@ private fun ConnectionCardContent(conn: ConnectingTrain) {
 }
 
 @Composable
-private fun DepartureCardContent(dep: Departure) {
+private fun DepartureCardContent(dep: Departure, showRelative: Boolean = false, referenceTime: LocalTime = LocalTime.now()) {
     val isCancelled = dep.cancelled
 
     Row(
@@ -385,7 +426,9 @@ private fun DepartureCardContent(dep: Departure) {
                 DepartureTimePair(
                     scheduled = dep.scheduledTime,
                     delayMinutes = dep.delayMinutes,
-                    cancelled = isCancelled
+                    cancelled = isCancelled,
+                    showRelative = showRelative && !isCancelled,
+                    referenceTime = referenceTime
                 )
             }
 
@@ -417,45 +460,80 @@ private fun addMinutesToTime(time: String, minutes: Int): String {
 }
 
 @Composable
-private fun DepartureTimePair(scheduled: String, delayMinutes: Int, cancelled: Boolean = false) {
+private fun DepartureTimePair(
+    scheduled: String,
+    delayMinutes: Int,
+    cancelled: Boolean = false,
+    showRelative: Boolean = false,
+    referenceTime: LocalTime = LocalTime.now()
+) {
     val actual = addMinutesToTime(scheduled, delayMinutes)
     val isDelayed = delayMinutes != 0 && !cancelled
     val isEarly = delayMinutes < 0 && !cancelled
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+    val relativeText = if (showRelative) {
+        formatRemainingTimeUntil(scheduled, delayMinutes, referenceTime).takeIf { it != "--" }?.let { "in $it" }
+    } else null
+
+    val depRelAlpha by animateFloatAsState(
+        targetValue = if (relativeText != null) 1f else 0f,
+        animationSpec = tween(350),
+        label = "dep_rel_alpha"
+    )
+
+    Box(contentAlignment = Alignment.CenterStart) {
+        Row(
+            modifier = Modifier.alpha(1f - depRelAlpha),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = scheduled,
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.SemiBold,
+                color = when {
+                    cancelled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                    isDelayed -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    else      -> MaterialTheme.colorScheme.onSurface
+                },
+                textDecoration = if ((isDelayed || cancelled) && scheduled.isNotEmpty()) TextDecoration.LineThrough else TextDecoration.None
+            )
+            if (isEarly) {
+                Text(
+                    text = actual,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = rainbowColor()
+                )
+            } else {
+                Text(
+                    text = actual,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = when {
+                        cancelled                      -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                        isDelayed && delayMinutes >= 5 -> MaterialTheme.colorScheme.error
+                        else                           -> onSuccessContainer()
+                    },
+                    textDecoration = if (cancelled) TextDecoration.LineThrough else TextDecoration.None
+                )
+            }
+        }
         Text(
-            text = scheduled,
+            text = relativeText ?: "",
+            modifier = Modifier.alpha(depRelAlpha),
             style = MaterialTheme.typography.bodyMedium,
             fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = when {
-                cancelled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                isDelayed -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                else      -> MaterialTheme.colorScheme.onSurface
-            },
-            textDecoration = if (isDelayed || cancelled) TextDecoration.LineThrough else TextDecoration.None
+                cancelled                      -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                isDelayed && delayMinutes >= 5 -> MaterialTheme.colorScheme.error
+                isEarly                        -> rainbowColor()
+                else                           -> onSuccessContainer()
+            }
         )
-        if (isEarly) {
-            Text(
-                text = actual,
-                style = MaterialTheme.typography.bodyMedium,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                color = rainbowColor()
-            )
-        } else {
-            Text(
-                text = actual,
-                style = MaterialTheme.typography.bodyMedium,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                color = when {
-                    cancelled                      -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                    isDelayed && delayMinutes >= 5 -> MaterialTheme.colorScheme.error
-                    else                           -> onSuccessContainer()
-                },
-                textDecoration = if (cancelled) TextDecoration.LineThrough else TextDecoration.None
-            )
-        }
     }
 }
 

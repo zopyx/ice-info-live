@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.nruge.iceinfo.model.ConnectingTrain
 import com.nruge.iceinfo.model.Departure
+import com.nruge.iceinfo.model.OsmTrackData
 import com.nruge.iceinfo.model.PoiItem
 import com.nruge.iceinfo.model.StationInfo
 import com.nruge.iceinfo.model.StationSearchResult
@@ -36,6 +37,7 @@ fun AppNavigation(
     connections: List<ConnectingTrain>,
     departures: List<Departure>,
     weather: WeatherInfo?,
+    osmData: OsmTrackData,
     isMockMode: Boolean,
     demoSpeed: Int,
     showDemoSpeed: Boolean,
@@ -75,10 +77,10 @@ fun AppNavigation(
             )
         }
         composable(Screen.Stops.route) {
-            StopsScreen(status = trainStatus, pois = pois)
+            StopsScreen(status = trainStatus, isMockMode = isMockMode)
         }
         composable(Screen.Map.route) {
-            MapScreen(status = trainStatus)
+            MapScreen(status = trainStatus, osmData = osmData, pois = pois)
         }
         composable(Screen.Service.route) {
             ServiceScreen(
@@ -94,7 +96,8 @@ fun AppNavigation(
             ConnectionsScreen(
                 status = trainStatus,
                 connections = connections,
-                departures = departures
+                departures = departures,
+                isMockMode = isMockMode
             )
         }
     }

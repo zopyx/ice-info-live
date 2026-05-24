@@ -67,19 +67,39 @@
     <string name="connection_transfer_minutes">%1$d min Umstieg</string>
     <string name="connections_arrival">Ankunft %1$s</string>
 
-    <!-- Map -->
+    <!-- Map / Track Screen -->
     <string name="map_position_title">📍 Position</string>
+    <string name="track_section_track">Strecke</string>
+    <string name="track_section_features">Features in ±20 km</string>
+    <string name="track_property_max_speed">Höchstgeschwindigkeit</string>
+    <string name="track_property_electrified">Elektrifizierung</string>
+    <string name="track_property_tracks">Gleise</string>
+    <string name="track_property_usage">Nutzung</string>
+    <string name="track_empty_title">Keine Position verfügbar</string>
+    <string name="track_empty_desc">Verbinde dich mit dem Zug-WLAN, um Streckendaten zu laden.</string>
+    <string name="track_no_features">Keine benannten Features in ±20 km gefunden.</string>
+    <string name="track_source">Daten: © OpenStreetMap-Mitwirkende (ODbL)</string>
+    <string name="track_feature_tunnel">Tunnel</string>
+    <string name="track_feature_bridge">Brücke</string>
+    <string name="track_feature_station">Bahnhof</string>
+    <string name="track_feature_halt">Halt</string>
+    <string name="pois_title_plain">Points of Interest</string>
 
     <!-- Info Dialog -->
     <string name="info_version">Version %1$s</string>
-    <string name="info_description">Diese App liest Live-Daten aus der ICE Portal API des Deutsche Bahn ICE-WLANs aus und zeigt sie übersichtlich an.</string>
+    <string name="info_description">Diese App liest Live-Daten aus der ICE Portal API des Deutsche Bahn ICE-WLANs aus und zeigt sie übersichtlich an. Für Bahnhofsinformationen werden außerdem offizielle APIs der Deutschen Bahn genutzt.</string>
     <string name="info_privacy_title">Datenschutz</string>
-    <string name="info_privacy_text">Diese App speichert oder erfasst keine personenbezogenen Daten. Die API Abfragen erfolgen ausschließlich an die Interne API im Zug-WLAN.</string>
+    <string name="info_privacy_text">Diese App speichert oder erfasst keine personenbezogenen Daten. Fahrtdaten werden über die interne API im Zug-WLAN abgerufen. Bahnhofsdaten (Ausstattung, Aufzugsstatus) werden über öffentliche APIs der Deutschen Bahn aus dem Internet geladen.</string>
     <string name="info_api_title">API</string>
     <string name="info_api_url1">https://iceportal.de/api1/rs/status</string>
     <string name="info_api_url2">https://iceportal.de/api1/rs/tripInfo/trip</string>
     <string name="info_api_url3">https://iceportal.de/api1/rs/pois/all</string>
     <string name="info_api_url4">https://iceportal.de/api1/rs/tripInfo/connection/{eva_nummer}</string>
+    <string name="info_api_title_db">Offizielle DB APIs (CC BY 4.0)</string>
+    <string name="info_api_db_stada">DB StaDa – Station Data v2</string>
+    <string name="info_api_db_fasta">DB FaSta – Facility Status v2</string>
+    <string name="info_api_title_community">Community APIs</string>
+    <string name="info_api_community_transport">v6.db.transport.rest (db.transport.rest)</string>
     <string name="info_built_with_title">Entwickelt mit</string>
     <string name="info_built_with_text">Kotlin · Jetpack Compose · OSMDroid · Material 3</string>
     <string name="info_legal_title">Rechtliches</string>
@@ -125,7 +145,7 @@
     <!-- Navigation -->
     <string name="nav_status">Status</string>
     <string name="nav_stops">Halte</string>
-    <string name="nav_map">Karte</string>
+    <string name="nav_map">Strecke</string>
     <string name="nav_service">Bahnhof</string>
     <string name="nav_connections">Anschlüsse</string>
 

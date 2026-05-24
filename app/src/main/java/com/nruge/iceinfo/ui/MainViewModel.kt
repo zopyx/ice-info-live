@@ -4,12 +4,14 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.nruge.iceinfo.DepartureBoardRepository
+import com.nruge.iceinfo.OsmRepository
 import com.nruge.iceinfo.StationFacilitiesRepository
 import com.nruge.iceinfo.TrainRepository
 import com.nruge.iceinfo.WeatherRepository
 import com.nruge.iceinfo.model.*
 import com.nruge.iceinfo.sampleConnections
 import com.nruge.iceinfo.sampleDepartures
+import com.nruge.iceinfo.sampleOsmTrackData
 import com.nruge.iceinfo.samplePois
 import com.nruge.iceinfo.sampleTrainStatus
 import com.nruge.iceinfo.sampleWeather
@@ -64,7 +66,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _weather = MutableStateFlow<WeatherInfo?>(null)
     val weather: StateFlow<WeatherInfo?> = _weather.asStateFlow()
 
+    private val _osmData = MutableStateFlow(OsmTrackData(isLoading = false))
+    val osmData: StateFlow<OsmTrackData> = _osmData.asStateFlow()
+
     private var lastWeatherEva = ""
+    private var lastOsmLat = 0.0
+    private var lastOsmLon = 0.0
 
     private var searchJob: Job? = null
 
@@ -79,6 +86,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _departures.value = sampleDepartures
             _pois.value = samplePois
             _weather.value = sampleWeather
+            _osmData.value = sampleOsmTrackData
             updateWidget(_trainStatus.value)
         } else {
             startPolling()
@@ -93,11 +101,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val status = _trainStatus.value
             val boardStop = relevantBoardStop(status)
-            _connections.value = TrainRepository.fetchConnections(
+            val connections = TrainRepository.fetchConnections(
                 boardStop?.evaNr ?: status.nextStopEva,
                 boardStop?.effectiveArrivalMs ?: 0L
             )
-            _departures.value = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
+            val departures = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
+            _departures.value = departures
+            _connections.value = enrichConnectionDestinations(connections, departures)
             refreshWeatherIfNeeded(status.copy(targetStopEva = eva))
         }
         
@@ -127,6 +137,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _departures.value = sampleDepartures
             _pois.value = samplePois
             _weather.value = sampleWeather
+            _osmData.value = sampleOsmTrackData
             updateWidget(status)
         } else {
             _trainStatus.value = _trainStatus.value.copy(isConnected = false, targetStopEva = currentTarget)
@@ -134,7 +145,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _departures.value = emptyList()
             _pois.value = emptyList()
             _weather.value = null
+            _osmData.value = OsmTrackData()
             lastWeatherEva = ""
+            lastOsmLat = 0.0
+            lastOsmLon = 0.0
             startPolling()
         }
     }
@@ -194,12 +208,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val updatedStatus = status.copy(targetStopEva = currentTarget)
                     _trainStatus.value = updatedStatus
                     _pois.value = TrainRepository.fetchPois(status.latitude, status.longitude)
+                    refreshOsmDataIfNeeded(status.latitude, status.longitude)
                     val boardStop = relevantBoardStop(updatedStatus)
-                    _connections.value = TrainRepository.fetchConnections(
+                    val connections = TrainRepository.fetchConnections(
                         boardStop?.evaNr ?: status.nextStopEva,
                         boardStop?.effectiveArrivalMs ?: 0L
                     )
-                    _departures.value = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
+                    val departures = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
+                    _departures.value = departures
+                    _connections.value = enrichConnectionDestinations(connections, departures)
                     refreshWeatherIfNeeded(updatedStatus)
                     updateWidget(updatedStatus)
                 }
@@ -239,6 +256,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pollingJob?.cancel()
     }
 
+    private fun refreshOsmDataIfNeeded(lat: Double, lon: Double) {
+        if (lat == 0.0 && lon == 0.0) return
+        val dLat = kotlin.math.abs(lat - lastOsmLat)
+        val dLon = kotlin.math.abs(lon - lastOsmLon)
+        // ~3 km threshold before re-querying
+        if (lastOsmLat != 0.0 && dLat < 0.027 && dLon < 0.035) return
+        lastOsmLat = lat
+        lastOsmLon = lon
+        viewModelScope.launch {
+            _osmData.value = OsmTrackData(isLoading = true)
+            _osmData.value = OsmRepository.fetchTrackData(lat, lon)
+        }
+    }
+
     private fun relevantBoardStop(status: TrainStatus): TrainStop? {
         val targetEva = status.targetStopEva
         val target = targetEva?.let { eva -> status.stops.find { it.evaNr == eva && !it.passed } }
@@ -249,6 +280,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (stop.evaNr.isBlank() || stop.scheduledArrivalMs <= 0L) return emptyList()
         val arrivalMs = stop.scheduledArrivalMs + stop.delayMinutes * 60_000L
         return DepartureBoardRepository.fetchDepartures(stop.evaNr, arrivalMs)
+    }
+
+    private fun enrichConnectionDestinations(
+        connections: List<ConnectingTrain>,
+        departures: List<Departure>
+    ): List<ConnectingTrain> {
+        if (departures.isEmpty()) return connections
+        val destinationByLine = departures.associate { it.line.trim() to it.destination }
+        return connections.map { conn ->
+            if (conn.destination.isNotBlank()) conn
+            else conn.copy(destination = destinationByLine["${conn.trainType} ${conn.trainNumber}"].orEmpty())
+        }
     }
 
     private fun weatherStop(status: TrainStatus): TrainStop? {

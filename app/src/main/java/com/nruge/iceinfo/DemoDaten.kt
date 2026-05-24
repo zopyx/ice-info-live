@@ -11,7 +11,7 @@ val sampleTrainStatus = TrainStatus(
     destination = "München Hbf",
     eta = "14:34",
     delayMinutes = 21,
-    tzn = "ICE0701",
+    tzn = "ICE0304",
     series = "408",
     track = "4",
     delayReason = "Kurzfristiger Personalausfall",
@@ -204,6 +204,25 @@ val sampleWeather = WeatherInfo(
     precipitation = 0.0,
     windspeed = 18.0,
     weatherCode = 2
+)
+
+val sampleOsmTrackData = OsmTrackData(
+    trackInfo = TrackInfo(
+        maxSpeed = 280,
+        electrified = "contact_line",
+        voltage = 15000,
+        tracks = 2,
+        usage = "main"
+    ),
+    features = listOf(
+        RailFeature("Göttingen", RailFeatureType.STATION, 8.3),
+        RailFeature("Mühlbergtunnel", RailFeatureType.TUNNEL, 14.2),
+        RailFeature("Kassel-Wilhelmshöhe", RailFeatureType.STATION, 47.8),
+        RailFeature("Sinntalviadukt", RailFeatureType.BRIDGE, 73.1),
+        RailFeature("Landrückentunnel", RailFeatureType.TUNNEL, 78.4),
+        RailFeature("Fulda", RailFeatureType.STATION, 91.6),
+        RailFeature("Würzburg Hbf", RailFeatureType.STATION, 156.2)
+    )
 )
 
 val sampleDepartures = listOf(

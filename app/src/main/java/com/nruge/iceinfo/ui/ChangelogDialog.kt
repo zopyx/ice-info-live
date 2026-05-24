@@ -50,6 +50,25 @@ internal data class ChangelogEntry(
 
 internal val changelog = listOf(
     ChangelogEntry(
+        version = "5.1",
+        newFeatures = listOf(
+            "Strecke-Tab: Karte ersetzt durch einen Daten-Tab mit Streckeninfos aus OpenStreetMap (Höchstgeschwindigkeit, Elektrifizierung, Gleisanzahl, Streckentyp)",
+            "Halte und Anschlüsse: Zeiten wechseln alle 5 Sekunden zwischen absoluter Uhrzeit und relativer Restzeit ('in X min')",
+            "Baureihe unter der Zugnummer ist nun Aufklappbar für Infos zum Zug"
+        ),
+        fixes = listOf(
+            "POI-Karte wurde aus der Halte-Seite entfernt (POIs sind jetzt auf der Strecke-Seite)",
+            "Halte: Timeline verschiebt sich nicht mehr, wenn relative Zeiten angezeigt werden",
+            "Halte: Relative Zeiten mit einstelliger Minutenzahl sind jetzt linksbündig ausgerichtet"
+        )
+    ),
+    ChangelogEntry(
+        version = "5.0.2",
+        fixes = listOf(
+            "Anschlüsse: Fehlende Ziele werden jetzt aus den Abfahrtsdaten (transport.rest) ergänzt, da die ICE Portal API das Ziel nicht immer liefert"
+        )
+    ),
+    ChangelogEntry(
         version = "5.0",
         newFeatures = listOf(
             "Live Update (Android 16+): Die Reise wird jetzt als interaktive Fortschritts-Notification auf dem Sperrbildschirm und im Always-On-Display angezeigt",
@@ -204,7 +223,7 @@ internal val changelog = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangelogDialog(onDismiss: () -> Unit) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,

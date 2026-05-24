@@ -38,7 +38,7 @@ import com.nruge.iceinfo.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InfoDialog(onDismiss: () -> Unit) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -90,6 +90,25 @@ fun InfoDialog(onDismiss: () -> Unit) {
                             Text(stringResource(R.string.info_api_url3))
                             Text(stringResource(R.string.info_api_url4))
                         }
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+                ListItem(
+                    leadingContent = { Icon(Icons.Default.Cloud, contentDescription = null) },
+                    overlineContent = { Text(stringResource(R.string.info_api_title_db)) },
+                    headlineContent = {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(stringResource(R.string.info_api_db_stada))
+                            Text(stringResource(R.string.info_api_db_fasta))
+                        }
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+                ListItem(
+                    leadingContent = { Icon(Icons.Default.Cloud, contentDescription = null) },
+                    overlineContent = { Text(stringResource(R.string.info_api_title_community)) },
+                    headlineContent = {
+                        Text(stringResource(R.string.info_api_community_transport))
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )

@@ -1,6 +1,10 @@
 package com.nruge.iceinfo.ui.components
 
-import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,10 +12,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -23,13 +27,10 @@ import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.sampleTrainStatus
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
-import com.nruge.iceinfo.util.getIceClassFromSeries
-import com.nruge.iceinfo.util.getIceDrawable
-import com.nruge.iceinfo.util.getIceVmax
+import com.nruge.iceinfo.util.IceUtils
 
 @Composable
 fun TrainHeader(status: TrainStatus, reducedMotion: Boolean = false) {
-    val context = LocalContext.current
     val density = LocalDensity.current
     var trackWidthPx by remember { mutableStateOf(300f) }
     var trackOffset by remember { mutableStateOf(0f) }
@@ -91,7 +92,7 @@ fun TrainHeader(status: TrainStatus, reducedMotion: Boolean = false) {
         }
 
         Image(
-            painter = painterResource(id = getIceDrawable(status.tzn)),
+            painter = painterResource(id = IceUtils.getIceDrawable(status.tzn)),
             contentDescription = null,
             alignment = Alignment.CenterStart,
             contentScale = ContentScale.FillHeight,
@@ -125,26 +126,57 @@ fun TrainHeader(status: TrainStatus, reducedMotion: Boolean = false) {
                         fontStyle = FontStyle.Italic,
                         color = MaterialTheme.colorScheme.tertiary
                     )
-                    val seriesLabel = getIceClassFromSeries(status.series)
-                    val Vmax = getIceVmax(status.series)
-                    val seriesText = when {
-                        seriesLabel.isNotEmpty() && Vmax != null -> "$seriesLabel • Vmax = $Vmax km/h*"
-                        seriesLabel.isNotEmpty() -> seriesLabel
+
+                    val seriesLabel = IceUtils.getIceClassFromSeries(status.series, status.tzn)
+                    val vmax = IceUtils.getIceVmax(status.series)
+                    val specialName = IceUtils.getSpecialName(status.tzn)
+                    val tzName = IceUtils.getTzName(status.tzn)
+                    val nameText = when {
+                        specialName != null && tzName != null -> "${tzName.name} · ${specialName.name}"
+                        specialName != null -> specialName.name
+                        tzName != null -> tzName.name
                         else -> ""
                     }
-                    if (seriesText.isNotEmpty()) {
-                        Text(
-                            text = seriesText,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
-                            modifier = Modifier.clickable {
-                                Toast.makeText(
-                                    context,
-                                    "Zugelassene Höchstgeschwindigkeit dieser Baureihe in Deutschland – nicht auf jeder Strecke erreichbar.",
-                                    Toast.LENGTH_LONG
-                                ).show()
+                    val hasDetails = vmax != null || nameText.isNotEmpty()
+                    var expanded by remember { mutableStateOf(false) }
+
+                    if (seriesLabel.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable(enabled = hasDetails) { expanded = !expanded }
+                        ) {
+                            Text(
+                                text = seriesLabel,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                            )
+                            if (hasDetails) {
+                                Text(
+                                    text = "›",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                                    modifier = Modifier
+                                        .padding(start = 3.dp)
+                                        .rotate(if (expanded) 180f else 0f)
+                                )
                             }
-                        )
+                            AnimatedVisibility(
+                                visible = expanded,
+                                enter = expandHorizontally() + fadeIn(),
+                                exit = shrinkHorizontally() + fadeOut()
+                            ) {
+                                val details = buildList {
+                                    if (nameText.isNotEmpty()) add(nameText)
+                                    if (vmax != null) add("Vmax $vmax km/h")
+                                }.joinToString(" · ")
+                                Text(
+                                    text = "  $details",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontStyle = FontStyle.Italic,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.55f)
+                                )
+                            }
+                        }
                     }
                 }
                 Text(

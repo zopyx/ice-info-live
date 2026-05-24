@@ -50,15 +50,35 @@
     <string name="connection_transfer_minutes">%1$d min transfer</string>
     <string name="connections_arrival">Arrival %1$s</string>
     <string name="map_position_title">📍 Position</string>
+    <string name="track_section_track">Track</string>
+    <string name="track_section_features">Features within ±20 km</string>
+    <string name="track_property_max_speed">Max speed</string>
+    <string name="track_property_electrified">Electrification</string>
+    <string name="track_property_tracks">Tracks</string>
+    <string name="track_property_usage">Usage</string>
+    <string name="track_empty_title">No position available</string>
+    <string name="track_empty_desc">Connect to the train Wi-Fi to load track data.</string>
+    <string name="track_no_features">No named features within ±20 km found.</string>
+    <string name="track_source">Data: © OpenStreetMap contributors (ODbL)</string>
+    <string name="track_feature_tunnel">Tunnel</string>
+    <string name="track_feature_bridge">Bridge</string>
+    <string name="track_feature_station">Station</string>
+    <string name="track_feature_halt">Halt</string>
+    <string name="pois_title_plain">Points of Interest</string>
     <string name="info_version">Version %1$s</string>
-    <string name="info_description">This app reads live data from the ICE Portal API of the Deutsche Bahn ICE Wi-Fi and displays it clearly.</string>
+    <string name="info_description">This app reads live data from the ICE Portal API of the Deutsche Bahn ICE Wi-Fi and displays it clearly. Official Deutsche Bahn APIs are also used to provide station information.</string>
     <string name="info_privacy_title">Data protection</string>
-    <string name="info_privacy_text">This app does not store or collect any personal data. API queries are made exclusively to the internal API within the train\'s Wi-Fi network.</string>
+    <string name="info_privacy_text">This app does not store or collect any personal data. Journey data is retrieved via the internal API within the train\'s Wi-Fi. Station data (facilities, elevator status) is loaded from the internet via official Deutsche Bahn APIs.</string>
     <string name="info_api_title">API</string>
     <string name="info_api_url1">https://iceportal.de/api1/rs/status</string>
     <string name="info_api_url2">https://iceportal.de/api1/rs/tripInfo/trip</string>
     <string name="info_api_url3">https://iceportal.de/api1/rs/pois/all</string>
     <string name="info_api_url4">https://iceportal.de/api1/rs/tripInfo/connection/{eva_nummer}</string>
+    <string name="info_api_title_db">Official DB APIs (CC BY 4.0)</string>
+    <string name="info_api_db_stada">DB StaDa – Station Data v2</string>
+    <string name="info_api_db_fasta">DB FaSta – Facility Status v2</string>
+    <string name="info_api_title_community">Community APIs</string>
+    <string name="info_api_community_transport">v6.db.transport.rest (db.transport.rest)</string>
     <string name="info_built_with_title">Created with</string>
     <string name="info_built_with_text">Kotlin · Jetpack Compose · OSMDroid · Material 3</string>
     <string name="info_legal_title">Legal</string>
@@ -106,7 +126,7 @@
     <!-- Navigation -->
     <string name="nav_status">Status</string>
     <string name="nav_stops">Stops</string>
-    <string name="nav_map">Map</string>
+    <string name="nav_map">Track</string>
     <string name="nav_service">Service</string>
     <string name="nav_connections">Connections</string>
 

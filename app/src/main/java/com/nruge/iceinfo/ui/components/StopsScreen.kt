@@ -21,8 +21,19 @@ import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Water
 import androidx.compose.material3.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Alignment
+import com.nruge.iceinfo.util.formatRemainingTimeUntil
+import kotlinx.coroutines.delay
+import java.time.LocalTime
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -40,7 +51,7 @@ import com.nruge.iceinfo.ui.theme.onSuccessContainer
 import com.nruge.iceinfo.ui.theme.rainbowColor
 
 @Composable
-fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
+fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean, showRelative: Boolean = false, referenceTime: LocalTime = LocalTime.now()) {
     val isPassed = stop.passed
     val isNext = stop.isNext
 
@@ -77,7 +88,9 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(80.dp)
             ) {
                 if (stop.scheduledArrival.isNotEmpty()) {
                     StopTimePair(
@@ -86,7 +99,9 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
                         delay = stop.delayMinutes,
                         isPassed = isPassed,
                         isNext = isNext,
-                        isCancelled = isCancelled
+                        isCancelled = isCancelled,
+                        showRelative = showRelative,
+                        referenceTime = referenceTime
                     )
                 }
                 if (stop.scheduledDeparture.isNotEmpty()) {
@@ -96,7 +111,9 @@ fun TimelineStopRow(stop: TrainStop, isFirst: Boolean, isLast: Boolean) {
                         delay = stop.departureDelayMinutes,
                         isPassed = isPassed,
                         isNext = isNext,
-                        isCancelled = isCancelled
+                        isCancelled = isCancelled,
+                        showRelative = showRelative,
+                        referenceTime = referenceTime
                     )
                 }
             }
@@ -287,57 +304,97 @@ private fun StopTimePair(
     delay: Int,
     isPassed: Boolean,
     isNext: Boolean,
-    isCancelled: Boolean = false
+    isCancelled: Boolean = false,
+    showRelative: Boolean = false,
+    referenceTime: LocalTime = LocalTime.now()
 ) {
     val isEarly = delay < 0 && !isPassed && !isCancelled && actual.isNotEmpty()
     val isDelayed = delay > 0 && !isPassed && !isCancelled && actual.isNotEmpty()
     val displayActual = actual.ifEmpty { scheduled }
+    val canShowRelative = showRelative && !isPassed && !isCancelled
+    val relativeText = if (canShowRelative) {
+        val remaining = formatRemainingTimeUntil(scheduled, delay, referenceTime)
+        if (remaining != "--") "in $remaining" else null
+    } else null
 
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    val relAlpha by animateFloatAsState(
+        targetValue = if (relativeText != null) 1f else 0f,
+        animationSpec = tween(350),
+        label = "time_rel"
+    )
+
+    // Box keeps both states always laid out — only alpha changes, layout never moves
+    Box(contentAlignment = Alignment.CenterEnd) {
+        Row(
+            modifier = Modifier.alpha(1f - relAlpha),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = scheduled,
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontWeight = if (isNext && !isDelayed && !isEarly && !isCancelled) FontWeight.SemiBold else FontWeight.Normal,
+                color = when {
+                    isCancelled          -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                    isDelayed || isEarly -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    isPassed             -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    else                 -> MaterialTheme.colorScheme.onSurface
+                },
+                textDecoration = if ((isDelayed || isEarly || isCancelled) && scheduled.isNotEmpty()) TextDecoration.LineThrough else TextDecoration.None
+            )
+            if (isEarly) {
+                Text(
+                    text = displayActual,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = rainbowColor()
+                )
+            } else {
+                Text(
+                    text = displayActual,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    fontWeight = if (isDelayed || isNext) FontWeight.Bold else FontWeight.Normal,
+                    color = when {
+                        isCancelled             -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                        isPassed                -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        isDelayed && delay >= 5 -> MaterialTheme.colorScheme.error
+                        else                    -> onSuccessContainer()
+                    },
+                    textDecoration = if (isCancelled) TextDecoration.LineThrough else TextDecoration.None
+                )
+            }
+        }
         Text(
-            text = scheduled,
+            text = relativeText ?: "",
+            modifier = Modifier.alpha(relAlpha),
             style = MaterialTheme.typography.bodySmall,
             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-            fontWeight = if (isNext && !isDelayed && !isEarly && !isCancelled) FontWeight.SemiBold else FontWeight.Normal,
+            fontWeight = FontWeight.Bold,
             color = when {
-                isCancelled        -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                isDelayed || isEarly -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                isPassed           -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                else               -> MaterialTheme.colorScheme.onSurface
-            },
-            textDecoration = if (isDelayed || isEarly || isCancelled) TextDecoration.LineThrough else TextDecoration.None
+                isDelayed && delay >= 5 -> MaterialTheme.colorScheme.error
+                isEarly                 -> rainbowColor()
+                else                    -> onSuccessContainer()
+            }
         )
-        if (isEarly) {
-            Text(
-                text = displayActual,
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                color = rainbowColor()
-            )
-        } else {
-            Text(
-                text = displayActual,
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                fontWeight = if (isDelayed || isNext) FontWeight.Bold else FontWeight.Normal,
-                color = when {
-                    isCancelled             -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                    isPassed                -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                    isDelayed && delay >= 5 -> MaterialTheme.colorScheme.error
-                    else                    -> onSuccessContainer()
-                },
-                textDecoration = if (isCancelled) TextDecoration.LineThrough else TextDecoration.None
-            )
-        }
     }
 }
 @Composable
 fun StopsScreen(
     status: TrainStatus,
-    modifier: Modifier = Modifier,
-    pois: List<PoiItem> = emptyList()
+    isMockMode: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
+    var showRelative by remember { mutableStateOf(false) }
+    val referenceTime = if (isMockMode) LocalTime.of(8, 30) else LocalTime.now()
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            showRelative = !showRelative
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -362,7 +419,9 @@ fun StopsScreen(
                         TimelineStopRow(
                             stop = stop,
                             isFirst = index == 0,
-                            isLast = index == status.stops.lastIndex
+                            isLast = index == status.stops.lastIndex,
+                            showRelative = showRelative,
+                            referenceTime = referenceTime
                         )
                     }
                 }
@@ -375,106 +434,8 @@ fun StopsScreen(
                 Text(stringResource(R.string.stops_none))
             }
         }
-        PoisCard(status = status, pois = pois)
         Spacer(modifier = Modifier.height(96.dp))
     }
 
 }
 
-@Composable
-fun PoisCard(status: TrainStatus, pois: List<PoiItem>) {
-    val context = LocalContext.current
-    if (pois.isEmpty()) return
-    val displayPois = pois
-
-    AppCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.pois_title),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                displayPois.forEachIndexed { index, poi ->
-                    val icon = when (poi.type) {
-                        "CITY" -> Icons.Default.LocationCity
-                        "RIVER" -> Icons.Default.Water
-                        "MOUNTAIN" -> Icons.Default.Terrain
-                        "LAKE" -> Icons.Default.Water
-                        "MONUMENT" -> Icons.Default.AccountBalance
-                        "FOREST" -> Icons.Default.Forest
-                        else -> Icons.Default.Place
-                    }
-                    val distanceText = if (poi.distance < 1000) {
-                        "${poi.distance} m"
-                    } else {
-                        "${"%.1f".format(poi.distance / 1000.0)} km"
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                val query = Uri.encode(poi.name)
-                                context.startActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse("https://www.google.com/search?q=$query")
-                                    )
-                                )
-                            }
-                            .padding(vertical = 10.dp, horizontal = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = poi.type.lowercase().replaceFirstChar { it.uppercase() },
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = poi.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium
-                            )
-                            if (poi.description.isNotEmpty()) {
-                                Text(
-                                    text = poi.description,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        AssistChip(
-                            onClick = {},
-                            enabled = false,
-                            label = { Text(distanceText, style = MaterialTheme.typography.labelMedium) },
-                            colors = AssistChipDefaults.assistChipColors(
-                                disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                disabledLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        )
-                    }
-
-                    if (index < displayPois.lastIndex) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}

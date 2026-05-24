@@ -207,6 +207,7 @@ class MainActivity : ComponentActivity() {
             val isWIFIonICEStatus: Boolean by viewModel.isWIFIonICE.collectAsStateWithLifecycle()
             val serviceStation by viewModel.serviceStation.collectAsStateWithLifecycle()
             val stationSearchResults by viewModel.stationSearchResults.collectAsStateWithLifecycle()
+            val osmData by viewModel.osmData.collectAsStateWithLifecycle()
 
             val initialContext = LocalContext.current
             var appTheme by rememberSaveable {
@@ -403,6 +404,7 @@ class MainActivity : ComponentActivity() {
                                     connections = connections,
                                     departures = departures,
                                     weather = weather,
+                                    osmData = osmData,
                                     isMockMode = isMockMode,
                                     demoSpeed = demoSpeed,
                                     showDemoSpeed = showDemoSpeed,
