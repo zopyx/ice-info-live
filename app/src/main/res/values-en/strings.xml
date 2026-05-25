@@ -127,7 +127,7 @@
     <string name="nav_status">Status</string>
     <string name="nav_stops">Stops</string>
     <string name="nav_map">Track</string>
-    <string name="nav_service">Service</string>
+    <string name="nav_service">Station</string>
     <string name="nav_connections">Connections</string>
 
     <!-- Settings -->
