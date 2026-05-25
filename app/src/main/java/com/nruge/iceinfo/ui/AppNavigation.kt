@@ -7,8 +7,12 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -22,8 +26,11 @@ import com.nruge.iceinfo.model.StationInfo
 import com.nruge.iceinfo.model.StationSearchResult
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.model.WeatherInfo
+import com.nruge.iceinfo.model.LiveRecordingState
+import com.nruge.iceinfo.model.SavedJourney
 import com.nruge.iceinfo.ui.components.ConnectionsScreen
 import com.nruge.iceinfo.ui.components.HomeScreen
+import com.nruge.iceinfo.ui.components.JourneysScreen
 import com.nruge.iceinfo.ui.components.MapScreen
 import com.nruge.iceinfo.ui.components.ServiceScreen
 import com.nruge.iceinfo.ui.components.StopsScreen
@@ -48,7 +55,12 @@ fun AppNavigation(
     stationSearchResults: List<StationSearchResult>,
     onStationSearchQueryChange: (String) -> Unit,
     onStationSelect: (StationSearchResult) -> Unit,
-    onLoadTrainStation: (evaNr: String, name: String) -> Unit
+    onLoadTrainStation: (evaNr: String, name: String) -> Unit,
+    savedJourneys: List<SavedJourney>,
+    onDeleteJourney: (String) -> Unit,
+    isRecording: Boolean,
+    liveRecording: LiveRecordingState?,
+    onStartRecording: () -> Unit
 ) {
     val enter: EnterTransition = if (reducedMotion) EnterTransition.None else
         fadeIn(animationSpec = tween(durationMillis = 300, delayMillis = 90, easing = LinearOutSlowInEasing))
@@ -65,16 +77,25 @@ fun AppNavigation(
         popExitTransition = { exit }
     ) {
         composable(Screen.Home.route) {
-            HomeScreen(
-                status = if (isMockMode) trainStatus.copy(speed = demoSpeed) else trainStatus,
-                weather = weather,
-                isMockMode = isMockMode,
-                demoSpeed = demoSpeed,
-                showDemoSpeed = showDemoSpeed,
-                reducedMotion = reducedMotion,
-                onDemoSpeedChange = onDemoSpeedChange,
-                onTargetStopChange = onTargetStopChange
-            )
+            if (!trainStatus.isConnected && !isMockMode) {
+                // Leere Fläche damit die Back-Gesture-Vorschau nicht den Status-Screen zeigt
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                )
+            } else {
+                HomeScreen(
+                    status = if (isMockMode) trainStatus.copy(speed = demoSpeed) else trainStatus,
+                    weather = weather,
+                    isMockMode = isMockMode,
+                    demoSpeed = demoSpeed,
+                    showDemoSpeed = showDemoSpeed,
+                    reducedMotion = reducedMotion,
+                    onDemoSpeedChange = onDemoSpeedChange,
+                    onTargetStopChange = onTargetStopChange
+                )
+            }
         }
         composable(Screen.Stops.route) {
             StopsScreen(status = trainStatus, isMockMode = isMockMode)
@@ -98,6 +119,16 @@ fun AppNavigation(
                 connections = connections,
                 departures = departures,
                 isMockMode = isMockMode
+            )
+        }
+        composable(Screen.Journeys.route) {
+            JourneysScreen(
+                journeys = savedJourneys,
+                onDeleteJourney = onDeleteJourney,
+                isConnected = trainStatus.isConnected,
+                isRecording = isRecording,
+                liveRecording = liveRecording,
+                onStartRecording = onStartRecording
             )
         }
     }

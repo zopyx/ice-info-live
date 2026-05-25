@@ -51,6 +51,8 @@ android {
         }
         debug {
             isMinifyEnabled = false
+            applicationIdSuffix = ".beta"
+            versionNameSuffix = "-beta"
         }
     }
     compileOptions {
@@ -97,4 +99,11 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Google Services kennt die Beta-App-ID nicht — Task für Debug-Builds überspringen
+afterEvaluate {
+    tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
+        enabled = false
+    }
 }

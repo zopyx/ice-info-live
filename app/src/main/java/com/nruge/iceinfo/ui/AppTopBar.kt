@@ -1,17 +1,27 @@
 package com.nruge.iceinfo.ui
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -27,6 +37,7 @@ fun AppTopBar(
     isMockMode: Boolean,
     isConnected: Boolean,
     isOnTrainWifi: Boolean,
+    isReconnecting: Boolean = false,
     serviceRunning: Boolean,
     showPrideBadge: Boolean = false,
     onToggleService: () -> Unit,
@@ -35,6 +46,8 @@ fun AppTopBar(
     onShowSettings: () -> Unit,
     onShowInfo: () -> Unit,
     onShowChangelog: () -> Unit,
+    onShowJourneys: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val apiUnreachable = isOnTrainWifi && !isConnected && !isMockMode
@@ -60,22 +73,10 @@ fun AppTopBar(
                     fontWeight = FontWeight.Bold
                 )
                 when {
-                    isMockMode -> Text(
-                        text = stringResource(R.string.status_demo),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = barContentColor,
-                        fontStyle = FontStyle.Italic
-                    )
-                    apiUnreachable -> Text(
-                        text = stringResource(R.string.status_api_unreachable),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = barContentColor
-                    )
-                    isConnected -> Text(
-                        text = stringResource(R.string.status_live),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    isMockMode -> ConnectionStatusBadge(state = ConnectionState.DEMO)
+                    isReconnecting -> ConnectionStatusBadge(state = ConnectionState.RECONNECTING)
+                    apiUnreachable -> ConnectionStatusBadge(state = ConnectionState.OFFLINE)
+                    isConnected    -> ConnectionStatusBadge(state = ConnectionState.LIVE)
                 }
             }
             Image(
@@ -90,12 +91,12 @@ fun AppTopBar(
             } // Row
         },
         navigationIcon = {
-            if (isMockMode) {
-                IconButton(onClick = onExitDemo) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = stringResource(R.string.demo_end)
-                    )
+            when {
+                onNavigateBack != null -> IconButton(onClick = onNavigateBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                }
+                isMockMode -> IconButton(onClick = onExitDemo) {
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.demo_end))
                 }
             }
         },
@@ -127,6 +128,11 @@ fun AppTopBar(
                     )
                 }
                 DropdownMenuItem(
+                    text = { Text("Meine Fahrten") },
+                    onClick = { onShowJourneys(); menuExpanded = false },
+                    leadingIcon = { Icon(Icons.Default.History, null) }
+                )
+                DropdownMenuItem(
                     text = { Text(stringResource(R.string.menu_settings)) },
                     onClick = { onShowSettings(); menuExpanded = false },
                     leadingIcon = { Icon(Icons.Default.Settings, null) }
@@ -156,6 +162,89 @@ fun AppTopBar(
         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = scrolledFraction)
     )
     } // Column
+}
+
+private enum class ConnectionState { LIVE, DEMO, RECONNECTING, OFFLINE }
+
+@Composable
+private fun ConnectionStatusBadge(state: ConnectionState) {
+    val infiniteTransition = rememberInfiniteTransition(label = "connection")
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        when (state) {
+            ConnectionState.LIVE -> {
+                val alpha by infiniteTransition.animateFloat(
+                    initialValue = 1f, targetValue = 0.3f,
+                    animationSpec = infiniteRepeatable(
+                        tween(1200), RepeatMode.Reverse
+                    ), label = "livePulse"
+                )
+                val dotColor = Color(0xFF4CAF50)
+                Canvas(modifier = Modifier.size(7.dp)) {
+                    drawCircle(color = dotColor.copy(alpha = alpha))
+                }
+                Text(
+                    text = "Live",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            ConnectionState.DEMO -> {
+                val alpha by infiniteTransition.animateFloat(
+                    initialValue = 1f, targetValue = 0.3f,
+                    animationSpec = infiniteRepeatable(
+                        tween(1400), RepeatMode.Reverse
+                    ), label = "demoPulse"
+                )
+                val dotColor = Color(0xFFAB47BC)
+                Canvas(modifier = Modifier.size(7.dp)) {
+                    drawCircle(color = dotColor.copy(alpha = alpha))
+                }
+                Text(
+                    text = stringResource(R.string.status_demo),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFFAB47BC)
+                )
+            }
+            ConnectionState.RECONNECTING -> {
+                val rotation by infiniteTransition.animateFloat(
+                    initialValue = 0f, targetValue = 360f,
+                    animationSpec = infiniteRepeatable(
+                        tween(1000, easing = LinearEasing), RepeatMode.Restart
+                    ), label = "spin"
+                )
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(11.dp)
+                        .rotate(rotation),
+                    tint = Color(0xFFFFA726)
+                )
+                Text(
+                    text = "Verbinde...",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFFFFA726)
+                )
+            }
+            ConnectionState.OFFLINE -> {
+                Icon(
+                    imageVector = Icons.Default.WifiOff,
+                    contentDescription = null,
+                    modifier = Modifier.size(11.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = stringResource(R.string.status_api_unreachable),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
 }
 
 @Composable
