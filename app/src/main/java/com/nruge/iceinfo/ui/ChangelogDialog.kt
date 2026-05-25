@@ -52,14 +52,12 @@ internal val changelog = listOf(
     ChangelogEntry(
         version = "5.1",
         newFeatures = listOf(
-            "Strecke-Tab: Karte ersetzt durch einen Daten-Tab mit Streckeninfos aus OpenStreetMap (Höchstgeschwindigkeit, Elektrifizierung, Gleisanzahl, Streckentyp)",
-            "Halte und Anschlüsse: Zeiten wechseln alle 5 Sekunden zwischen absoluter Uhrzeit und relativer Restzeit ('in X min')",
+            "Streckenkarte ersetzt durch einen Daten-Tab mit Streckeninfos zu Höchstgeschwindigkeit, Elektrifizierung, Gleisanzahl, Streckentyp, POIs",
+            "Halte und Anschlüsse: Zeiten wechseln alle 5 Sekunden zwischen Uhrzeit HH:MM und Restzeit ('in X min')",
             "Baureihe unter der Zugnummer ist nun Aufklappbar für Infos zum Zug"
         ),
         fixes = listOf(
-            "POI-Karte wurde aus der Halte-Seite entfernt (POIs sind jetzt auf der Strecke-Seite)",
-            "Halte: Timeline verschiebt sich nicht mehr, wenn relative Zeiten angezeigt werden",
-            "Halte: Relative Zeiten mit einstelliger Minutenzahl sind jetzt linksbündig ausgerichtet"
+            "API Abfragen wurden reduziert"
         )
     ),
     ChangelogEntry(

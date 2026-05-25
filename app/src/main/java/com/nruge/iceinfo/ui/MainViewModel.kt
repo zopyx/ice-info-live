@@ -70,8 +70,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val osmData: StateFlow<OsmTrackData> = _osmData.asStateFlow()
 
     private var lastWeatherEva = ""
+    private var lastWeatherFetchMs = 0L
     private var lastOsmLat = 0.0
     private var lastOsmLon = 0.0
+    private var lastConnectionsFetchMs = 0L
 
     private var searchJob: Job? = null
 
@@ -98,6 +100,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _trainStatus.value = _trainStatus.value.copy(targetStopEva = eva)
         updateWidget(_trainStatus.value)
 
+        lastConnectionsFetchMs = 0L
         viewModelScope.launch {
             val status = _trainStatus.value
             val boardStop = relevantBoardStop(status)
@@ -209,18 +212,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _trainStatus.value = updatedStatus
                     _pois.value = TrainRepository.fetchPois(status.latitude, status.longitude)
                     refreshOsmDataIfNeeded(status.latitude, status.longitude)
-                    val boardStop = relevantBoardStop(updatedStatus)
-                    val connections = TrainRepository.fetchConnections(
-                        boardStop?.evaNr ?: status.nextStopEva,
-                        boardStop?.effectiveArrivalMs ?: 0L
-                    )
-                    val departures = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
-                    _departures.value = departures
-                    _connections.value = enrichConnectionDestinations(connections, departures)
                     refreshWeatherIfNeeded(updatedStatus)
+
+                    val now = System.currentTimeMillis()
+                    if (now - lastConnectionsFetchMs > 30_000L) {
+                        lastConnectionsFetchMs = now
+                        val boardStop = relevantBoardStop(updatedStatus)
+                        val connections = TrainRepository.fetchConnections(
+                            boardStop?.evaNr ?: status.nextStopEva,
+                            boardStop?.effectiveArrivalMs ?: 0L
+                        )
+                        val departures = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
+                        _departures.value = departures
+                        _connections.value = enrichConnectionDestinations(connections, departures)
+                    }
+
                     updateWidget(updatedStatus)
                 }
-                delay(3000)
+                delay(5000)
             }
         }
     }
@@ -305,8 +314,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun refreshWeatherIfNeeded(status: TrainStatus) {
         val stop = weatherStop(status) ?: return
-        if (stop.evaNr == lastWeatherEva) return
+        val now = System.currentTimeMillis()
+        if (stop.evaNr == lastWeatherEva && now - lastWeatherFetchMs < 120_000L) return
         lastWeatherEva = stop.evaNr
+        lastWeatherFetchMs = now
         _weather.value = WeatherRepository.fetchWeatherForStation(stop.name)
     }
 }

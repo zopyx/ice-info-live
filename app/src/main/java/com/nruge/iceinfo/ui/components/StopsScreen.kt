@@ -323,6 +323,10 @@ private fun StopTimePair(
         label = "time_rel"
     )
 
+    // Keep the last non-null relativeText so the fade-out still renders the old string
+    var lastRelativeText by remember { mutableStateOf(relativeText) }
+    if (relativeText != null) lastRelativeText = relativeText
+
     // Box keeps both states always laid out — only alpha changes, layout never moves
     Box(contentAlignment = Alignment.CenterEnd) {
         Row(
@@ -367,7 +371,7 @@ private fun StopTimePair(
             }
         }
         Text(
-            text = relativeText ?: "",
+            text = lastRelativeText ?: "",
             modifier = Modifier.alpha(relAlpha),
             style = MaterialTheme.typography.bodySmall,
             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
@@ -390,7 +394,7 @@ fun StopsScreen(
     val referenceTime = if (isMockMode) LocalTime.of(8, 30) else LocalTime.now()
     LaunchedEffect(Unit) {
         while (true) {
-            delay(5000)
+            delay(3000)
             showRelative = !showRelative
         }
     }
