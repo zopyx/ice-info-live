@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.nruge.iceinfo.DepartureBoardRepository
+import com.nruge.iceinfo.JourneyRepository
 import com.nruge.iceinfo.OsmRepository
 import com.nruge.iceinfo.StationFacilitiesRepository
 import com.nruge.iceinfo.TrainRepository
@@ -11,6 +12,7 @@ import com.nruge.iceinfo.WeatherRepository
 import com.nruge.iceinfo.model.*
 import com.nruge.iceinfo.sampleConnections
 import com.nruge.iceinfo.sampleDepartures
+import com.nruge.iceinfo.sampleJourneys
 import com.nruge.iceinfo.sampleOsmTrackData
 import com.nruge.iceinfo.samplePois
 import com.nruge.iceinfo.sampleTrainStatus
@@ -23,6 +25,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import com.nruge.iceinfo.model.ConnectingTrain
+import com.nruge.iceinfo.model.LiveRecordingState
+import com.nruge.iceinfo.model.SavedJourney
+import com.nruge.iceinfo.model.TrackPoint
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.UUID
 import com.nruge.iceinfo.util.SettingsManager
 import com.nruge.iceinfo.widget.WidgetUpdater
 
@@ -75,9 +83,55 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var lastOsmLon = 0.0
     private var lastConnectionsFetchMs = 0L
 
+    private val _journeys = MutableStateFlow<List<SavedJourney>>(emptyList())
+    val journeys: StateFlow<List<SavedJourney>> = _journeys.asStateFlow()
+
+    private val _showRecordingConsent = MutableStateFlow(false)
+    val showRecordingConsent: StateFlow<Boolean> = _showRecordingConsent.asStateFlow()
+
+    private val _isRecording = MutableStateFlow(false)
+    val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
+
+    private val _isReconnecting = MutableStateFlow(false)
+    val isReconnecting: StateFlow<Boolean> = _isReconnecting.asStateFlow()
+    private var lastConnectedMs = 0L
+    private val RECONNECTING_WINDOW_MS = 30_000L
+
+    private val _liveRecording = MutableStateFlow<LiveRecordingState?>(null)
+    val liveRecording: StateFlow<LiveRecordingState?> = _liveRecording.asStateFlow()
+
+    // Interner Aufzeichnungszustand
+    private inner class ActiveRecording(
+        val id: String = UUID.randomUUID().toString(),
+        val trainType: String,
+        val trainNumber: String,
+        val originStation: String,
+        val destinationEvaNr: String,
+        val destinationStation: String,
+        val date: String,
+        val departureTime: String,
+        val originDistanceFromStart: Int,
+        val destinationDistanceFromStart: Int,
+        val stopsCount: Int,
+        val recordGps: Boolean = false,
+        val startMs: Long = System.currentTimeMillis(),
+        val speedSamples: MutableList<Int> = mutableListOf(),
+        val trackPoints: MutableList<TrackPoint> = mutableListOf(),
+        var topSpeedKmh: Int = 0
+    )
+
+    private var activeRecording: ActiveRecording? = null
+    private var wasConnected = false
+
+    private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+
     private var searchJob: Job? = null
 
     init {
+        viewModelScope.launch {
+            val stored = JourneyRepository.loadJourneys(getApplication())
+            _journeys.value = stored.ifEmpty { sampleJourneys }
+        }
         val initialTarget = SettingsManager.getTargetStopEva(application)
         if (_isMockMode.value) {
             _trainStatus.value = sampleTrainStatus.copy(
@@ -214,6 +268,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     refreshOsmDataIfNeeded(status.latitude, status.longitude)
                     refreshWeatherIfNeeded(updatedStatus)
 
+                    // Verbindungsstatus tracken
+                    if (status.isConnected) {
+                        lastConnectedMs = System.currentTimeMillis()
+                        _isReconnecting.value = false
+                    } else if (_isWIFIonICE.value && lastConnectedMs > 0) {
+                        val elapsed = System.currentTimeMillis() - lastConnectedMs
+                        _isReconnecting.value = elapsed < RECONNECTING_WINDOW_MS
+                    } else {
+                        _isReconnecting.value = false
+                    }
+
+                    // Neue Fahrt erkennen
+                    if (!wasConnected && status.isConnected) {
+                        checkForNewJourney(status)
+                    }
+                    wasConnected = status.isConnected
+
+                    // Aufzeichnung aktualisieren
+                    if (status.isConnected) {
+                        updateRecording(status)
+                    }
+
                     val now = System.currentTimeMillis()
                     if (now - lastConnectionsFetchMs > 30_000L) {
                         lastConnectionsFetchMs = now
@@ -231,6 +307,143 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 delay(5000)
             }
+        }
+    }
+
+    private fun checkForNewJourney(status: TrainStatus) {
+        if (status.trainNumber.isBlank()) return
+        val date = LocalDate.now().format(dateFormatter)
+        val journeyKey = "${status.trainType}${status.trainNumber}_$date"
+        val lastKey = SettingsManager.getLastJourneyKey(getApplication())
+        if (journeyKey != lastKey) {
+            SettingsManager.setLastJourneyKey(getApplication(), journeyKey)
+            _showRecordingConsent.value = true
+        }
+    }
+
+    fun requestRecording() {
+        if (!_trainStatus.value.isConnected) return
+        _showRecordingConsent.value = true
+    }
+
+    fun startRecording(recordGps: Boolean = false) {
+        _showRecordingConsent.value = false
+        val status = _trainStatus.value
+        if (!status.isConnected) return
+        val targetEva = status.targetStopEva
+        val destinationStop = targetEva?.let { eva -> status.stops.find { it.evaNr == eva && !it.passed } }
+            ?: status.stops.lastOrNull()
+        val originStop = status.stops.lastOrNull { it.passed }
+            ?: status.stops.firstOrNull()
+        _isRecording.value = true
+        val rec = ActiveRecording(
+            trainType = status.trainType,
+            trainNumber = status.trainNumber,
+            originStation = originStop?.name ?: "Unbekannt",
+            destinationEvaNr = destinationStop?.evaNr ?: "",
+            destinationStation = destinationStop?.name ?: status.destination,
+            date = LocalDate.now().format(dateFormatter),
+            departureTime = originStop?.actualDeparture?.ifEmpty { originStop.scheduledDeparture } ?: "",
+            originDistanceFromStart = originStop?.distanceFromStart ?: 0,
+            destinationDistanceFromStart = destinationStop?.distanceFromStart ?: 0,
+            stopsCount = status.stops.count { !it.passed && !it.isCancelled },
+            recordGps = recordGps
+        )
+        activeRecording = rec
+        _liveRecording.value = LiveRecordingState(
+            trainType = rec.trainType,
+            trainNumber = rec.trainNumber,
+            originStation = rec.originStation,
+            destinationStation = rec.destinationStation,
+            date = rec.date,
+            departureTime = rec.departureTime,
+            startMs = rec.startMs,
+            currentSpeedKmh = status.speed,
+            topSpeedKmh = 0,
+            sampleCount = 0,
+            trackPointCount = 0,
+            recordGps = rec.recordGps
+        )
+    }
+
+    fun declineRecording() {
+        _showRecordingConsent.value = false
+    }
+
+    private fun updateRecording(status: TrainStatus) {
+        val rec = activeRecording ?: return
+        // Speed tracken
+        if (status.speed > rec.topSpeedKmh) rec.topSpeedKmh = status.speed
+        rec.speedSamples.add(status.speed)
+        // GPS-Spur aufzeichnen
+        if (rec.recordGps && status.latitude != 0.0 && status.longitude != 0.0) {
+            val secondsFromStart = ((System.currentTimeMillis() - rec.startMs) / 1000L).toInt()
+            rec.trackPoints.add(
+                TrackPoint(
+                    lat = status.latitude,
+                    lon = status.longitude,
+                    speedKmh = status.speed,
+                    secondsFromStart = secondsFromStart
+                )
+            )
+        }
+        // Live-State aktualisieren
+        _liveRecording.value = _liveRecording.value?.copy(
+            currentSpeedKmh = status.speed,
+            topSpeedKmh = rec.topSpeedKmh,
+            sampleCount = rec.speedSamples.size,
+            trackPointCount = rec.trackPoints.size
+        )
+        // Prüfen ob Ziel-Halt erreicht
+        val destinationStop = status.stops.find { it.evaNr == rec.destinationEvaNr }
+        if (destinationStop?.passed == true) {
+            finishRecording(status, destinationStop)
+        }
+    }
+
+    private fun finishRecording(status: TrainStatus, destinationStop: com.nruge.iceinfo.model.TrainStop) {
+        val rec = activeRecording ?: return
+        activeRecording = null
+        _isRecording.value = false
+        _liveRecording.value = null
+        val durationMinutes = ((System.currentTimeMillis() - rec.startMs) / 60_000L).toInt()
+        val avgSpeed = if (rec.speedSamples.isNotEmpty()) rec.speedSamples.average().toInt() else 0
+        val distanceKm = (destinationStop.distanceFromStart - rec.originDistanceFromStart) / 1000
+        val arrivalTime = destinationStop.actualArrival.ifEmpty { destinationStop.scheduledArrival }
+        val journey = SavedJourney(
+            id = rec.id,
+            trainType = rec.trainType,
+            trainNumber = rec.trainNumber,
+            originStation = rec.originStation,
+            destinationStation = rec.destinationStation,
+            date = rec.date,
+            departureTime = rec.departureTime,
+            arrivalTime = arrivalTime,
+            delayMinutes = destinationStop.delayMinutes,
+            distanceKm = distanceKm,
+            topSpeedKmh = rec.topSpeedKmh,
+            avgSpeedKmh = avgSpeed,
+            durationMinutes = durationMinutes,
+            stopsCount = rec.stopsCount,
+            recordedGps = rec.recordGps,
+            trackPoints = rec.trackPoints.toList()
+        )
+        viewModelScope.launch {
+            JourneyRepository.saveJourney(getApplication(), journey)
+            _journeys.value = listOf(journey) + _journeys.value
+        }
+    }
+
+    fun cancelRecording() {
+        activeRecording = null
+        _isRecording.value = false
+        _liveRecording.value = null
+    }
+
+    fun deleteJourney(id: String) {
+        viewModelScope.launch {
+            JourneyRepository.deleteJourney(getApplication(), id)
+            _journeys.value = _journeys.value.filter { it.id != id }
         }
     }
 

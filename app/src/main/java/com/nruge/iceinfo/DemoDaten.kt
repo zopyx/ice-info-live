@@ -1,6 +1,8 @@
 package com.nruge.iceinfo
 
 import com.nruge.iceinfo.model.*
+import com.nruge.iceinfo.model.SavedJourney
+import com.nruge.iceinfo.model.TrackPoint
 
 val sampleTrainStatus = TrainStatus(
     distanceLastToNext = 120000,
@@ -233,4 +235,142 @@ val sampleDepartures = listOf(
     Departure(line = "IC 2027", destination = "Köln Hbf", scheduledTime = "11:29", delayMinutes = 0, platform = "7", cancelled = true),
     Departure(line = "RB 87", destination = "Bebra", scheduledTime = "11:36", delayMinutes = 0, platform = "1"),
     Departure(line = "ICE 884", destination = "Hamburg-Altona", scheduledTime = "11:42", delayMinutes = 5, platform = "8")
+)
+
+// ---------------------------------------------------------------------------
+// Demo-Fahrten für die Fahrten-History
+// ---------------------------------------------------------------------------
+
+/** Schlüssel-Wegpunkte entlang der Strecke Hamburg-Altona → München Hbf
+ *  (NBS Hannover–Würzburg, dann Würzburg–Nürnberg–München via NBS).
+ *  lat, lon, speedKmh, secondsFromStart */
+private data class Wp(val lat: Double, val lon: Double, val spd: Int, val sec: Int)
+
+private val hamburgMuenchenWaypoints = listOf(
+    Wp(53.5677,  9.9364,   0,     0),   // Hamburg-Altona – dep 08:13
+    Wp(53.5532, 10.0056,  60,   840),   // Hamburg Hbf – arr 08:27
+    Wp(53.5532, 10.0056,   0,   960),   // Hamburg Hbf – dep 08:29
+    Wp(53.4562,  9.9926, 180,  1500),   // Harburg
+    Wp(53.3100, 10.2200, 250,  2100),   // Lüneburg-Süd
+    Wp(52.9648, 10.5645, 250,  3100),   // Uelzen
+    Wp(52.7500, 10.3200, 250,  3900),   // Lehrte
+    Wp(52.6206, 10.0848, 250,  4400),   // Celle
+    Wp(52.3766,  9.7415, 100,  4860),   // Hannover Hbf – arr 09:34
+    Wp(52.3766,  9.7415,   0,  4980),   // Hannover Hbf – dep 09:36
+    Wp(52.1900,  9.8200, 280,  5600),   // NBS Hannover-Würzburg Nordabschnitt
+    Wp(51.9700,  9.8500, 280,  6200),   // NBS – Kreiensen-Bereich
+    Wp(51.7500,  9.9700, 280,  6700),   // NBS – Northeim-Bereich
+    Wp(51.5368,  9.9268, 100,  7020),   // Göttingen – arr 10:10
+    Wp(51.5368,  9.9268,   0,  7440),   // Göttingen – dep 10:17
+    Wp(51.4200,  9.7500, 250,  7800),   // NBS südlich Göttingen
+    Wp(51.3149,  9.4416, 100,  8760),   // Kassel-Wilhelmshöhe – arr 10:39
+    Wp(51.3149,  9.4416,   0,  8880),   // Kassel-Wilhelmshöhe – dep 10:41
+    Wp(51.1500,  9.6200, 280,  9500),   // NBS – Bebraer Kurve
+    Wp(50.8680,  9.7060, 280, 10200),   // NBS – Bad Hersfeld
+    Wp(50.6600,  9.7200, 280, 10700),   // NBS – Lauterbach-Tunnel
+    Wp(50.5548,  9.6836, 100, 10980),   // Fulda – arr 11:16
+    Wp(50.5548,  9.6836,   0, 11100),   // Fulda – dep 11:18
+    Wp(50.3700,  9.8000, 250, 11750),   // NBS – Schlüchterner Tunnel
+    Wp(50.1500,  9.9200, 250, 12400),   // NBS – Jossa-Bereich
+    Wp(49.9800,  9.9600, 200, 13100),   // Nähe Gemünden
+    Wp(49.8023,  9.9358, 100, 13920),   // Würzburg Hbf – arr 12:05
+    Wp(49.8023,  9.9358,   0, 14100),   // Würzburg Hbf – dep 12:08
+    Wp(49.6500, 10.1500, 160, 14700),   // Nähe Kitzingen
+    Wp(49.5500, 10.5000, 160, 15400),   // Nähe Neustadt/Aisch
+    Wp(49.4980, 10.7500, 160, 16000),   // Nähe Ansbach-Nord
+    Wp(49.4454, 11.0825, 100, 17580),   // Nürnberg Hbf – arr 13:06
+    Wp(49.4454, 11.0825,   0, 17760),   // Nürnberg Hbf – dep 13:09
+    Wp(49.2900, 11.2500, 220, 18450),   // NBS Nürnberg-München – Feucht
+    Wp(49.0300, 11.3500, 300, 19200),   // NBS – Ingolstadt-Bereich
+    Wp(48.7600, 11.4200, 300, 20100),   // NBS – Pfaffenhofen
+    Wp(48.5600, 11.5000, 280, 20900),   // NBS – Freising-Nord
+    Wp(48.4000, 11.5600, 200, 21700),   // Nähe Freising
+    Wp(48.2600, 11.5500, 160, 22200),   // Nordeinfahrt München
+    Wp(48.1402, 11.5581,  40, 22680),   // München Hbf – einfahrend
+    Wp(48.1402, 11.5581,   0, 22740),   // München Hbf – arr 14:32
+)
+
+private fun buildTrackPoints(waypoints: List<Wp>, intervalSec: Int = 30): List<TrackPoint> {
+    if (waypoints.size < 2) return emptyList()
+    val points = mutableListOf<TrackPoint>()
+    val totalSec = waypoints.last().sec
+    var t = 0
+    while (t <= totalSec) {
+        // Finde das aktuelle Segment
+        val idx = waypoints.indexOfLast { it.sec <= t }.coerceAtLeast(0)
+        val from = waypoints[idx]
+        val to = waypoints.getOrNull(idx + 1) ?: from
+        val frac = if (to.sec == from.sec) 1.0
+                   else (t - from.sec).toDouble() / (to.sec - from.sec)
+        points.add(
+            TrackPoint(
+                lat = from.lat + (to.lat - from.lat) * frac,
+                lon = from.lon + (to.lon - from.lon) * frac,
+                speedKmh = (from.spd + (to.spd - from.spd) * frac).toInt(),
+                secondsFromStart = t
+            )
+        )
+        t += intervalSec
+    }
+    return points
+}
+
+val sampleJourneys: List<SavedJourney> = listOf(
+    // Fahrt 1 – ICE 212 Hamburg → München, MIT GPS-Spur
+    SavedJourney(
+        id = "demo-ice212-hh-muc",
+        trainType = "ICE",
+        trainNumber = "212",
+        originStation = "Hamburg-Altona",
+        destinationStation = "München Hbf",
+        date = "12.05.2025",
+        departureTime = "08:13",
+        arrivalTime = "14:32",
+        delayMinutes = 21,
+        distanceKm = 778,
+        topSpeedKmh = 300,
+        avgSpeedKmh = 187,
+        durationMinutes = 379,
+        stopsCount = 7,
+        recordedGps = true,
+        trackPoints = buildTrackPoints(hamburgMuenchenWaypoints, intervalSec = 30)
+    ),
+    // Fahrt 2 – ICE 599 Frankfurt → Berlin, OHNE GPS
+    SavedJourney(
+        id = "demo-ice599-fra-ber",
+        trainType = "ICE",
+        trainNumber = "599",
+        originStation = "Frankfurt (Main) Hbf",
+        destinationStation = "Berlin Hbf",
+        date = "28.04.2025",
+        departureTime = "09:55",
+        arrivalTime = "13:48",
+        delayMinutes = 0,
+        distanceKm = 546,
+        topSpeedKmh = 280,
+        avgSpeedKmh = 210,
+        durationMinutes = 233,
+        stopsCount = 3,
+        recordedGps = false,
+        trackPoints = emptyList()
+    ),
+    // Fahrt 3 – ICE 77 Köln → München, OHNE GPS, stark verspätet
+    SavedJourney(
+        id = "demo-ice77-cgn-muc",
+        trainType = "ICE",
+        trainNumber = "77",
+        originStation = "Köln Hbf",
+        destinationStation = "München Hbf",
+        date = "03.04.2025",
+        departureTime = "07:02",
+        arrivalTime = "11:58",
+        delayMinutes = 34,
+        distanceKm = 611,
+        topSpeedKmh = 270,
+        avgSpeedKmh = 163,
+        durationMinutes = 296,
+        stopsCount = 4,
+        recordedGps = false,
+        trackPoints = emptyList()
+    )
 )

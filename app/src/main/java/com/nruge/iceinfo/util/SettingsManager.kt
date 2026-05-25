@@ -17,6 +17,7 @@ object SettingsManager {
     private const val KEY_APP_THEME = "app_theme"
     private const val KEY_CRASH_REPORTING = "crash_reporting_enabled"
     private const val KEY_CRASH_CONSENT_VERSION = "crash_consent_version_code"
+    private const val KEY_LAST_JOURNEY_KEY = "last_journey_key"
 
     fun isCrashReportingEnabled(context: Context): Boolean {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -127,6 +128,15 @@ object SettingsManager {
     fun setLastSeenVersion(context: Context, versionCode: Int) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putInt(KEY_LAST_SEEN_VERSION, versionCode).apply()
+    }
+
+    fun getLastJourneyKey(context: Context): String =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_LAST_JOURNEY_KEY, "") ?: ""
+
+    fun setLastJourneyKey(context: Context, key: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_LAST_JOURNEY_KEY, key).apply()
     }
 
     fun isOnboardingShown(context: Context): Boolean {
