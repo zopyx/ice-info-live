@@ -1,23 +1,22 @@
 package com.nruge.iceinfo.ui
 
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import com.nruge.iceinfo.model.ConnectingTrain
 import com.nruge.iceinfo.model.Departure
 import com.nruge.iceinfo.model.OsmTrackData
@@ -27,18 +26,20 @@ import com.nruge.iceinfo.model.StationSearchResult
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.model.WeatherInfo
 import com.nruge.iceinfo.model.LiveRecordingState
+import com.nruge.iceinfo.model.MenuCategory
 import com.nruge.iceinfo.model.SavedJourney
 import com.nruge.iceinfo.ui.components.ConnectionsScreen
 import com.nruge.iceinfo.ui.components.HomeScreen
+import com.nruge.iceinfo.ui.components.JourneyScreen
 import com.nruge.iceinfo.ui.components.JourneysScreen
-import com.nruge.iceinfo.ui.components.MapScreen
+import com.nruge.iceinfo.ui.components.MenuScreen
 import com.nruge.iceinfo.ui.components.ServiceScreen
-import com.nruge.iceinfo.ui.components.StopsScreen
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController,
     innerPadding: PaddingValues,
+    pagerState: PagerState,
+    isJourneysVisible: Boolean,
     trainStatus: TrainStatus,
     pois: List<PoiItem>,
     connections: List<ConnectingTrain>,
@@ -51,6 +52,11 @@ fun AppNavigation(
     reducedMotion: Boolean,
     onDemoSpeedChange: (Int) -> Unit,
     onTargetStopChange: (String?) -> Unit,
+    coaches: List<com.nruge.iceinfo.model.Coach>,
+    selectedCoach: Int?,
+    seatNumber: String,
+    onCoachChange: (Int?) -> Unit,
+    onSeatChange: (String) -> Unit,
     serviceStation: StationInfo?,
     stationSearchResults: List<StationSearchResult>,
     onStationSearchQueryChange: (String) -> Unit,
@@ -60,76 +66,93 @@ fun AppNavigation(
     onDeleteJourney: (String) -> Unit,
     isRecording: Boolean,
     liveRecording: LiveRecordingState?,
-    onStartRecording: () -> Unit
+    onStartRecording: () -> Unit,
+    menuItems: List<MenuCategory>,
+    isMenuLoading: Boolean,
+    onLoadMenu: () -> Unit,
+    onRefreshMenu: () -> Unit
 ) {
-    val enter: EnterTransition = if (reducedMotion) EnterTransition.None else
-        fadeIn(animationSpec = tween(durationMillis = 300, delayMillis = 90, easing = LinearOutSlowInEasing))
-    val exit: ExitTransition = if (reducedMotion) ExitTransition.None else
-        fadeOut(animationSpec = tween(durationMillis = 90, easing = FastOutLinearInEasing))
-
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Home.route,
-        modifier = Modifier.padding(innerPadding),
-        enterTransition = { enter },
-        exitTransition = { exit },
-        popEnterTransition = { enter },
-        popExitTransition = { exit }
-    ) {
-        composable(Screen.Home.route) {
-            if (!trainStatus.isConnected && !isMockMode) {
-                // Leere Fläche damit die Back-Gesture-Vorschau nicht den Status-Screen zeigt
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                )
-            } else {
-                HomeScreen(
-                    status = if (isMockMode) trainStatus.copy(speed = demoSpeed) else trainStatus,
-                    weather = weather,
-                    isMockMode = isMockMode,
-                    demoSpeed = demoSpeed,
-                    showDemoSpeed = showDemoSpeed,
-                    reducedMotion = reducedMotion,
-                    onDemoSpeedChange = onDemoSpeedChange,
-                    onTargetStopChange = onTargetStopChange
-                )
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
+        beyondViewportPageCount = 0,
+        key = { it },
+        userScrollEnabled = !isJourneysVisible
+    ) { page ->
+        Box(modifier = Modifier.fillMaxSize().clipToBounds()) {
+        when (navigationItems.getOrNull(page)) {
+            Screen.Home -> {
+                if (!trainStatus.isConnected && !isMockMode) {
+                    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainer))
+                } else {
+                    HomeScreen(
+                        status = if (isMockMode) trainStatus.copy(speed = demoSpeed) else trainStatus,
+                        weather = weather,
+                        isMockMode = isMockMode,
+                        demoSpeed = demoSpeed,
+                        showDemoSpeed = showDemoSpeed,
+                        reducedMotion = reducedMotion,
+                        coaches = coaches,
+                        selectedCoach = selectedCoach,
+                        seatNumber = seatNumber,
+                        onDemoSpeedChange = onDemoSpeedChange,
+                        onTargetStopChange = onTargetStopChange,
+                        onCoachChange = onCoachChange,
+                        onSeatChange = onSeatChange
+                    )
+                }
             }
-        }
-        composable(Screen.Stops.route) {
-            StopsScreen(status = trainStatus, isMockMode = isMockMode)
-        }
-        composable(Screen.Map.route) {
-            MapScreen(status = trainStatus, osmData = osmData, pois = pois)
-        }
-        composable(Screen.Service.route) {
-            ServiceScreen(
+            Screen.Stops -> JourneyScreen(
+                status = trainStatus,
+                osmData = osmData,
+                pois = pois,
+                isMockMode = isMockMode
+            )
+            Screen.Menu -> MenuScreen(
+                categories = menuItems,
+                isLoading = isMenuLoading,
+                onLoad = onLoadMenu,
+                onRefresh = onRefreshMenu
+            )
+            Screen.Service -> ServiceScreen(
                 status = trainStatus,
                 serviceStation = serviceStation,
                 searchResults = stationSearchResults,
                 onSearchQueryChange = onStationSearchQueryChange,
                 onStationSelect = onStationSelect,
-                onLoadTrainStation = onLoadTrainStation,
+                onLoadTrainStation = onLoadTrainStation
             )
-        }
-        composable(Screen.Connections.route) {
-            ConnectionsScreen(
+            Screen.Connections -> ConnectionsScreen(
                 status = trainStatus,
                 connections = connections,
                 departures = departures,
                 isMockMode = isMockMode
             )
+            else -> Box(Modifier.fillMaxSize())
         }
-        composable(Screen.Journeys.route) {
-            JourneysScreen(
-                journeys = savedJourneys,
-                onDeleteJourney = onDeleteJourney,
-                isConnected = trainStatus.isConnected,
-                isRecording = isRecording,
-                liveRecording = liveRecording,
-                onStartRecording = onStartRecording
-            )
-        }
+        } // clipToBounds Box
+    }
+
+    AnimatedVisibility(
+        visible = isJourneysVisible,
+        enter = if (reducedMotion) fadeIn() else
+            slideInHorizontally(tween(300)) { it } + fadeIn(tween(200)),
+        exit = if (reducedMotion) fadeOut() else
+            slideOutHorizontally(tween(250)) { it } + fadeOut(tween(150))
+    ) {
+        JourneysScreen(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .padding(innerPadding),
+            journeys = savedJourneys,
+            onDeleteJourney = onDeleteJourney,
+            isConnected = trainStatus.isConnected,
+            isRecording = isRecording,
+            liveRecording = liveRecording,
+            onStartRecording = onStartRecording
+        )
     }
 }

@@ -1,8 +1,11 @@
 package com.nruge.iceinfo.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +21,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,8 +72,13 @@ fun ConnectionsScreen(
         }
     }
 
+    val listState = rememberLazyListState()
+    val isScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 } }
+
+    Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainer)) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
@@ -82,7 +91,7 @@ fun ConnectionsScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = stationName,
+                    text = stringResource(R.string.connections_header, stationName),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -151,12 +160,10 @@ fun ConnectionsScreen(
 
         // Reachable connections
         if (reachable.isNotEmpty()) {
-            item(key = "header_reachable") {
-                ConnectionSectionHeader(
-                    icon = Icons.Default.CheckCircle,
-                    title = stringResource(R.string.connections_section_reachable),
-                    tint = onSuccessContainer()
-                )
+            stickyHeader(key = "header_reachable") {
+                StickyConnectionHeader(listState, "header_reachable") {
+                    ConnectionSectionHeader(Icons.Default.CheckCircle, stringResource(R.string.connections_section_reachable), onSuccessContainer())
+                }
             }
             item(key = "group_reachable") {
                 ConnectionGroup(reachable) { conn -> ConnectionCardContent(conn, showRelative, referenceTime) }
@@ -165,12 +172,10 @@ fun ConnectionsScreen(
 
         // Tight connections
         if (tight.isNotEmpty()) {
-            item(key = "header_tight") {
-                ConnectionSectionHeader(
-                    icon = Icons.Default.Warning,
-                    title = stringResource(R.string.connections_section_tight),
-                    tint = onWarningContainer()
-                )
+            stickyHeader(key = "header_tight") {
+                StickyConnectionHeader(listState, "header_tight") {
+                    ConnectionSectionHeader(Icons.Default.Warning, stringResource(R.string.connections_section_tight), onWarningContainer())
+                }
             }
             item(key = "group_tight") {
                 ConnectionGroup(tight) { conn -> ConnectionCardContent(conn, showRelative, referenceTime) }
@@ -179,12 +184,10 @@ fun ConnectionsScreen(
 
         // Missed connections
         if (missed.isNotEmpty()) {
-            item(key = "header_missed") {
-                ConnectionSectionHeader(
-                    icon = Icons.Default.Cancel,
-                    title = stringResource(R.string.connections_section_missed),
-                    tint = MaterialTheme.colorScheme.error
-                )
+            stickyHeader(key = "header_missed") {
+                StickyConnectionHeader(listState, "header_missed") {
+                    ConnectionSectionHeader(Icons.Default.Cancel, stringResource(R.string.connections_section_missed), MaterialTheme.colorScheme.error)
+                }
             }
             item(key = "group_missed") {
                 ConnectionGroup(missed) { conn -> ConnectionCardContent(conn, showRelative, referenceTime) }
@@ -193,17 +196,18 @@ fun ConnectionsScreen(
 
         // Departures
         if (departures.isNotEmpty()) {
-            item(key = "header_departures") {
-                ConnectionSectionHeader(
-                    icon = Icons.Default.DirectionsTransit,
-                    title = stringResource(R.string.connections_section_departures)
-                )
+            stickyHeader(key = "header_departures") {
+                StickyConnectionHeader(listState, "header_departures") {
+                    ConnectionSectionHeader(Icons.Default.DirectionsTransit, stringResource(R.string.connections_section_departures))
+                }
             }
             item(key = "group_departures") {
                 ConnectionGroup(departures) { dep -> DepartureCardContent(dep, showRelative, referenceTime) }
             }
         }
     }
+    if (isScrolled) HorizontalDivider()
+    } // Box
 }
 
 @Composable
@@ -228,6 +232,32 @@ private fun ConnectionSectionHeader(
             color = tint,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+@Composable
+private fun StickyConnectionHeader(
+    listState: LazyListState,
+    headerKey: String,
+    content: @Composable () -> Unit
+) {
+    val isStuck by remember(headerKey) {
+        derivedStateOf {
+            val idx = listState.layoutInfo.visibleItemsInfo
+                .firstOrNull { it.key == headerKey }?.index ?: return@derivedStateOf false
+            listState.firstVisibleItemIndex > idx
+        }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                if (isStuck) MaterialTheme.colorScheme.surfaceContainer
+                else MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0f)
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        content()
     }
 }
 

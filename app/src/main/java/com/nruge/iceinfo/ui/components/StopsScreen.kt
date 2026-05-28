@@ -6,25 +6,30 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.Train
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Water
 import androidx.compose.material3.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.nruge.iceinfo.R
+import com.nruge.iceinfo.model.OsmTrackData
 import com.nruge.iceinfo.model.PoiItem
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.model.TrainStop
@@ -385,8 +391,10 @@ private fun StopTimePair(
     }
 }
 @Composable
-fun StopsScreen(
+fun JourneyScreen(
     status: TrainStatus,
+    osmData: OsmTrackData,
+    pois: List<PoiItem>,
     isMockMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -399,47 +407,190 @@ fun StopsScreen(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        if (status.stops.isNotEmpty()) {
-            AppCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(0.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.stops_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 12.dp)
+    val listState = rememberLazyListState()
+    val isScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 } }
+
+    Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainer)) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 96.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            stickyHeader(key = "header_stops") {
+                StickyStopsHeader(listState, "header_stops") {
+                    TrackSectionHeader(
+                        icon = Icons.AutoMirrored.Filled.List,
+                        title = stringResource(R.string.stops_title)
                     )
-                    status.stops.forEachIndexed { index, stop ->
-                        TimelineStopRow(
-                            stop = stop,
-                            isFirst = index == 0,
-                            isLast = index == status.stops.lastIndex,
-                            showRelative = showRelative,
-                            referenceTime = referenceTime
-                        )
+                }
+            }
+            item(key = "card_stops") {
+                if (status.stops.isNotEmpty()) {
+                    AppCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(0.dp)
+                        ) {
+                            status.stops.forEachIndexed { index, stop ->
+                                TimelineStopRow(
+                                    stop = stop,
+                                    isFirst = index == 0,
+                                    isLast = index == status.stops.lastIndex,
+                                    showRelative = showRelative,
+                                    referenceTime = referenceTime
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Text(stringResource(R.string.stops_none))
+                }
+            }
+
+            // Track section — only when connected and position is available
+            if (status.isConnected && (status.latitude != 0.0 || status.longitude != 0.0)) {
+                when {
+                    osmData.isLoading -> {
+                        item(key = "loading") {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+                    osmData.error != null -> {
+                        item(key = "error") {
+                            AppCard(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(osmData.error, color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+                        stickyHeader(key = "header_track") {
+                            StickyStopsHeader(listState, "header_track") {
+                                TrackSectionHeader(
+                                    icon = Icons.Default.Train,
+                                    title = stringResource(R.string.track_section_track)
+                                )
+                            }
+                        }
+                        item(key = "card_track") {
+                            TrackPropertiesCard(trackInfo = osmData.trackInfo)
+                        }
+
+                        stickyHeader(key = "header_features") {
+                            StickyStopsHeader(listState, "header_features") {
+                                TrackSectionHeader(
+                                    icon = Icons.Default.Route,
+                                    title = stringResource(R.string.track_section_features)
+                                )
+                            }
+                        }
+                        item(key = "card_features") {
+                            if (osmData.features.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.track_no_features),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else {
+                                AppCard(modifier = Modifier.fillMaxWidth()) {
+                                    osmData.features.forEachIndexed { index, feature ->
+                                        FeatureRow(
+                                            label = feature.type.shortLabel(),
+                                            containerColor = feature.type.containerColor(),
+                                            onContainerColor = feature.type.onContainerColor(),
+                                            name = feature.name,
+                                            distanceKm = feature.distanceKm
+                                        )
+                                        if (index < osmData.features.lastIndex) {
+                                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (pois.isNotEmpty()) {
+                            stickyHeader(key = "header_pois") {
+                                StickyStopsHeader(listState, "header_pois") {
+                                    TrackSectionHeader(
+                                        icon = Icons.Default.Place,
+                                        title = stringResource(R.string.pois_title_plain)
+                                    )
+                                }
+                            }
+                            item(key = "card_pois") {
+                                AppCard(modifier = Modifier.fillMaxWidth()) {
+                                    pois.forEachIndexed { index, poi ->
+                                        FeatureRow(
+                                            label = poi.type.poiLabel(),
+                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            onContainerColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            name = poi.name,
+                                            distanceKm = poi.distance / 1000.0
+                                        )
+                                        if (index < pois.lastIndex) {
+                                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        item(key = "source") {
+                            Text(
+                                text = stringResource(R.string.track_source),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
                     }
                 }
             }
-        } else {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(stringResource(R.string.stops_none))
-            }
         }
-        Spacer(modifier = Modifier.height(96.dp))
+        if (isScrolled) HorizontalDivider()
     }
-
 }
 
+@Composable
+private fun StickyStopsHeader(
+    listState: LazyListState,
+    headerKey: String,
+    content: @Composable () -> Unit
+) {
+    val isStuck by remember(headerKey) {
+        derivedStateOf {
+            val idx = listState.layoutInfo.visibleItemsInfo
+                .firstOrNull { it.key == headerKey }?.index ?: return@derivedStateOf false
+            listState.firstVisibleItemIndex > idx
+        }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                if (isStuck) MaterialTheme.colorScheme.surfaceContainer
+                else MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0f)
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        content()
+    }
+}

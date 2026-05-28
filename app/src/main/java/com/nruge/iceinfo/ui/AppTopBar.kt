@@ -48,6 +48,7 @@ fun AppTopBar(
     onShowChangelog: () -> Unit,
     onShowJourneys: () -> Unit,
     onNavigateBack: (() -> Unit)? = null,
+    showScrollDivider: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val apiUnreachable = isOnTrainWifi && !isConnected && !isMockMode
@@ -159,7 +160,7 @@ fun AppTopBar(
         scrollBehavior = scrollBehavior
     )
     HorizontalDivider(
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = scrolledFraction)
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (showScrollDivider) scrolledFraction else 0f)
     )
     } // Column
 }

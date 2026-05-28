@@ -50,11 +50,13 @@ internal data class ChangelogEntry(
 
 internal val changelog = listOf(
     ChangelogEntry(
-        version = "5.1",
+        version = "6",
         newFeatures = listOf(
+            "SPEISEKARTE - Jetzt die Live-Speisekarte des Bordrestaurants direkt in der App ansehen",
+            "FAHRTEN AUFZEICHNEN - Jetzt kannst du deine Fahrten aufzeichnen und in der App speichen, mit Daten wie Durchschnittsgeschwindigkeit, Verspätung, oder Karte mit dem Fahrtverlauf (Als .GPX exportierbar)",
             "Streckenkarte ersetzt durch einen Daten-Tab mit Streckeninfos zu Höchstgeschwindigkeit, Elektrifizierung, Gleisanzahl, Streckentyp, POIs",
-            "Halte und Anschlüsse: Zeiten wechseln alle 5 Sekunden zwischen Uhrzeit HH:MM und Restzeit ('in X min')",
-            "Baureihe unter der Zugnummer ist nun Aufklappbar für Infos zum Zug"
+            "Halte und Anschlüsse: Zeiten wechseln alle 5 Sekunden zwischen Uhrzeit HH:MM und Restzeit ('in X min') - kein rechnen mehr ;)",
+            "Swipen um Seiten zu wechseln"
         ),
         fixes = listOf(
             "API Abfragen wurden reduziert"

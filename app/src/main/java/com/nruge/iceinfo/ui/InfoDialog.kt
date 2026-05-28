@@ -100,6 +100,7 @@ fun InfoDialog(onDismiss: () -> Unit) {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(stringResource(R.string.info_api_db_stada))
                             Text(stringResource(R.string.info_api_db_fasta))
+                            Text(stringResource(R.string.info_api_db_wagenreihung))
                         }
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)

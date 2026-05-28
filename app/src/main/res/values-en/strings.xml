@@ -38,11 +38,12 @@
     <string name="connectivity_weak">Weak</string>
     <string name="connectivity_no_info">No info</string>
     <string name="connectivity_none">No signal</string>
-    <string name="stops_title">🛤️ Route</string>
+    <string name="stops_title">Route</string>
     <string name="stops_none">No stop info available</string>
     <string name="pois_title">🏔️ Points of Interest</string>
     <string name="pois_demo">Demo</string>
     <string name="connections_title">🔀 Connecting trains in %1$s</string>
+    <string name="connections_header">Connections and departures in %1$s</string>
     <string name="connections_none">No connecting trains</string>
     <string name="connection_reachable">reachable</string>
     <string name="connection_missed">missed</string>
@@ -124,8 +125,13 @@
     <string name="notif_no_eta">—</string>
 
     <!-- Navigation -->
-    <string name="nav_status">Status</string>
+    <string name="nav_status">Train</string>
     <string name="nav_stops">Stops</string>
+    <string name="nav_journey">Journey</string>
+    <string name="nav_menu">Menu</string>
+    <string name="menu_disclaimer">(Subject to change)</string>
+    <string name="menu_coming_soon">On-board dining information coming soon.</string>
+    <string name="menu_no_connection">Connect to the ICE Wi-Fi to load the dining menu.</string>
     <string name="nav_map">Track</string>
     <string name="nav_service">Station</string>
     <string name="nav_connections">Connections</string>
@@ -153,6 +159,10 @@
     <string name="cancel">Cancel</string>
     <string name="home_target_title">Your destination</string>
     <string name="home_no_target">No destination chosen</string>
+    <string name="home_next_stop_title">Next Stop</string>
+    <string name="home_coach_map_title">Coach Layout</string>
+    <string name="home_coach_label">Coach</string>
+    <string name="home_seat_label">Seat</string>
 
     <!-- Travel summary -->
     <string name="travel_remaining_stops">%1$d stops left</string>
@@ -173,6 +183,7 @@
 
     <!-- Service Screen -->
     <string name="service_search_station">Search station</string>
+    <string name="service_station_title">Station %1$s</string>
     <string name="service_clear">Clear</string>
     <string name="service_select_station_title">Select station</string>
     <string name="service_select_station_desc">Tap the search button or use your selected exit stop.</string>

@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.nruge.iceinfo.DepartureBoardRepository
 import com.nruge.iceinfo.JourneyRepository
+import com.nruge.iceinfo.MenuRepository
 import com.nruge.iceinfo.OsmRepository
 import com.nruge.iceinfo.StationFacilitiesRepository
 import com.nruge.iceinfo.TrainRepository
@@ -13,6 +14,8 @@ import com.nruge.iceinfo.model.*
 import com.nruge.iceinfo.sampleConnections
 import com.nruge.iceinfo.sampleDepartures
 import com.nruge.iceinfo.sampleJourneys
+import com.nruge.iceinfo.sampleCoaches
+import com.nruge.iceinfo.sampleMenuCategories
 import com.nruge.iceinfo.sampleOsmTrackData
 import com.nruge.iceinfo.samplePois
 import com.nruge.iceinfo.sampleTrainStatus
@@ -33,6 +36,7 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 import com.nruge.iceinfo.util.SettingsManager
 import com.nruge.iceinfo.widget.WidgetUpdater
+import com.nruge.iceinfo.WagenreihungRepository
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -100,6 +104,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _liveRecording = MutableStateFlow<LiveRecordingState?>(null)
     val liveRecording: StateFlow<LiveRecordingState?> = _liveRecording.asStateFlow()
 
+    private val _menuCategories = MutableStateFlow<List<com.nruge.iceinfo.model.MenuCategory>>(emptyList())
+    val menuCategories: StateFlow<List<com.nruge.iceinfo.model.MenuCategory>> = _menuCategories.asStateFlow()
+
+    private val _isMenuLoading = MutableStateFlow(false)
+    val isMenuLoading: StateFlow<Boolean> = _isMenuLoading.asStateFlow()
+
+    private var menuFetchedForTrain: String? = null
+    private var wagenreihungFetchedForTrain: String? = null
+
+    private val _coaches = MutableStateFlow<List<com.nruge.iceinfo.model.Coach>>(emptyList())
+    val coaches: StateFlow<List<com.nruge.iceinfo.model.Coach>> = _coaches.asStateFlow()
+
+    private val _selectedCoach = MutableStateFlow<Int?>(SettingsManager.getCoachNumber(application))
+    val selectedCoach: StateFlow<Int?> = _selectedCoach.asStateFlow()
+
+    private val _seatNumber = MutableStateFlow(SettingsManager.getSeatNumber(application))
+    val seatNumber: StateFlow<String> = _seatNumber.asStateFlow()
+
     // Interner Aufzeichnungszustand
     private inner class ActiveRecording(
         val id: String = UUID.randomUUID().toString(),
@@ -143,10 +165,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _pois.value = samplePois
             _weather.value = sampleWeather
             _osmData.value = sampleOsmTrackData
+            _coaches.value = sampleCoaches
             updateWidget(_trainStatus.value)
         } else {
             startPolling()
         }
+    }
+
+    fun setCoach(coach: Int?) {
+        _selectedCoach.value = coach
+        SettingsManager.setCoachNumber(getApplication(), coach)
+    }
+
+    fun setSeat(seat: String) {
+        _seatNumber.value = seat
+        SettingsManager.setSeatNumber(getApplication(), seat)
     }
 
     fun setTargetStop(eva: String?) {
@@ -157,7 +190,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         lastConnectionsFetchMs = 0L
         viewModelScope.launch {
             val status = _trainStatus.value
-            val boardStop = relevantBoardStop(status)
+            val updatedStatus = status.copy(targetStopEva = eva)
+
+            // Verbindungen + Wetter für neuen Zielbahnhof
+            val boardStop = relevantBoardStop(updatedStatus)
             val connections = TrainRepository.fetchConnections(
                 boardStop?.evaNr ?: status.nextStopEva,
                 boardStop?.effectiveArrivalMs ?: 0L
@@ -165,7 +201,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val departures = boardStop?.let { fetchDeparturesForStop(it) } ?: emptyList()
             _departures.value = departures
             _connections.value = enrichConnectionDestinations(connections, departures)
-            refreshWeatherIfNeeded(status.copy(targetStopEva = eva))
+            refreshWeatherIfNeeded(updatedStatus)
+
+            // Wagenreihung neu abfragen: Sektoren gelten für den Ausstiegsbahnhof
+            val targetStop = eva?.let { e -> updatedStatus.stops.find { it.evaNr == e && !it.passed } }
+            val trainKey = "${status.trainType}${status.trainNumber}_${targetStop?.evaNr.orEmpty()}"
+            if (wagenreihungFetchedForTrain != trainKey) {
+                wagenreihungFetchedForTrain = trainKey
+                val wagenreihung = WagenreihungRepository.fetch(status, targetStop)
+                if (wagenreihung.isNotEmpty()) _coaches.value = wagenreihung
+            }
         }
         
         if (com.nruge.iceinfo.IceNotificationService.isRunning.value) {
@@ -195,6 +240,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _pois.value = samplePois
             _weather.value = sampleWeather
             _osmData.value = sampleOsmTrackData
+            _menuCategories.value = sampleMenuCategories
+            _coaches.value = sampleCoaches
+            menuFetchedForTrain = "${sampleTrainStatus.trainType}${sampleTrainStatus.trainNumber}"
             updateWidget(status)
         } else {
             _trainStatus.value = _trainStatus.value.copy(isConnected = false, targetStopEva = currentTarget)
@@ -203,6 +251,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _pois.value = emptyList()
             _weather.value = null
             _osmData.value = OsmTrackData()
+            _menuCategories.value = emptyList()
+            menuFetchedForTrain = null
             lastWeatherEva = ""
             lastOsmLat = 0.0
             lastOsmLon = 0.0
@@ -267,6 +317,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _pois.value = TrainRepository.fetchPois(status.latitude, status.longitude)
                     refreshOsmDataIfNeeded(status.latitude, status.longitude)
                     refreshWeatherIfNeeded(updatedStatus)
+                    val targetStop = updatedStatus.targetStopEva
+                        ?.let { eva -> updatedStatus.stops.find { it.evaNr == eva && !it.passed } }
+                    // Key enthält Ziel-EVA → neu abfragen wenn Ausstieg geändert wird
+                    val trainKey = "${status.trainType}${status.trainNumber}_${targetStop?.evaNr.orEmpty()}"
+                    if (wagenreihungFetchedForTrain != trainKey) {
+                        wagenreihungFetchedForTrain = trainKey
+                        val wagenreihung = WagenreihungRepository.fetch(status, targetStop)
+                        _coaches.value = wagenreihung.ifEmpty {
+                            TrainRepository.fetchCoaches()
+                        }
+                    }
 
                     // Verbindungsstatus tracken
                     if (status.isConnected) {
@@ -471,6 +532,45 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _serviceStation.value = StationInfo(evaNr = evaNr, name = name, isLoading = true)
         viewModelScope.launch {
             _serviceStation.value = StationFacilitiesRepository.fetchFacilities(evaNr, name)
+        }
+    }
+
+    fun fetchMenuIfNeeded() {
+        val trainKey = _trainStatus.value.let { "${it.trainType}${it.trainNumber}" }
+            .takeIf { it.isNotBlank() } ?: return
+        if (menuFetchedForTrain == trainKey && _menuCategories.value.isNotEmpty()) return
+        menuFetchedForTrain = trainKey
+        viewModelScope.launch {
+            _isMenuLoading.value = true
+            val result = MenuRepository.fetchMenu()
+            val availabilities = MenuRepository.fetchAvailabilities()
+            _menuCategories.value = applyAvailabilities(result.categories, availabilities)
+            _isMenuLoading.value = false
+        }
+    }
+
+    fun refreshMenu() {
+        if (_isMockMode.value) return
+        viewModelScope.launch {
+            _isMenuLoading.value = true
+            val result = MenuRepository.fetchMenu()
+            val availabilities = MenuRepository.fetchAvailabilities()
+            _menuCategories.value = applyAvailabilities(result.categories, availabilities)
+            menuFetchedForTrain = _trainStatus.value
+                .let { "${it.trainType}${it.trainNumber}" }.takeIf { it.isNotBlank() }
+            _isMenuLoading.value = false
+        }
+    }
+
+    private fun applyAvailabilities(
+        categories: List<com.nruge.iceinfo.model.MenuCategory>,
+        availabilities: Map<Int, Boolean>
+    ): List<com.nruge.iceinfo.model.MenuCategory> {
+        if (availabilities.isEmpty()) return categories
+        return categories.map { cat ->
+            cat.copy(items = cat.items.map { item ->
+                availabilities[item.id]?.let { visible -> item.copy(visible = visible) } ?: item
+            })
         }
     }
 

@@ -20,8 +20,8 @@ android {
         applicationId = "com.nruge.iceinfo"
         minSdk = 33
         targetSdk = 36
-        versionCode = 13
-        versionName = "5.0.2"
+        versionCode = 14
+        versionName = "6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -91,6 +91,7 @@ dependencies {
     implementation("com.google.android.play:app-update-ktx:2.1.0")
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
+    implementation(libs.coil.compose)
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

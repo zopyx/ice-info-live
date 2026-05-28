@@ -49,9 +49,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.pager.rememberPagerState
+import com.nruge.iceinfo.ui.navigationItems
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
@@ -76,6 +76,7 @@ import com.nruge.iceinfo.ui.SettingsSheet
 import com.nruge.iceinfo.ui.StopSelectionDialog
 import com.nruge.iceinfo.ui.components.NoWifiScreen
 import com.nruge.iceinfo.ui.components.RecordingSplitButton
+
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
 import com.nruge.iceinfo.util.isWIFIonICE as checkWIFIonICE
 import kotlinx.coroutines.delay
@@ -221,6 +222,11 @@ class MainActivity : ComponentActivity() {
             val showRecordingConsent by viewModel.showRecordingConsent.collectAsStateWithLifecycle()
             val isRecording by viewModel.isRecording.collectAsStateWithLifecycle()
             val liveRecording by viewModel.liveRecording.collectAsStateWithLifecycle()
+            val menuItems by viewModel.menuCategories.collectAsStateWithLifecycle()
+            val isMenuLoading by viewModel.isMenuLoading.collectAsStateWithLifecycle()
+            val coaches by viewModel.coaches.collectAsStateWithLifecycle()
+            val selectedCoach by viewModel.selectedCoach.collectAsStateWithLifecycle()
+            val seatNumber by viewModel.seatNumber.collectAsStateWithLifecycle()
 
             val initialContext = LocalContext.current
             var appTheme by rememberSaveable {
@@ -285,10 +291,14 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(intent) {
                     // Action select target is now handled by dropdown in HomeScreen
                 }
-                val navController = rememberNavController()
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
+                val pagerState = rememberPagerState(pageCount = { navigationItems.size })
+                val coroutineScope = rememberCoroutineScope()
+                var showJourneys by remember { mutableStateOf(false) }
+                val currentRoute = if (showJourneys) com.nruge.iceinfo.ui.Screen.Journeys.route
+                                   else navigationItems[pagerState.currentPage].route
                 val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+                BackHandler(enabled = showJourneys) { showJourneys = false }
 
                 LaunchedEffect(currentRoute) {
                     scrollBehavior.state.contentOffset = 0f
@@ -343,10 +353,9 @@ class MainActivity : ComponentActivity() {
                             onShowSettings = { showSettings = true },
                             onShowInfo = { showInfo = true },
                             onShowChangelog = { showChangelog = true },
-                            onShowJourneys = { navController.navigate(com.nruge.iceinfo.ui.Screen.Journeys.route) },
-                            onNavigateBack = if (currentRoute == com.nruge.iceinfo.ui.Screen.Journeys.route) {
-                                { navController.popBackStack() }
-                            } else null,
+                            onShowJourneys = { showJourneys = true },
+                            onNavigateBack = if (showJourneys) { { showJourneys = false } } else null,
+                            showScrollDivider = currentRoute != com.nruge.iceinfo.ui.Screen.Menu.route,
                             scrollBehavior = scrollBehavior
                         )
                     },
@@ -357,12 +366,9 @@ class MainActivity : ComponentActivity() {
                                 currentRoute = currentRoute,
                                 enabled = true,
                                 onNavigate = { route ->
-                                    navController.navigate(route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
+                                    val index = navigationItems.indexOfFirst { it.route == route }
+                                    if (index >= 0) coroutineScope.launch {
+                                        pagerState.animateScrollToPage(index)
                                     }
                                 }
                             )
@@ -406,9 +412,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                         ) {
-                            // AppNavigation immer rendern damit der NavController sein Graph hat
                             AppNavigation(
-                                    navController = navController,
+                                    pagerState = pagerState,
+                                    isJourneysVisible = showJourneys,
                                     innerPadding = innerPadding,
                                     trainStatus = trainStatus,
                                     pois = pois,
@@ -430,6 +436,11 @@ class MainActivity : ComponentActivity() {
                                         }
                                     },
                                     onTargetStopChange = { viewModel.setTargetStop(it) },
+                                    coaches = coaches,
+                                    selectedCoach = selectedCoach,
+                                    seatNumber = seatNumber,
+                                    onCoachChange = { viewModel.setCoach(it) },
+                                    onSeatChange = { viewModel.setSeat(it) },
                                     serviceStation = serviceStation,
                                     stationSearchResults = stationSearchResults,
                                     onStationSearchQueryChange = { viewModel.searchStations(it) },
@@ -439,7 +450,11 @@ class MainActivity : ComponentActivity() {
                                     onDeleteJourney = { viewModel.deleteJourney(it) },
                                     isRecording = isRecording,
                                     liveRecording = liveRecording,
-                                    onStartRecording = { viewModel.requestRecording() }
+                                    onStartRecording = { viewModel.requestRecording() },
+                                    menuItems = menuItems,
+                                    isMenuLoading = isMenuLoading,
+                                    onLoadMenu = { viewModel.fetchMenuIfNeeded() },
+                                    onRefreshMenu = { viewModel.refreshMenu() }
                                 )
                             // NoWifiScreen als Overlay wenn nicht verbunden und nicht auf Journeys-Screen
                             AnimatedVisibility(

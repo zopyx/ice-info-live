@@ -94,3 +94,73 @@ data class ApiConnection(
     val track: Track? = null,
     val missed: Boolean = false
 )
+
+@Serializable
+data class Coach(
+    val coachNumber: Int = 0,
+    val hasFirstClass: Boolean = false,
+    val hasSecondClass: Boolean = false,
+    /** Fahrzeugkategorie aus der DB Wagenreihungs-API.
+     *  z.B. LOCOMOTIVE, PASSENGERCARRIAGE_FIRST_CLASS, HALFDININGCAR_ECONOMY_CLASS, CONTROLCAR_* */
+    val vehicleCategory: String = "",
+    /** Bahnsteig-Sektor aus der DB Wagenreihungs-API, z.B. "A", "B", "C" */
+    val sector: String = "",
+    /** Ausstattungs-Merkmale des Wagens aus der DB Wagenreihungs-API.
+     *  Bekannte Werte: ZONE_QUIET, ZONE_FAMILY, ZONE_PHONE,
+     *  BIKE_SPACE, CABIN_INFANT, WHEELCHAIR_SPACE, SEATS_BAHN_COMFORT */
+    val amenities: Set<String> = emptySet()
+)
+
+// ─── DB Wagenreihungs-API (bahn.de) ───────────────────────────────────────────
+
+@Serializable
+data class WagenreihungResponse(
+    val departurePlatform: String = "",
+    val departurePlatformSchedule: String = "",
+    val groups: List<WagenreihungGroup> = emptyList()
+)
+
+@Serializable
+data class WagenreihungGroup(
+    val vehicles: List<WagenreihungVehicle> = emptyList()
+)
+
+@Serializable
+data class WagenreihungVehicle(
+    val wagonIdentificationNumber: Int = 0,
+    val status: String = "OPEN",
+    val type: WagenreihungVehicleType = WagenreihungVehicleType(),
+    val platformPosition: WagenreihungPlatformPosition = WagenreihungPlatformPosition(),
+    val amenities: List<WagenreihungAmenity> = emptyList()
+)
+
+@Serializable
+data class WagenreihungAmenity(
+    val type: String = "",
+    val status: String = "AVAILABLE",
+    val amount: Int = 0
+)
+
+@Serializable
+data class WagenreihungVehicleType(
+    val category: String = "",
+    val hasFirstClass: Boolean = false,
+    val hasEconomyClass: Boolean = false
+)
+
+@Serializable
+data class WagenreihungPlatformPosition(
+    val sector: String = "",
+    val start: Double = 0.0,
+    val end: Double = 0.0
+)
+
+@Serializable
+data class CoachList(
+    val coaches: List<Coach> = emptyList()
+)
+
+@Serializable
+data class CoachConfigResponse(
+    val coachList: CoachList? = null
+)

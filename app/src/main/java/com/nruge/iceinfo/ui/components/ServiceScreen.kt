@@ -6,6 +6,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -328,29 +331,42 @@ private fun StationFacilitiesContent(station: StationInfo) {
         .entries
         .sortedBy { it.key.ordinal }
 
+    val listState = rememberLazyListState()
+    val isScrolled by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 } }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
             Text(
-                text = station.name,
+                text = stringResource(R.string.service_station_title, station.name),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
         }
 
         groupedLive.forEach { (type, facilities) ->
+            stickyHeader(key = "header_${type.name}") {
+                StickyServiceHeader(listState, "header_${type.name}") {
+                    FacilitySectionHeader(icon = type.icon(), title = type.label())
+                }
+            }
             item(key = type.name) {
-                FacilityTypeGroup(type = type, facilities = facilities)
+                FacilityTypeGroup(type = type, facilities = facilities, showHeader = false)
             }
         }
 
         if (station.staticFacilities.isNotEmpty()) {
+            stickyHeader(key = "static_header") {
+                StickyServiceHeader(listState, "static_header") {
+                    FacilitySectionHeader(title = stringResource(R.string.service_facilities))
+                }
+            }
             item(key = "static") {
-                FacilitySectionHeader(title = stringResource(R.string.service_facilities))
-                Spacer(Modifier.height(8.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -371,16 +387,44 @@ private fun StationFacilitiesContent(station: StationInfo) {
             )
         }
     }
+    if (isScrolled) HorizontalDivider()
+    } // Box
+}
+
+@Composable
+private fun StickyServiceHeader(
+    listState: LazyListState,
+    headerKey: String,
+    content: @Composable () -> Unit
+) {
+    val isStuck by remember(headerKey) {
+        derivedStateOf {
+            val idx = listState.layoutInfo.visibleItemsInfo
+                .firstOrNull { it.key == headerKey }?.index ?: return@derivedStateOf false
+            listState.firstVisibleItemIndex > idx
+        }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                if (isStuck) MaterialTheme.colorScheme.surfaceContainer
+                else MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0f)
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        content()
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FacilityTypeGroup(type: FacilityType, facilities: List<StationFacility>) {
+private fun FacilityTypeGroup(type: FacilityType, facilities: List<StationFacility>, showHeader: Boolean = true) {
     val active = facilities.filter { it.status == FacilityStatus.ACTIVE }
     val broken = facilities.filter { it.status != FacilityStatus.ACTIVE }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FacilitySectionHeader(icon = type.icon(), title = type.label())
+        if (showHeader) FacilitySectionHeader(icon = type.icon(), title = type.label())
 
         if (active.isNotEmpty()) {
             FlowRow(

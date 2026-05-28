@@ -48,6 +48,7 @@ data class TrainStop(
     val isNext: Boolean,
     val distanceFromStart: Int = 0,
     val scheduledArrivalMs: Long = 0L,
+    val scheduledDepartureMs: Long = 0L,
     val isAdditional: Boolean = false,
     val scheduledDeparture: String = "",
     val actualDeparture: String = "",

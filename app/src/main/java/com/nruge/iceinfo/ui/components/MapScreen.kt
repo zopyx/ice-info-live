@@ -74,7 +74,7 @@ fun MapScreen(
 }
 
 @Composable
-private fun TrackContent(trackInfo: TrackInfo, features: List<RailFeature>, pois: List<PoiItem>) {
+internal fun TrackContent(trackInfo: TrackInfo, features: List<RailFeature>, pois: List<PoiItem>) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 96.dp),
@@ -146,7 +146,7 @@ private fun TrackContent(trackInfo: TrackInfo, features: List<RailFeature>, pois
 }
 
 @Composable
-private fun FeatureRow(
+internal fun FeatureRow(
     label: String,
     containerColor: Color,
     onContainerColor: Color,
@@ -183,7 +183,7 @@ private fun FeatureRow(
 }
 
 @Composable
-private fun TrackPropertiesCard(trackInfo: TrackInfo) {
+internal fun TrackPropertiesCard(trackInfo: TrackInfo) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             TrackPropertyRow(
@@ -216,7 +216,7 @@ private fun TrackPropertiesCard(trackInfo: TrackInfo) {
 }
 
 @Composable
-private fun TrackPropertyRow(icon: ImageVector, label: String, value: String) {
+internal fun TrackPropertyRow(icon: ImageVector, label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -243,7 +243,7 @@ private fun TrackPropertyRow(icon: ImageVector, label: String, value: String) {
 }
 
 @Composable
-private fun TrackSectionHeader(icon: ImageVector, title: String) {
+internal fun TrackSectionHeader(icon: ImageVector, title: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -311,7 +311,7 @@ private fun TrackErrorState(message: String) {
 }
 
 @Composable
-private fun RailFeatureType.containerColor(): Color = when (this) {
+internal fun RailFeatureType.containerColor(): Color = when (this) {
     RailFeatureType.TUNNEL -> MaterialTheme.colorScheme.secondaryContainer
     RailFeatureType.BRIDGE -> MaterialTheme.colorScheme.tertiaryContainer
     RailFeatureType.STATION -> MaterialTheme.colorScheme.primaryContainer
@@ -319,7 +319,7 @@ private fun RailFeatureType.containerColor(): Color = when (this) {
 }
 
 @Composable
-private fun RailFeatureType.onContainerColor(): Color = when (this) {
+internal fun RailFeatureType.onContainerColor(): Color = when (this) {
     RailFeatureType.TUNNEL -> MaterialTheme.colorScheme.onSecondaryContainer
     RailFeatureType.BRIDGE -> MaterialTheme.colorScheme.onTertiaryContainer
     RailFeatureType.STATION -> MaterialTheme.colorScheme.onPrimaryContainer
@@ -327,14 +327,14 @@ private fun RailFeatureType.onContainerColor(): Color = when (this) {
 }
 
 @Composable
-private fun RailFeatureType.shortLabel(): String = when (this) {
+internal fun RailFeatureType.shortLabel(): String = when (this) {
     RailFeatureType.TUNNEL -> stringResource(R.string.track_feature_tunnel)
     RailFeatureType.BRIDGE -> stringResource(R.string.track_feature_bridge)
     RailFeatureType.STATION -> stringResource(R.string.track_feature_station)
     RailFeatureType.HALT -> stringResource(R.string.track_feature_halt)
 }
 
-private fun String.poiLabel(): String = when (this) {
+internal fun String.poiLabel(): String = when (this) {
     "CITY" -> "Stadt"
     "RIVER" -> "Fluss"
     "LAKE" -> "See"
@@ -346,7 +346,7 @@ private fun String.poiLabel(): String = when (this) {
     else -> this.lowercase().replaceFirstChar { it.uppercase() }
 }
 
-private fun electrifiedLabel(electrified: String?, voltage: Int?): String {
+internal fun electrifiedLabel(electrified: String?, voltage: Int?): String {
     if (electrified == "no" || electrified == null) return "Nicht elektrifiziert"
     val type = when (electrified) {
         "contact_line" -> "Oberleitung"
@@ -363,7 +363,7 @@ private fun electrifiedLabel(electrified: String?, voltage: Int?): String {
     return "$type$voltageStr"
 }
 
-private fun usageLabel(usage: String): String = when (usage) {
+internal fun usageLabel(usage: String): String = when (usage) {
     "main" -> "Hauptstrecke"
     "branch" -> "Nebenstrecke"
     "industrial" -> "Industriegleis"

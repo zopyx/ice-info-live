@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -73,7 +74,7 @@ fun TrainHeader(status: TrainStatus, reducedMotion: Boolean = false) {
                 .height(50.dp)
                 .wrapContentWidth(unbounded = true, align = Alignment.Start)
                 .align(Alignment.CenterStart)
-                .offset(x = (trackOffset - 17).dp, y = (-45).dp)
+                .offset { IntOffset((trackOffset - 17f).dp.roundToPx(), (-45).dp.roundToPx()) }
                 .zIndex(1f)
                 .onGloballyPositioned { coords ->
                     trackWidthPx = coords.size.width / 5f

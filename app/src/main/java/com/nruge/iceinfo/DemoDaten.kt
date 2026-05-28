@@ -1,6 +1,14 @@
 package com.nruge.iceinfo
 
 import com.nruge.iceinfo.model.*
+import com.nruge.iceinfo.model.MenuCategory
+import com.nruge.iceinfo.model.MenuDeclarationBox
+import com.nruge.iceinfo.model.MenuItemDeclarationGroup
+import com.nruge.iceinfo.model.MenuItem
+import com.nruge.iceinfo.model.MenuPicture
+import com.nruge.iceinfo.model.MenuPrice
+import com.nruge.iceinfo.model.MenuPriceInfo
+import com.nruge.iceinfo.model.MenuProductGroup
 import com.nruge.iceinfo.model.SavedJourney
 import com.nruge.iceinfo.model.TrackPoint
 
@@ -9,10 +17,10 @@ val sampleTrainStatus = TrainStatus(
     trainType = "ICE",
     trainNumber = "212",
     speed = 114,
-    nextStop = "Göttingen",
+    nextStop = "Hannover Hbf",
     destination = "München Hbf",
-    eta = "14:34",
-    delayMinutes = 21,
+    eta = "09:34",
+    delayMinutes = 3,
     tzn = "ICE0304",
     series = "408",
     track = "4",
@@ -102,6 +110,66 @@ val sampleTrainStatus = TrainStatus(
     destinationDelay = 21,
     distanceToDestination = 467000,
     actualPosition = 130000
+)
+
+// Echte Wagenreihung ICE 10 (ICE 3 Neo, Baureihe 408) Hamburg–Basel
+val sampleCoaches = listOf(
+    Coach(
+        coachNumber = 21,
+        hasFirstClass = false, hasSecondClass = true,
+        vehicleCategory = "CONTROLCAR_ECONOMY_CLASS",
+        sector = "A",
+        amenities = setOf("BIKE_SPACE", "WHEELCHAIR_SPACE")
+    ),
+    Coach(
+        coachNumber = 22,
+        hasFirstClass = false, hasSecondClass = true,
+        vehicleCategory = "PASSENGERCARRIAGE_ECONOMY_CLASS",
+        sector = "A",
+        amenities = setOf("ZONE_QUIET")
+    ),
+    Coach(
+        coachNumber = 23,
+        hasFirstClass = false, hasSecondClass = true,
+        vehicleCategory = "PASSENGERCARRIAGE_ECONOMY_CLASS",
+        sector = "B",
+        amenities = setOf("ZONE_FAMILY", "CABIN_INFANT")
+    ),
+    Coach(
+        coachNumber = 24,
+        hasFirstClass = false, hasSecondClass = true,
+        vehicleCategory = "PASSENGERCARRIAGE_ECONOMY_CLASS",
+        sector = "B",
+        amenities = emptySet()
+    ),
+    Coach(
+        coachNumber = 25,
+        hasFirstClass = false, hasSecondClass = true,
+        vehicleCategory = "HALFDININGCAR_ECONOMY_CLASS",
+        sector = "B",
+        amenities = emptySet()
+    ),
+    Coach(
+        coachNumber = 26,
+        hasFirstClass = true, hasSecondClass = false,
+        vehicleCategory = "PASSENGERCARRIAGE_FIRST_CLASS",
+        sector = "C",
+        amenities = setOf("SEATS_BAHN_COMFORT")
+    ),
+    Coach(
+        coachNumber = 27,
+        hasFirstClass = true, hasSecondClass = false,
+        vehicleCategory = "PASSENGERCARRIAGE_FIRST_CLASS",
+        sector = "C",
+        amenities = setOf("SEATS_SEVERELY_DISABLED")
+    ),
+    Coach(
+        coachNumber = 28,
+        hasFirstClass = true, hasSecondClass = false,
+        vehicleCategory = "CONTROLCAR_FIRST_CLASS",
+        sector = "C",
+        amenities = setOf("SEATS_BAHN_COMFORT", "ZONE_QUIET")
+    ),
 )
 
 val samplePois = listOf(
@@ -373,4 +441,85 @@ val sampleJourneys: List<SavedJourney> = listOf(
         recordedGps = false,
         trackPoints = emptyList()
     )
+)
+private fun menuItem(id: Int, title: String, subject: String = "", imgPath: String, eurPrice: Double, chfPrice: Double, decls: List<String> = emptyList(), visible: Boolean = true) = MenuItem(
+    id = id, title = title, subject = subject,
+    picture = MenuPicture(src = imgPath),
+    priceInfo = MenuPriceInfo(listOf(MenuPrice("EUR", eurPrice), MenuPrice("CHF", chfPrice))),
+    declarationBox = if (decls.isEmpty()) null else MenuDeclarationBox(MenuProductGroup(listOf(MenuItemDeclarationGroup(decls)))),
+    visible = visible
+)
+
+private val IMG = "img/grains/Sites/ICE-Portal/Germany/de/Release_2.0/Startseite_3.0/BaP_-_Bestellen_am_Platz/Speisekarte"
+
+val sampleMenuCategories = listOf(
+    MenuCategory("Aktion", listOf(
+        menuItem(9000000, "Burger mit Beef-Bacon-Zwiebel-Chutney & Pommes", "dazu Ketchup oder Mayo", "$IMG/00_Aktion/2026_02-Februar/Burger__Pommes/Bild_Burger_mit_Beef-Bacon-Zwiebel-Chutney__Pommes.data.jpg", 14.5, 17.4, listOf("1","2","5","9")),
+        menuItem(9000001, "Burger", "mit Beef-Bacon-Zwiebel-Chutney", "$IMG/00_Aktion/2026_02-Februar/Burger/Bild_Burger.data.jpg", 10.9, 13.1, listOf("1","2","5","9")),
+        menuItem(9000002, "Orangina Original", "Orangenlimonade, 0,25 l Flasche", "$IMG/00_Aktion/2026_02-Februar/Orangina/Bild_Orangina_Original.data.jpg", 4.2, 5.0),
+        menuItem(9000003, "Peroni Nastro Azzurro", "Lagerbier, 0,33 l Flasche", "$IMG/00_Aktion/2026_02-Februar/Peroni_Nastro_Azzurro/Bild_Peroni_Nastro_Azzurro.data.jpg", 4.2, 5.0),
+    )),
+    MenuCategory("Snacks", listOf(
+        menuItem(9000004, "Sandwich Chicken Caesar Style", "mit Pulled Chicken, italienischem Hartkäse, Frühlingszwiebeln & Tomaten", "$IMG/03_Snacks/Sandwich_Chicken_Caesar_Style/Bild_Sandwich_Chicken_Caesar_Style.data.jpg", 7.9, 9.5),
+        menuItem(9000005, "Pizza Mozza-Bella Deluxe", "mit Kirschtomaten & Mozzarella", "$IMG/00_Aktion/2026_02-Februar/Pizza_Mozza-Bella_Deluxe/Bild_Pizza_Mozza-Bella_Deluxe.data.jpg", 6.9, 8.3),
+        menuItem(9000006, "Pizza O Sala Mio Premium", "mit Salami & Käse", "$IMG/00_Aktion/2026_02-Februar/Pizza_O_Sala_Mio_Premium/Bild_Pizza_O_Sala_Mio_Premium.data.jpg", 6.9, 8.3),
+        menuItem(9000007, "Vegetarisches Vollkorn-Haferbrot", "belegt mit Bergkäse, Kräuterfrischkäse und eingelegten Zwiebeln", "$IMG/03_Snacks/Vegetarisches_Vollkorn-Haferbrot/Bild_Vegetarisches_Vollkorn-Haferbrot.data.jpg", 6.5, 7.8, listOf("1")),
+        menuItem(9000028, "Vegane Currywurst mit BIO Brötchen", "& Tortilla-Crunch", "$IMG/03_Snacks/Vegane_Currywurst/Bild_Vegane_Currywurst.data.jpg", 7.9, 9.5, visible = false),
+    )),
+    MenuCategory("Hauptgerichte", listOf(
+        menuItem(9000008, "Hähnchen Tikka Masala", "mit Basmatireis", "$IMG/01_Hauptgerichte/Haehnchen_Tikka_Masala/Bild_Haehnchen_Tikka_Masala.data.jpg", 14.9, 17.9),
+        menuItem(9000009, "Rotes Thai Curry mit Shiitake-Pilzen", "Gemüse & Basmatireis", "$IMG/01_Hauptgerichte/Rotes_Thai_Curry_mit_Shiitake-Pilze/Bild_Rotes_Thai_Curry_mit_Shiitake-Pilze.data.jpg", 13.9, 16.7, listOf("1")),
+        menuItem(9000010, "Chili con Carne", "vom Rind, mit Sour Cream & BIO Brötchen", "$IMG/01_Hauptgerichte/Chili_con_Carne/Bild_Chili_con_Carne.data.jpg", 12.5, 15.0, listOf("2")),
+        menuItem(9000011, "Veganes Chili sin Carne", "mit BIO Brötchen", "$IMG/01_Hauptgerichte/Veganes_Chili_sin_Carne/Bild_Veganes_Chili_sin_Carne.data.jpg", 12.5, 15.0),
+    )),
+    MenuCategory("Frühstück", listOf(
+        menuItem(9000012, "Egg Drop Sandwich", "mit Putenbacon, Cheddar & Sriracha Sauce", "$IMG/00_Aktion/2025_05_Mai/Egg_Drop_Sandwich/Bild_Egg_Drop_Sandwich.data.jpg", 7.2, 8.6, listOf("1","5","9")),
+        menuItem(9000013, "Französisch", "Croissant, 2 BIO Brötchen, Butter, Bionella, Honig & Konfitüre", "$IMG/05_Fruehstueck/Franzoesisch/Bild_Franzoesisch.data.jpg", 7.9, 9.5),
+        menuItem(9000014, "Warmes Croissant Brötchen mit Gouda", "Tomaten, Zwiebeln und Gurkenaufstrich", "$IMG/05_Fruehstueck/Croissant_Broetchen_Kaese/Bild_Croissant_Broetchen_Kaese.data.jpg", 6.9, 8.3, listOf("4")),
+        menuItem(9000015, "Zimtschnecke", "90g", "$IMG/06_Suess__Salzig/Zimtschnecke/Bild_Zimtschnecke.data.jpg", 4.2, 5.0, visible = false),
+    )),
+    MenuCategory("Süß & salzig", listOf(
+        menuItem(9000016, "Apfelkuchen", "mit Butterstreusel", "$IMG/06_Suess__Salzig/Apfelkuchen/Bild_Apfelkuchen.data.jpg", 4.8, 5.8),
+        menuItem(9000017, "Zimtschnecke", "90g", "$IMG/06_Suess__Salzig/Zimtschnecke/Bild_Zimtschnecke.data.jpg", 4.2, 5.0),
+        menuItem(9000018, "Tony's Chocolonely Vollmilchschokolade", "mit Karamell & Meersalz, 47g", "$IMG/06_Suess__Salzig/Tonys_Chocolonely_Vollmilchschokolade/Bild_Tonys_Chocolonely_Vollmilchschokolade.data.jpg", 2.9, 3.5),
+        menuItem(9000019, "Vegane Treets Erdnüsse mit ChoViva", "100 g", "$IMG/06_Suess__Salzig/Vegane_Treets_Erdnuesse_mit_ChoViva/Bild_Vegane_Treets_Erdnuesse_mit_ChoViva.data.jpg", 3.6, 4.3, listOf("1","8")),
+    )),
+    MenuCategory("Suppe", listOf(
+        menuItem(9000020, "Vegane Tomatensuppe", "mit BIO Brötchen", "$IMG/04_Suppen__Salate/Vegane_Tomatensuppe/Bild_Tomatensuppe.data.jpg", 7.9, 9.5),
+    )),
+    MenuCategory("Kindermenü", listOf(
+        menuItem(9000021, "Kindermenü: Haferkater Porridge", "Apfel-Zimt, Getränk, Süßigkeit, Smoothie & Spielzeug", "$IMG/02_Kindermenue/Kindermenue_bis_14_J._Porridge_Apfel-Zimt/Bild_NEU_Kindermenue_bis_14_J._Porridge_Apfel-Zimt.data.jpg", 7.9, 9.5),
+        menuItem(9000022, "Kindermenü: Vegane Gemüsebolognese", "Getränk, Süßigkeit, Smoothie & Spielzeug", "$IMG/02_Kindermenue/Kindermenue_bis_14_J._Vegane_Gemuesebolognese/Bild_Kindermenue_NEU_bis_14_J._Vegane_Gemuesebolognese.data.jpg", 9.9, 11.9),
+        menuItem(9000023, "Kindermenü: Pommes frites", "Getränk, Süßigkeit, Smoothie & Spielzeug", "$IMG/02_Kindermenue/Kindermenue_bis_14_J._Pommes_frites/NEU_Bild_Kindermenue_Pommes_16-5.data.jpg", 7.9, 9.5),
+        menuItem(9000024, "BIO MOGLi Quetschie", "Erdbeere mit Apfel & Banane 100g", "$IMG/02_Kindermenue/BIO_MOGLi_Quetschie/Bild_BIO_MOGLi_Quetschie.data.jpg", 3.2, 3.8),
+    )),
+    MenuCategory("Vegetarisch", listOf(
+        menuItem(9000025, "Vegetarisches Vollkorn-Haferbrot", "belegt mit Bergkäse, Kräuterfrischkäse und eingelegten Zwiebeln", "$IMG/03_Snacks/Vegetarisches_Vollkorn-Haferbrot/Bild_Vegetarisches_Vollkorn-Haferbrot.data.jpg", 6.5, 7.8, listOf("1")),
+        menuItem(9000026, "Pizza Mozza-Bella Deluxe", "mit Kirschtomaten & Mozzarella", "$IMG/00_Aktion/2026_02-Februar/Pizza_Mozza-Bella_Deluxe/Bild_Pizza_Mozza-Bella_Deluxe.data.jpg", 6.9, 8.3),
+        menuItem(9000027, "Warmes Croissant Brötchen mit Gouda", "Tomaten, Zwiebeln und Gurkenaufstrich", "$IMG/05_Fruehstueck/Croissant_Broetchen_Kaese/Bild_Croissant_Broetchen_Kaese.data.jpg", 6.9, 8.3, listOf("4")),
+    )),
+    MenuCategory("Vegan", listOf(
+        menuItem(9000029, "Vegane Tomatensuppe", "mit BIO Brötchen", "$IMG/04_Suppen__Salate/Vegane_Tomatensuppe/Bild_Tomatensuppe.data.jpg", 7.9, 9.5),
+        menuItem(9000030, "Vegane Treets Erdnüsse mit ChoViva", "100 g", "$IMG/06_Suess__Salzig/Vegane_Treets_Erdnuesse_mit_ChoViva/Bild_Vegane_Treets_Erdnuesse_mit_ChoViva.data.jpg", 3.6, 4.3, listOf("1","8")),
+        menuItem(9000031, "Vegane Currywurst mit BIO Brötchen", "& Tortilla-Crunch", "$IMG/03_Snacks/Vegane_Currywurst/Bild_Vegane_Currywurst.data.jpg", 7.9, 9.5),
+        menuItem(9000032, "Vegane Currywurst mit Pommes frites", "", "$IMG/03_Snacks/Vegane_Currywurst_mit_Pommes_frites/Bild_Vegane_Currywurst_mit_Pommes_frites.data.jpg", 10.9, 13.1),
+    )),
+    MenuCategory("Heißgetränke", listOf(
+        menuItem(9000033, "Filterkaffee", "", "$IMG/07_Heissgetraenke/Filterkaffee/Bild_Kaffee.data.jpg", 3.9, 4.7),
+        menuItem(9000034, "Filterkaffee mit OATLY", "", "$IMG/07_Heissgetraenke/Filterkaffee_mit_Oatly/Bild_Filterkaffee_Oatly.data.jpg", 3.9, 4.7),
+        menuItem(9000035, "Kaffee löslich, entkoffeiniert", "", "$IMG/07_Heissgetraenke/Kaffee_loeslich_entkoffeiniert/Bild_Kaffee_loeslich_entkoffeiniert.data.jpg", 3.9, 4.7),
+        menuItem(9000036, "Kaffee löslich, entkoffeiniert mit OATLY", "", "$IMG/07_Heissgetraenke/Kaffee_loeslich_entkoffeiniert_mit_OATLY_Haferdrink/Bild_Kaffee_loeslich_entkoffeiniert.data.jpg", 3.9, 4.7),
+    )),
+    MenuCategory("Kaltgetränke", listOf(
+        menuItem(9000037, "share Mineralwasser sprudelnd", "0,5 l Flasche", "$IMG/08_Kaltgetraenke/share_Mineralwasser_sprudelnd/Bild_share_Mineralwasser_sprudelnd.data.jpg", 3.8, 4.6),
+        menuItem(9000038, "share Mineralwasser still", "0,5 l Flasche", "$IMG/08_Kaltgetraenke/share_Mineralwasser_still/Bild_share_Mineralwasser_still.data.jpg", 3.8, 4.6),
+        menuItem(9000039, "Orangina Original", "Orangenlimonade, 0,25 l Flasche", "$IMG/00_Aktion/2026_02-Februar/Orangina/Bild_Orangina_Original.data.jpg", 4.2, 5.0),
+        menuItem(9000040, "Krombacher Spezi", "0,33 l Flasche", "$IMG/08_Kaltgetraenke/Krombacher_Spezi/Bild_Krombacher_Spezi.data.jpg", 3.9, 4.7, listOf("1","12")),
+    )),
+    MenuCategory("Alkoholische Getränke", listOf(
+        menuItem(9000041, "Peroni Nastro Azzurro", "Lagerbier, 0,33 l Flasche", "$IMG/00_Aktion/2026_02-Februar/Peroni_Nastro_Azzurro/Bild_Peroni_Nastro_Azzurro.data.jpg", 4.2, 5.0),
+        menuItem(9000042, "Starnberger Hell", "0,5 l Flasche", "$IMG/11_Alkoholische_Getraenke/Starnberger_Hell/Bild_Starnberger_Hell.data.jpg", 5.2, 6.2),
+        menuItem(9000043, "König Pilsener", "0,33 l Flasche", "$IMG/11_Alkoholische_Getraenke/Koenig_Pilsener/Bild_Koenig_Pilsener.data.jpg", 4.2, 5.0),
+        menuItem(9000044, "Jever Fun Alkoholfrei", "0,33 l Flasche", "$IMG/11_Alkoholische_Getraenke/Jever_Fun_Alkoholfrei/Bild_Jever_Fun_Alkoholfrei.data.jpg", 4.2, 5.0),
+    )),
 )
