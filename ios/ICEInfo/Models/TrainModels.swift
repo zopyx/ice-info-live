@@ -23,6 +23,7 @@ struct TrainStatus: Codable, Sendable {
     var nextConnectivity: String? = nil
     var connectivityRemainingSeconds: Int? = nil
     var tzn = ""
+    var series = ""
     var latitude = 0.0
     var longitude = 0.0
     var distanceToDestination = 0
@@ -52,6 +53,7 @@ struct TrainStop: Codable, Sendable, Identifiable {
     var isNext = false
     var distanceFromStart = 0
     var scheduledArrivalMs: Int64 = 0
+    var scheduledDepartureMs: Int64 = 0
     var isAdditional = false
     var scheduledDeparture = ""
     var actualDeparture = ""
@@ -93,4 +95,13 @@ struct PoiItem: Codable, Sendable, Identifiable {
     var latitude = 0.0
     var longitude = 0.0
     var description = ""
+}
+
+struct Coach: Codable, Sendable {
+    var coachNumber: Int = 0
+    var hasFirstClass: Bool = false
+    var hasSecondClass: Bool = false
+    var vehicleCategory: String = ""
+    var sector: String = ""
+    var amenities: Set<String> = []
 }

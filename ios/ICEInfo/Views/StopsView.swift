@@ -3,6 +3,7 @@ import SwiftUI
 struct StopsView: View {
     let status: TrainStatus
     let pois: [PoiItem]
+    let osmData: OsmTrackData
 
     var body: some View {
         ScrollView {
@@ -35,6 +36,8 @@ struct StopsView: View {
                         .foregroundStyle(.secondary)
                     Spacer()
                 }
+
+                OSMCard(osmData: osmData)
 
                 PoiCard(pois: pois)
 

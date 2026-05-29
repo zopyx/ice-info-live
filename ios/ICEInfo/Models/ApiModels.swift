@@ -5,11 +5,12 @@ struct StatusResponse: Codable, Sendable {
     let latitude: Double
     let longitude: Double
     let tzn: String
+    let series: String
     let wagonClass: String
     let connectivity: Connectivity?
 
     enum CodingKeys: String, CodingKey {
-        case speed, latitude, longitude, tzn, wagonClass, connectivity
+        case speed, latitude, longitude, tzn, series, wagonClass, connectivity
     }
 
     init(from decoder: Decoder) throws {
@@ -18,6 +19,7 @@ struct StatusResponse: Codable, Sendable {
         latitude = try container.decodeIfPresent(Double.self, forKey: .latitude) ?? 0
         longitude = try container.decodeIfPresent(Double.self, forKey: .longitude) ?? 0
         tzn = try container.decodeIfPresent(String.self, forKey: .tzn) ?? ""
+        series = try container.decodeIfPresent(String.self, forKey: .series) ?? ""
         wagonClass = try container.decodeIfPresent(String.self, forKey: .wagonClass) ?? ""
         connectivity = try container.decodeIfPresent(Connectivity.self, forKey: .connectivity)
     }
@@ -198,4 +200,120 @@ struct ApiConnection: Codable, Sendable {
         track = try container.decodeIfPresent(Track.self, forKey: .track)
         missed = try container.decodeIfPresent(Bool.self, forKey: .missed) ?? false
     }
+}
+
+// MARK: - Wagenreihung (Carriage Order) API
+
+struct WagenreihungResponse: Codable, Sendable {
+    var departurePlatform: String = ""
+    var departurePlatformSchedule: String = ""
+    var groups: [WagenreihungGroup] = []
+}
+
+struct WagenreihungGroup: Codable, Sendable {
+    var vehicles: [WagenreihungVehicle] = []
+}
+
+struct WagenreihungVehicle: Codable, Sendable {
+    var wagonIdentificationNumber: Int = 0
+    var status: String = "OPEN"
+    var type: WagenreihungVehicleType = WagenreihungVehicleType()
+    var platformPosition: WagenreihungPlatformPosition = WagenreihungPlatformPosition()
+    var amenities: [WagenreihungAmenity] = []
+}
+
+struct WagenreihungAmenity: Codable, Sendable {
+    var type: String = ""
+    var status: String = "AVAILABLE"
+    var amount: Int = 0
+}
+
+struct WagenreihungVehicleType: Codable, Sendable {
+    var category: String = ""
+    var hasFirstClass: Bool = false
+    var hasEconomyClass: Bool = false
+}
+
+struct WagenreihungPlatformPosition: Codable, Sendable {
+    var sector: String = ""
+    var start: Double = 0.0
+    var end: Double = 0.0
+}
+
+// MARK: - StaDa / FaSta (Station Facilities) API
+
+struct StadaResponse: Codable, Sendable {
+    var result: [StadaStation] = []
+    var total: Int = 0
+}
+
+struct StadaStation: Codable, Sendable {
+    var number: Int? = nil
+    var name: String? = nil
+    var evaNumbers: [EvaNumber] = []
+    var hasWiFi: Bool? = nil
+    var hasPublicFacilities: Bool? = nil
+    var hasBicycleParking: Bool? = nil
+    var hasLockerSystem: Bool? = nil
+    var hasMobilityService: String? = nil
+    var hasParking: Bool? = nil
+    var hasLostAndFound: Bool? = nil
+
+    var stationNumber: Int? { number }
+}
+
+struct EvaNumber: Codable, Sendable {
+    var number: Int64? = nil
+    var isMain: Bool? = nil
+}
+
+struct FastaFacility: Codable, Sendable {
+    var equipmentnumber: Int64 = 0
+    var type: String? = nil
+    var state: String? = nil
+    var stateExplanation: String? = nil
+    var description: String? = nil
+    var stationnumber: Int? = nil
+}
+
+// MARK: - Open-Meteo Weather API
+
+struct GeoResponse: Codable, Sendable {
+    var results: [GeoLocation]? = nil
+}
+
+struct GeoLocation: Codable, Sendable {
+    var latitude: Double = 0.0
+    var longitude: Double = 0.0
+}
+
+struct OpenMeteoResponse: Codable, Sendable {
+    var current: CurrentWeather? = nil
+}
+
+struct CurrentWeather: Codable, Sendable {
+    var temperature_2m: Double = 0.0
+    var precipitation: Double = 0.0
+    var windspeed_10m: Double = 0.0
+    var weather_code: Int = 0
+}
+
+// MARK: - OSM Overpass API
+
+struct OverpassResponse: Codable, Sendable {
+    var elements: [OverpassElement] = []
+}
+
+struct OverpassElement: Codable, Sendable {
+    var type: String = ""
+    var id: Int64 = 0
+    var lat: Double? = nil
+    var lon: Double? = nil
+    var center: OverpassLatLon? = nil
+    var tags: [String: String] = [:]
+}
+
+struct OverpassLatLon: Codable, Sendable {
+    var lat: Double = 0.0
+    var lon: Double = 0.0
 }

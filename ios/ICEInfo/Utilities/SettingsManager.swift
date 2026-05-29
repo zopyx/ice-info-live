@@ -71,6 +71,16 @@ final class SettingsManager: @unchecked Sendable {
     @SettingsStorage(key: SettingsKeys.showDemoSpeed, defaultValue: true)
     var showDemoSpeed: Bool
 
+    // Journey recording
+    @SettingsStorage(key: "coach_number", defaultValue: nil as Int?)
+    var coachNumber: Int?
+
+    @SettingsStorage(key: "seat_number", defaultValue: "")
+    var seatNumber: String
+
+    @SettingsStorage(key: "last_journey_key", defaultValue: "")
+    var lastJourneyKey: String
+
     var currentTargetStopEva: String? {
         get { targetStopEva }
         set { targetStopEva = newValue }

@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var showChangelog = false
     @State private var showDebug = false
     @State private var notificationActive = false
+    @State private var showJourneys = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -20,7 +21,22 @@ struct ContentView: View {
                 mainTabView
                 bottomBar
             }
+
+            // Journeys overlay
+            if showJourneys {
+                JourneysScreenView(
+                    journeys: viewModel.journeys,
+                    onDeleteJourney: { viewModel.deleteJourney(id: $0) },
+                    isConnected: viewModel.trainStatus.isConnected,
+                    isRecording: viewModel.isRecording,
+                    liveRecording: viewModel.liveRecording,
+                    onStartRecording: { viewModel.requestRecording() }
+                )
+                .transition(.move(edge: .leading))
+                .zIndex(1)
+            }
         }
+        .animation(.easeInOut(duration: 0.3), value: showJourneys)
         .onAppear {
             viewModel.startWifiCheck()
             if !viewModel.isMockMode {
@@ -70,12 +86,19 @@ struct ContentView: View {
         .sheet(isPresented: $showDebug) {
             DebugSheet(onDismiss: { showDebug = false })
         }
+        .sheet(isPresented: $viewModel.showRecordingConsent) {
+            RecordingConsentDialog(
+                trainStatus: viewModel.trainStatus,
+                onRecord: { viewModel.startRecording(recordGps: $0) },
+                onDecline: { viewModel.declineRecording() }
+            )
+        }
     }
 
     @State private var selectedTab: Tab = .status
 
     enum Tab: String {
-        case status, stops, map, service, connections
+        case status, stops, map, menu, service, connections
     }
 
     private var mainTabView: some View {
@@ -87,26 +110,43 @@ struct ContentView: View {
                 demoSpeed: viewModel.demoSpeed,
                 showDemoSpeed: viewModel.showDemoSpeed,
                 reducedMotion: viewModel.reducedMotion,
+                weather: viewModel.weather,
+                coaches: viewModel.coaches,
+                selectedCoach: viewModel.selectedCoach,
                 onDemoSpeedChange: { viewModel.setDemoSpeed($0) },
-                onTargetStopChange: { viewModel.setTargetStop($0) }
+                onTargetStopChange: { viewModel.setTargetStop($0) },
+                onCoachChange: { viewModel.setCoach($0) }
             )
             .tag(Tab.status)
             .tabItem { Label("Status", systemImage: "tram.fill") }
 
             StopsView(
                 status: viewModel.trainStatus,
-                pois: viewModel.pois
+                pois: viewModel.pois,
+                osmData: viewModel.osmData
             )
             .tag(Tab.stops)
             .tabItem { Label("Halte", systemImage: "list.bullet") }
 
-            TrainMapView(status: viewModel.trainStatus)
-            .tag(Tab.map)
-            .tabItem { Label("Karte", systemImage: "map.fill") }
+            MenuScreenView(
+                categories: viewModel.menuCategories,
+                isLoading: viewModel.isMenuLoading,
+                onLoad: { viewModel.fetchMenuIfNeeded() },
+                onRefresh: { viewModel.refreshMenu() }
+            )
+            .tag(Tab.menu)
+            .tabItem { Label("Speisen", systemImage: "fork.knife") }
 
-            ServiceView()
+            ServiceScreenView(
+                trainStatus: viewModel.trainStatus,
+                serviceStation: viewModel.serviceStation,
+                searchResults: viewModel.stationSearchResults,
+                onSearchQueryChange: { viewModel.searchStations(query: $0) },
+                onStationSelect: { viewModel.selectServiceStation($0) },
+                onLoadTrainStation: { viewModel.loadServiceStationFromTrain(evaNr: $0, name: $1) }
+            )
             .tag(Tab.service)
-            .tabItem { Label("Service", systemImage: "fork.knife") }
+            .tabItem { Label("Service", systemImage: "building.columns.fill") }
 
             ConnectionsView(
                 status: viewModel.trainStatus,
@@ -122,16 +162,11 @@ struct ContentView: View {
     private var bottomBar: some View {
         HStack {
             Button {
-                notificationActive.toggle()
-                if notificationActive {
-                    TrainLiveActivity.startActivity(status: viewModel.trainStatus)
-                } else {
-                    TrainLiveActivity.stopAllActivities()
-                }
+                showJourneys.toggle()
             } label: {
-                Image(systemName: notificationActive ? "bell.fill" : "bell")
+                Image(systemName: showJourneys ? "clock.fill" : "clock")
                     .font(.body)
-                    .foregroundStyle(notificationActive ? Color(red: 0.925, green: 0, blue: 0.086) : .primary)
+                    .foregroundStyle(showJourneys ? Color(red: 0.925, green: 0, blue: 0.086) : .primary)
             }
             .padding(.leading, 16)
 
@@ -140,8 +175,8 @@ struct ContentView: View {
             HStack(spacing: 0) {
                 tabButton(.status, icon: "tram.fill", label: "Status")
                 tabButton(.stops, icon: "list.bullet", label: "Halte")
-                tabButton(.map, icon: "map.fill", label: "Karte")
-                tabButton(.service, icon: "fork.knife", label: "Service")
+                tabButton(.menu, icon: "fork.knife", label: "Speisen")
+                tabButton(.service, icon: "building.columns.fill", label: "Service")
                 tabButton(.connections, icon: "arrow.triangle.branch", label: "Anschl\u{00FC}sse")
             }
 

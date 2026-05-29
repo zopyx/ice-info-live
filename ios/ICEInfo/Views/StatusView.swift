@@ -7,8 +7,12 @@ struct StatusView: View {
     let demoSpeed: Int
     let showDemoSpeed: Bool
     let reducedMotion: Bool
+    let weather: WeatherInfo?
+    let coaches: [Coach]
+    let selectedCoach: Int?
     let onDemoSpeedChange: (Int) -> Void
     let onTargetStopChange: (String?) -> Void
+    let onCoachChange: (Int?) -> Void
 
     var body: some View {
         ScrollView {
@@ -27,6 +31,12 @@ struct StatusView: View {
                 if !status.delayReason.isEmpty {
                     DelayReasonCard(reason: status.delayReason)
                 }
+
+                if let weather {
+                    WeatherCard(weather: weather)
+                }
+
+                WagenreihungCard(coaches: coaches, selectedCoach: selectedCoach, onCoachTap: onCoachChange)
 
                 if isMockMode && showDemoSpeed {
                     DemoSpeedCard(speed: demoSpeed, onSpeedChange: onDemoSpeedChange)
