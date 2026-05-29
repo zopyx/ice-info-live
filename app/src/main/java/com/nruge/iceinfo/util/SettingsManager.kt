@@ -12,10 +12,14 @@ object SettingsManager {
     private const val KEY_IS_MOCK_MODE = "is_mock_mode"
     private const val KEY_DEMO_SPEED = "demo_speed"
     private const val KEY_ONBOARDING_SHOWN = "onboarding_shown"
+    private const val KEY_LAST_SEEN_VERSION = "last_seen_version"
     private const val KEY_REDUCED_MOTION = "reduced_motion"
     private const val KEY_APP_THEME = "app_theme"
     private const val KEY_CRASH_REPORTING = "crash_reporting_enabled"
     private const val KEY_CRASH_CONSENT_VERSION = "crash_consent_version_code"
+    private const val KEY_LAST_JOURNEY_KEY = "last_journey_key"
+    private const val KEY_COACH_NUMBER = "coach_number"
+    private const val KEY_SEAT_NUMBER = "seat_number"
 
     fun isCrashReportingEnabled(context: Context): Boolean {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -117,6 +121,45 @@ object SettingsManager {
     fun setOnboardingShown(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putBoolean(KEY_ONBOARDING_SHOWN, true).apply()
+    }
+
+    fun getLastSeenVersion(context: Context): Int =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getInt(KEY_LAST_SEEN_VERSION, 0)
+
+    fun setLastSeenVersion(context: Context, versionCode: Int) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_LAST_SEEN_VERSION, versionCode).apply()
+    }
+
+    fun getLastJourneyKey(context: Context): String =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_LAST_JOURNEY_KEY, "") ?: ""
+
+    fun setLastJourneyKey(context: Context, key: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_LAST_JOURNEY_KEY, key).apply()
+    }
+
+    fun setCoachNumber(context: Context, coach: Int?) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().apply {
+            if (coach != null) putInt(KEY_COACH_NUMBER, coach) else remove(KEY_COACH_NUMBER)
+        }.apply()
+    }
+
+    fun getCoachNumber(context: Context): Int? {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return if (prefs.contains(KEY_COACH_NUMBER)) prefs.getInt(KEY_COACH_NUMBER, 0) else null
+    }
+
+    fun setSeatNumber(context: Context, seat: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_SEAT_NUMBER, seat).apply()
+    }
+
+    fun getSeatNumber(context: Context): String {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_SEAT_NUMBER, "") ?: ""
     }
 
     fun isOnboardingShown(context: Context): Boolean {

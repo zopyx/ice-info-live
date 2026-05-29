@@ -1,26 +1,39 @@
 package com.nruge.iceinfo.ui
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -29,13 +42,50 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nruge.iceinfo.R
 
-private data class ChangelogEntry(
+internal data class ChangelogEntry(
     val version: String,
     val newFeatures: List<String> = emptyList(),
     val fixes: List<String> = emptyList()
 )
 
-private val changelog = listOf(
+internal val changelog = listOf(
+    ChangelogEntry(
+        version = "6",
+        newFeatures = listOf(
+            "SPEISEKARTE - Jetzt die Live-Speisekarte des Bordrestaurants direkt in der App ansehen",
+            "FAHRTEN AUFZEICHNEN - Jetzt kannst du deine Fahrten aufzeichnen und in der App speichen, mit Daten wie Durchschnittsgeschwindigkeit, Verspätung, oder Karte mit dem Fahrtverlauf (Als .GPX exportierbar)",
+            "Streckenkarte ersetzt durch einen Daten-Tab mit Streckeninfos zu Höchstgeschwindigkeit, Elektrifizierung, Gleisanzahl, Streckentyp, POIs",
+            "Halte und Anschlüsse: Zeiten wechseln alle 5 Sekunden zwischen Uhrzeit HH:MM und Restzeit ('in X min') - kein rechnen mehr ;)",
+            "Swipen um Seiten zu wechseln"
+        ),
+        fixes = listOf(
+            "API Abfragen wurden reduziert"
+        )
+    ),
+    ChangelogEntry(
+        version = "5.0.2",
+        fixes = listOf(
+            "Anschlüsse: Fehlende Ziele werden jetzt aus den Abfahrtsdaten (transport.rest) ergänzt, da die ICE Portal API das Ziel nicht immer liefert"
+        )
+    ),
+    ChangelogEntry(
+        version = "5.0",
+        newFeatures = listOf(
+            "Live Update (Android 16+): Die Reise wird jetzt als interaktive Fortschritts-Notification auf dem Sperrbildschirm und im Always-On-Display angezeigt",
+            "Status-Chip in der Statusleiste: zeigt die aktuelle Geschwindigkeit; bei Verspätung wechselt es zwischen Speed und Verspätungs-Minuten",
+            "Dynamische Material You Farben wieder eingebaut",
+            "'Bahnhof'-Seite listet Live Infos zum gewählten Zielbahnhof auf",
+            "Zurück-Gesten um zum Status oder zum Willkommensbildschirm zurückzukehren",
+            "Service-Seite in Bahnhof umgewandelt. Mit Live Daten zu Aufzügen, Rolltreppen und Ausstattung"
+        ),
+        fixes = listOf(
+            "Statusbildschirm angepasst. Konsistenters Material Design.",
+            "Neu Gestalteter Willkommensbildschirm",
+            "[Issue #9] Bei Aktiver Wlan-Verbindung fällt die App nicht mehr in den Willkommensbildschirm, sondern zeigt eine 'Keine API Verbingung'-Meldung an.",
+            "[Issue #7] Textfarben von normalem Text nicht mehr Hellrot",
+            "Neues, stabileres Mapping der Baureihe"
+        )
+    ),
     ChangelogEntry(
         version = "4.0.2",
         fixes = listOf(
@@ -170,75 +220,102 @@ private val changelog = listOf(
 
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangelogDialog(onDismiss: () -> Unit) {
-    AlertDialog(
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Default.NewReleases, contentDescription = null) },
-        title = {
-            Text(
-                stringResource(R.string.changelog_title),
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                changelog.forEach { entry ->
-                    VersionSection(entry)
+        sheetState = sheetState
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = 24.dp, end = 24.dp, bottom = 24.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(Icons.Default.NewReleases, contentDescription = null)
+                    Text(
+                        stringResource(R.string.changelog_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.info_close))
+            itemsIndexed(changelog) { index, entry ->
+                VersionSection(entry, expandedByDefault = index == 0)
             }
         }
-    )
+    }
 }
 
 @Composable
-private fun VersionSection(entry: ChangelogEntry) {
+private fun VersionSection(entry: ChangelogEntry, expandedByDefault: Boolean = false) {
+    var expanded by rememberSaveable { mutableStateOf(expandedByDefault) }
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            AssistChip(
-                onClick = {},
-                enabled = false,
-                label = {
-                    Text(
-                        "v${entry.version}",
-                        fontWeight = FontWeight.Bold
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                AssistChip(
+                    onClick = { expanded = !expanded },
+                    label = {
+                        Text(
+                            "v${entry.version}",
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        labelColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                },
-                colors = AssistChipDefaults.assistChipColors(
-                    disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    disabledLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-            )
-
-            if (entry.newFeatures.isNotEmpty()) {
-                ChangeGroup(
-                    icon = Icons.Default.AutoAwesome,
-                    title = stringResource(R.string.changelog_new_features),
-                    items = entry.newFeatures
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            if (entry.fixes.isNotEmpty()) {
-                ChangeGroup(
-                    icon = Icons.Default.BugReport,
-                    title = stringResource(R.string.changelog_fixes),
-                    items = entry.fixes
-                )
+            if (expanded) {
+                Column(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (entry.newFeatures.isNotEmpty()) {
+                        ChangeGroup(
+                            icon = Icons.Default.AutoAwesome,
+                            title = stringResource(R.string.changelog_new_features),
+                            items = entry.newFeatures
+                        )
+                    }
+                    if (entry.fixes.isNotEmpty()) {
+                        ChangeGroup(
+                            icon = Icons.Default.BugReport,
+                            title = stringResource(R.string.changelog_fixes),
+                            items = entry.fixes
+                        )
+                    }
+                }
             }
         }
     }
@@ -282,4 +359,67 @@ private fun ChangeGroup(
             }
         }
     }
+}
+
+@Composable
+fun WhatsNewDialog(onDismiss: () -> Unit) {
+    val entry = changelog.first()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Default.NewReleases, contentDescription = null) },
+        title = { Text("Version ${entry.version}") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (entry.newFeatures.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.changelog_new_features),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        entry.newFeatures.forEach { feature ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Icon(
+                                    Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp).padding(top = 2.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Text(feature, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+                if (entry.fixes.isNotEmpty()) {
+                    if (entry.newFeatures.isNotEmpty()) HorizontalDivider()
+                    Text(
+                        text = stringResource(R.string.changelog_fixes),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        entry.fixes.forEach { fix ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Icon(
+                                    Icons.Default.BugReport,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp).padding(top = 2.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(fix, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text(stringResource(R.string.info_close))
+            }
+        }
+    )
 }

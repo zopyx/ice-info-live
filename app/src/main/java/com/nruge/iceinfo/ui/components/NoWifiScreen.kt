@@ -1,29 +1,50 @@
 package com.nruge.iceinfo.ui.components
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiTetheringError
+import androidx.compose.material3.*
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.nruge.iceinfo.R
 import com.nruge.iceinfo.model.TrainStatus
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
-import com.nruge.iceinfo.util.getIceDrawable
+import com.nruge.iceinfo.ui.theme.LocalDarkTheme
 
+private val carouselScreenshotsLight = listOf(
+    R.drawable.screenshot_1_light,
+    R.drawable.screenshot_2_light,
+    R.drawable.screenshot_3_light,
+    R.drawable.screenshot_4_light,
+)
+
+private val carouselScreenshotsDark = listOf(
+    R.drawable.screenshot_1_dark,
+    R.drawable.screenshot_2_dark,
+    R.drawable.screenshot_3_dark,
+    R.drawable.screenshot_4_dark,
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoWifiScreen(
     modifier: Modifier = Modifier,
@@ -32,106 +53,264 @@ fun NoWifiScreen(
     onRetry: () -> Unit = {},
     onMockMode: () -> Unit = {}
 ) {
-    Box(
+    val context = LocalContext.current
+    val screenshots = if (LocalDarkTheme.current) carouselScreenshotsDark else carouselScreenshotsLight
+
+    Column(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Box(
+        // Screenshot carousel with parallax
+        val carouselState = rememberCarouselState { screenshots.size }
+
+        HorizontalUncontainedCarousel(
+            state = carouselState,
+            itemWidth = 220.dp,
+            itemSpacing = 8.dp,
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(440.dp)
+                .padding(top = 16.dp)
+        ) { index ->
+            val drawable = screenshots[index]
+            Image(
+                painter = painterResource(id = drawable),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .graphicsLayer { clip = false }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .height(80.dp)
-                        .wrapContentWidth(unbounded = true, align = Alignment.Start)
-                        .align(Alignment.CenterStart)
-                        .offset(x = (-50).dp, y = (-55).dp)
-                        .zIndex(1f)
-                ) {
-                    repeat(2) {
-                        Image(
-                            painter = painterResource(id = R.drawable.traintracks),
-                            contentDescription = null,
-                            contentScale = ContentScale.FillHeight,
-                            modifier = Modifier
-                                .height(100.dp)
-                                .wrapContentWidth(unbounded = true)
-                        )
-                    }
+                    .height(450.dp)
+                    .maskClip(MaterialTheme.shapes.extraLarge)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(60.dp))
+
+        Text(
+            text = stringResource(R.string.welcome_title),
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 24.dp)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = stringResource(R.string.welcome_subtitle),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(60.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            WelcomeActionCard(
+                icon = if (isWIFIonICE) Icons.Default.WifiTetheringError else Icons.Default.Wifi,
+                title = stringResource(
+                    if (isWIFIonICE) R.string.no_wifi_api_hint
+                    else R.string.welcome_connect_title
+                ),
+                description = stringResource(
+                    if (isWIFIonICE) R.string.no_wifi_text
+                    else R.string.welcome_connect_desc
+                ),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                onClick = {
+                    context.startActivity(
+                        Intent(Settings.ACTION_WIFI_SETTINGS).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                    )
+                    onRetry()
                 }
-                Image(
-                    painter = painterResource(id = getIceDrawable(status?.tzn ?: "")),
-                    contentDescription = null,
-                    alignment = Alignment.CenterStart,
-                    contentScale = ContentScale.FillHeight,
+            )
+
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.buymeacoffee_button),
+            contentDescription = "Buy Me a Coffee",
+            modifier = Modifier
+                .height(40.dp)
+                .clickable {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, Uri.parse("https://www.buymeacoffee.com/nicoruge")).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                    )
+                }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.height(48.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            ) {
+                IconButton(onClick = {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, Uri.parse("https://bsky.app/profile/nico-ruge.de")).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                    )
+                }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_bluesky),
+                        contentDescription = "BlueSky",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                VerticalDivider(
                     modifier = Modifier
-                        .height(72.dp)
-                        .wrapContentWidth(unbounded = true, align = Alignment.Start)
-                        .align(Alignment.CenterStart)
-                        .offset(x = (-350).dp, y = (-54).dp)
-                        .zIndex(2f)
-                        .graphicsLayer { clip = false }
+                        .height(24.dp)
+                        .padding(horizontal = 2.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                 )
+                IconButton(onClick = {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/NicoRuge/ICE-Info-Live")).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                    )
+                }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_github),
+                        contentDescription = "GitHub",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                VerticalDivider(
+                    modifier = Modifier
+                        .height(24.dp)
+                        .padding(horizontal = 2.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                )
+                IconButton(onClick = {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, Uri.parse("mailto:iceinfo@nico-ruge.de")).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                    )
+                }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_mail),
+                        contentDescription = "E-Mail",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                VerticalDivider(
+                    modifier = Modifier
+                        .height(24.dp)
+                        .padding(horizontal = 2.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                )
+                IconButton(onClick = {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.nruge.iceinfo")).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                    )
+                }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_googleplay),
+                        contentDescription = "Google Play",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            Text(
-                text = stringResource(R.string.no_wifi_title),
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = stringResource(R.string.no_wifi_text),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = onRetry) {
-                Text(stringResource(R.string.no_wifi_connect))
-            }
+        }
 
-            if (isWIFIonICE) {
-                Text(
-                    text = stringResource(R.string.no_wifi_api_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
 
-            Spacer(modifier = Modifier.height(50.dp))
-            Text(
-                text = stringResource(R.string.demo_mode_text),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary,
-                textAlign = TextAlign.Center
-            )
-            FilledTonalButton(
-                onClick = onMockMode,
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                )
+@Composable
+private fun WelcomeActionCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    description: String,
+    containerColor: Color,
+    contentColor: Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = containerColor,
+        contentColor = contentColor
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = contentColor.copy(alpha = 0.12f),
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = contentColor
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.demo_mode),
-                    style = MaterialTheme.typography.labelLarge
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = contentColor.copy(alpha = 0.75f)
                 )
             }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = contentColor.copy(alpha = 0.7f)
+            )
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 900)
 @Composable
 fun NoWifiScreenPreview() {
+    ICEInfoTheme {
+        NoWifiScreen()
+    }
+}
+
+@Preview(showBackground = true, heightDp = 900)
+@Composable
+fun NoWifiScreenApiDownPreview() {
     ICEInfoTheme {
         NoWifiScreen(isWIFIonICE = true)
     }

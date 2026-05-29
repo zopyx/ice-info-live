@@ -24,6 +24,7 @@ data class TrainStatus(
     val nextConnectivity: String? = null,
     val connectivityRemainingSeconds: Int? = null,
     val tzn: String = "",
+    val series: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val distanceToDestination: Int = 0,
@@ -47,6 +48,7 @@ data class TrainStop(
     val isNext: Boolean,
     val distanceFromStart: Int = 0,
     val scheduledArrivalMs: Long = 0L,
+    val scheduledDepartureMs: Long = 0L,
     val isAdditional: Boolean = false,
     val scheduledDeparture: String = "",
     val actualDeparture: String = "",
@@ -76,6 +78,31 @@ data class PoiItem(
     val longitude: Double,
     val description: String = ""
 )
+
+data class WeatherInfo(
+    val stationName: String,
+    val temperature: Double,
+    val precipitation: Double,
+    val windspeed: Double,
+    val weatherCode: Int
+) {
+    enum class JacketType(val label: String) {
+        NONE("Keine Jacke nötig"),
+        LIGHT("Leichte Jacke"),
+        WARM("Warme Jacke"),
+        RAIN("Regenjacke"),
+        WIND("Windjacke")
+    }
+
+    val jacketRecommendation: JacketType
+        get() = when {
+            precipitation > 0.1 -> JacketType.RAIN
+            temperature < 8 -> JacketType.WARM
+            temperature < 16 -> JacketType.LIGHT
+            windspeed > 40 -> JacketType.WIND
+            else -> JacketType.NONE
+        }
+}
 
 @Serializable
 data class ConnectingTrain(

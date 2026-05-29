@@ -4,17 +4,24 @@
     <string name="app_title">ICEinfo</string>
     <string name="status_demo">Demo Mode</string>
     <string name="status_live">🟢 Live</string>
+    <string name="status_api_unreachable">No API data</string>
     <string name="demo_end">End demo</string>
     <string name="notifications_cd">Notification</string>
     <string name="menu_cd">Menu</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="theme_dynamic">Dynamic</string>
     <string name="menu_info">Infos</string>
     <string name="menu_changelog">Changelog</string>
     <string name="changelog_title">Changelog</string>
     <string name="changelog_new_features">New features</string>
     <string name="changelog_fixes">Fixes</string>
+    <string name="welcome_title">Welcome aboard</string>
+    <string name="welcome_subtitle">Connect to the train Wi-Fi for live data from your ICE.</string>
+    <string name="welcome_connect_title">Connect to WIFIonICE</string>
+    <string name="welcome_connect_desc">Open Wi-Fi settings and pick the train network.</string>
+    <string name="welcome_demo_desc">Explore the app with sample data, even when you\'re not on a train.</string>
     <string name="no_wifi_title">No train WIFI found.</string>
     <string name="no_wifi_text">Connect to \"WIFIonICE\" and click on \"Connect\"</string>
     <string name="no_wifi_connect">🔄 Connect</string>
@@ -31,11 +38,12 @@
     <string name="connectivity_weak">Weak</string>
     <string name="connectivity_no_info">No info</string>
     <string name="connectivity_none">No signal</string>
-    <string name="stops_title">🛤️ Route</string>
+    <string name="stops_title">Route</string>
     <string name="stops_none">No stop info available</string>
     <string name="pois_title">🏔️ Points of Interest</string>
     <string name="pois_demo">Demo</string>
     <string name="connections_title">🔀 Connecting trains in %1$s</string>
+    <string name="connections_header">Connections and departures in %1$s</string>
     <string name="connections_none">No connecting trains</string>
     <string name="connection_reachable">reachable</string>
     <string name="connection_missed">missed</string>
@@ -43,15 +51,35 @@
     <string name="connection_transfer_minutes">%1$d min transfer</string>
     <string name="connections_arrival">Arrival %1$s</string>
     <string name="map_position_title">📍 Position</string>
+    <string name="track_section_track">Track</string>
+    <string name="track_section_features">Features within ±20 km</string>
+    <string name="track_property_max_speed">Max speed</string>
+    <string name="track_property_electrified">Electrification</string>
+    <string name="track_property_tracks">Tracks</string>
+    <string name="track_property_usage">Usage</string>
+    <string name="track_empty_title">No position available</string>
+    <string name="track_empty_desc">Connect to the train Wi-Fi to load track data.</string>
+    <string name="track_no_features">No named features within ±20 km found.</string>
+    <string name="track_source">Data: © OpenStreetMap contributors (ODbL)</string>
+    <string name="track_feature_tunnel">Tunnel</string>
+    <string name="track_feature_bridge">Bridge</string>
+    <string name="track_feature_station">Station</string>
+    <string name="track_feature_halt">Halt</string>
+    <string name="pois_title_plain">Points of Interest</string>
     <string name="info_version">Version %1$s</string>
-    <string name="info_description">This app reads live data from the ICE Portal API of the Deutsche Bahn ICE Wi-Fi and displays it clearly.</string>
+    <string name="info_description">This app reads live data from the ICE Portal API of the Deutsche Bahn ICE Wi-Fi and displays it clearly. Official Deutsche Bahn APIs are also used to provide station information.</string>
     <string name="info_privacy_title">Data protection</string>
-    <string name="info_privacy_text">This app does not store or collect any personal data. API queries are made exclusively to the internal API within the train\'s Wi-Fi network.</string>
+    <string name="info_privacy_text">This app does not store or collect any personal data. Journey data is retrieved via the internal API within the train\'s Wi-Fi. Station data (facilities, elevator status) is loaded from the internet via official Deutsche Bahn APIs.</string>
     <string name="info_api_title">API</string>
     <string name="info_api_url1">https://iceportal.de/api1/rs/status</string>
     <string name="info_api_url2">https://iceportal.de/api1/rs/tripInfo/trip</string>
     <string name="info_api_url3">https://iceportal.de/api1/rs/pois/all</string>
     <string name="info_api_url4">https://iceportal.de/api1/rs/tripInfo/connection/{eva_nummer}</string>
+    <string name="info_api_title_db">Official DB APIs (CC BY 4.0)</string>
+    <string name="info_api_db_stada">DB StaDa – Station Data v2</string>
+    <string name="info_api_db_fasta">DB FaSta – Facility Status v2</string>
+    <string name="info_api_title_community">Community APIs</string>
+    <string name="info_api_community_transport">v6.db.transport.rest (db.transport.rest)</string>
     <string name="info_built_with_title">Created with</string>
     <string name="info_built_with_text">Kotlin · Jetpack Compose · OSMDroid · Material 3</string>
     <string name="info_legal_title">Legal</string>
@@ -97,10 +125,15 @@
     <string name="notif_no_eta">—</string>
 
     <!-- Navigation -->
-    <string name="nav_status">Status</string>
+    <string name="nav_status">Train</string>
     <string name="nav_stops">Stops</string>
-    <string name="nav_map">Map</string>
-    <string name="nav_service">Service</string>
+    <string name="nav_journey">Journey</string>
+    <string name="nav_menu">Menu</string>
+    <string name="menu_disclaimer">(Subject to change)</string>
+    <string name="menu_coming_soon">On-board dining information coming soon.</string>
+    <string name="menu_no_connection">Connect to the ICE Wi-Fi to load the dining menu.</string>
+    <string name="nav_map">Track</string>
+    <string name="nav_service">Station</string>
     <string name="nav_connections">Connections</string>
 
     <!-- Settings -->
@@ -126,6 +159,10 @@
     <string name="cancel">Cancel</string>
     <string name="home_target_title">Your destination</string>
     <string name="home_no_target">No destination chosen</string>
+    <string name="home_next_stop_title">Next Stop</string>
+    <string name="home_coach_map_title">Coach Layout</string>
+    <string name="home_coach_label">Coach</string>
+    <string name="home_seat_label">Seat</string>
 
     <!-- Travel summary -->
     <string name="travel_remaining_stops">%1$d stops left</string>
@@ -143,6 +180,32 @@
 
     <!-- Service -->
     <string name="service_wip">Service status (work in progress)</string>
+
+    <!-- Service Screen -->
+    <string name="service_search_station">Search station</string>
+    <string name="service_station_title">Station %1$s</string>
+    <string name="service_clear">Clear</string>
+    <string name="service_select_station_title">Select station</string>
+    <string name="service_select_station_desc">Tap the search button or use your selected exit stop.</string>
+    <string name="service_facilities">Facilities</string>
+    <string name="service_source">Source: DB StaDa &amp; FaSta (CC BY 4.0)</string>
+    <string name="service_out_of_order">Out of order</string>
+    <string name="facility_elevator">Elevators</string>
+    <string name="facility_escalator">Escalators</string>
+    <string name="facility_toilet">Toilets</string>
+    <string name="facility_wifi">Wi-Fi</string>
+    <string name="facility_info_desk">DB Info</string>
+    <string name="facility_departure_monitor">Departure board</string>
+    <string name="facility_ramp">Ramp</string>
+    <string name="facility_parking">Parking</string>
+    <string name="facility_bike_parking">Bike parking</string>
+    <string name="facility_waiting_room">Lockers</string>
+
+    <!-- Connections section headers -->
+    <string name="connections_section_reachable">Reachable</string>
+    <string name="connections_section_tight">Tight</string>
+    <string name="connections_section_missed">Missed</string>
+    <string name="connections_section_departures">More departures</string>
 
     <!-- Debug -->
     <string name="settings_debug_title">Debug information</string>

@@ -6,7 +6,12 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.Icon
+import androidx.core.content.ContextCompat
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.widget.RemoteViews
@@ -21,7 +26,7 @@ class IceNotificationService : Service() {
 
 
     companion object {
-        const val CHANNEL_ID = "ice_tracker_channel_v2"
+        const val CHANNEL_ID = "ice_tracker_channel_v3"
         const val NOTIFICATION_ID = 1
         const val ACTION_STOP = "com.nruge.iceinfo.ACTION_STOP"
         const val ACTION_UPDATE_TARGET = "com.nruge.iceinfo.ACTION_UPDATE_TARGET"
@@ -42,6 +47,7 @@ class IceNotificationService : Service() {
     private var currentDemoSpeed: Int = -1
     private var targetStopEva: String? = null
     private var lastKnownStatus: TrainStatus? = null
+    private var chipShowDelay: Boolean = false
 
     private val connectingStatus: TrainStatus by lazy {
         TrainStatus(
@@ -73,10 +79,20 @@ class IceNotificationService : Service() {
             return START_NOT_STICKY
         }
 
-        val newTargetEva = intent?.getStringExtra(EXTRA_TARGET_EVA)
-        if (newTargetEva != null) {
-            targetStopEva = newTargetEva
-            com.nruge.iceinfo.util.SettingsManager.setTargetStopEva(this, newTargetEva)
+        if (intent?.action == ACTION_UPDATE_TARGET) {
+            val newTargetEva = intent.getStringExtra(EXTRA_TARGET_EVA)
+            if (newTargetEva != null) {
+                targetStopEva = newTargetEva
+                com.nruge.iceinfo.util.SettingsManager.setTargetStopEva(this, newTargetEva)
+            }
+            if (pollingJob?.isActive == true) {
+                val status = buildCurrentStatus()
+                notificationManager.notify(NOTIFICATION_ID, buildNotification(status))
+            } else {
+                stopSelfCleanly()
+                return START_NOT_STICKY
+            }
+            return START_STICKY
         }
 
         val demoSpeed = intent?.getIntExtra(EXTRA_DEMO_SPEED, -1) ?: -1
@@ -101,10 +117,11 @@ class IceNotificationService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        super.onDestroy()
         pollingJob?.cancel()
         serviceScope.cancel()
+        runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
         _isRunning.value = false
+        super.onDestroy()
     }
 
     private fun stopSelfCleanly() {
@@ -171,12 +188,21 @@ class IceNotificationService : Service() {
         ).apply {
             description = getString(R.string.notif_channel_description)
             setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
         notificationManager.createNotificationChannel(channel)
     }
 
 
     private fun buildNotification(status: TrainStatus): Notification {
+        return if (Build.VERSION.SDK_INT >= 36) {
+            buildLiveUpdateNotification(status)
+        } else {
+            buildLegacyNotification(status)
+        }
+    }
+
+    private fun buildLegacyNotification(status: TrainStatus): Notification {
         val openIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, MainActivity::class.java),
@@ -285,5 +311,143 @@ class IceNotificationService : Service() {
                 stopIntent
             )
             .build()
+    }
+
+    private fun rasterizeTrackerIcon(): Bitmap {
+        val size = (resources.displayMetrics.density * 24).toInt().coerceAtLeast(48)
+        val drawable = ContextCompat.getDrawable(this, R.drawable.ic_train_tracker)!!
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, size, size)
+        drawable.draw(canvas)
+        return bitmap
+    }
+
+    @androidx.annotation.RequiresApi(36)
+    private fun buildLiveUpdateNotification(status: TrainStatus): Notification {
+        val openIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        val stopIntent = PendingIntent.getService(
+            this, 0,
+            Intent(this, IceNotificationService::class.java).apply { action = ACTION_STOP },
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val userTarget = targetStopEva?.let { eva -> status.stops.find { it.evaNr == eva } }
+        val nextStop = status.stops.find { it.isNext }
+        val finalDestination = status.stops.lastOrNull()
+
+        // Bar ends at user-chosen exit stop if set, otherwise at final destination.
+        val routeTarget = userTarget ?: finalDestination
+        // Title/ETA prefer user target, fall back to next stop.
+        val displayTarget = userTarget ?: nextStop
+        val displayStopName = displayTarget?.name ?: status.nextStop
+        val displayEta = displayTarget?.actualArrival?.takeIf { it.isNotEmpty() }
+            ?: displayTarget?.scheduledArrival
+            ?: status.eta
+        val displayDelay = displayTarget?.delayMinutes ?: status.delayMinutes
+
+        // Visual window: from last passed stop (or route start) to chosen target.
+        val lastPassedDistance = status.stops.asSequence()
+            .filter { it.passed }
+            .maxOfOrNull { it.distanceFromStart }
+            ?: 0
+        val absoluteEnd = (routeTarget?.distanceFromStart ?: 1).coerceAtLeast(1)
+        val windowStart = lastPassedDistance.coerceAtMost(absoluteEnd - 1)
+
+        // Next up to 3 upcoming stops within the window.
+        val upcomingStops = status.stops.asSequence()
+            .filter { !it.passed && !it.isCancelled && it.distanceFromStart in (windowStart + 1)..absoluteEnd }
+            .take(3)
+            .toList()
+
+        // Equal-spaced dots: divide bar into (upcomingStops.size + 1) slices.
+        // Tracker position is mapped piecewise so it stays monotonic and reaches
+        // each dot when the train actually passes that stop in real distance.
+        val barLength = 1000
+        val sliceCount = upcomingStops.size + 1
+        val sliceWidth = barLength / sliceCount
+
+        // Anchor distances define each slice's real-world endpoints.
+        val anchorDistances = buildList {
+            add(windowStart)
+            upcomingStops.forEach { add(it.distanceFromStart) }
+            add(absoluteEnd)
+        }
+        val realPos = status.actualPosition.coerceIn(windowStart, absoluteEnd)
+        val currentPos = run {
+            val segmentIndex = anchorDistances.zipWithNext().indexOfFirst { (a, b) ->
+                realPos in a..b
+            }.coerceAtLeast(0)
+            val segStart = anchorDistances[segmentIndex]
+            val segEnd = anchorDistances[segmentIndex + 1]
+            val frac = if (segEnd > segStart) (realPos - segStart).toFloat() / (segEnd - segStart) else 0f
+            ((segmentIndex + frac) * sliceWidth).toInt().coerceIn(0, barLength)
+        }
+
+        val pointColor = Color.parseColor("#1976D2")
+        val points = upcomingStops.mapIndexed { idx, _ ->
+            Notification.ProgressStyle.Point((idx + 1) * sliceWidth).setColor(pointColor)
+        }
+
+        val segment = Notification.ProgressStyle.Segment(barLength)
+            .setColor(Color.parseColor("#B0BEC5"))
+
+        val trackerIcon = Icon.createWithBitmap(rasterizeTrackerIcon())
+
+        val progressStyle = Notification.ProgressStyle()
+            .setStyledByProgress(false)
+            .setProgress(currentPos)
+            .setProgressSegments(listOf(segment))
+            .setProgressPoints(points)
+            .setProgressTrackerIcon(trackerIcon)
+
+        // Chip rotates between speed and delay when delayed; otherwise just speed.
+        val speedText = "${status.speed}"
+        val showingDelay: Boolean
+        val chipText: String
+        if (displayDelay > 0) {
+            chipShowDelay = !chipShowDelay
+            showingDelay = chipShowDelay
+            chipText = if (chipShowDelay) "+$displayDelay" else speedText
+        } else {
+            chipShowDelay = false
+            showingDelay = false
+            chipText = speedText
+        }
+
+        val smallIcon = if (showingDelay) R.drawable.ic_chip_delay else R.drawable.ic_chip_speed
+
+        val contentTitle = "${status.trainType} ${status.trainNumber}".trim()
+        val contentText = buildString {
+            append(displayStopName)
+            if (displayEta.isNotEmpty()) append(" · ").append(displayEta)
+        }
+
+        val builder = Notification.Builder(this, CHANNEL_ID)
+            .setSmallIcon(smallIcon)
+            .setContentTitle(contentTitle)
+            .setContentText(contentText)
+            .setSubText("${status.speed} km/h")
+            .setContentIntent(openIntent)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setRequestPromotedOngoing(true)
+            .setCategory(Notification.CATEGORY_PROGRESS)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setStyle(progressStyle)
+            .setShortCriticalText(chipText)
+            .addAction(
+                Notification.Action.Builder(
+                    Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
+                    getString(R.string.notif_action_stop),
+                    stopIntent
+                ).build()
+            )
+
+        return builder.build()
     }
 }

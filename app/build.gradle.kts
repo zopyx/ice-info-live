@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -18,10 +20,17 @@ android {
         applicationId = "com.nruge.iceinfo"
         minSdk = 33
         targetSdk = 36
-        versionCode = 10
-        versionName = "4.0.2"
+        versionCode = 14
+        versionName = "6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProps = Properties().apply {
+            val f = rootProject.file("local.properties")
+            if (f.exists()) load(f.inputStream())
+        }
+        buildConfigField("String", "DB_CLIENT_ID",     "\"${localProps.getProperty("DB_CLIENT_ID", "")}\"")
+        buildConfigField("String", "DB_CLIENT_SECRET", "\"${localProps.getProperty("DB_CLIENT_SECRET", "")}\"")
     }
 
     buildTypes {
@@ -42,6 +51,8 @@ android {
         }
         debug {
             isMinifyEnabled = false
+            applicationIdSuffix = ".beta"
+            versionNameSuffix = "-beta"
         }
     }
     compileOptions {
@@ -80,6 +91,8 @@ dependencies {
     implementation("com.google.android.play:app-update-ktx:2.1.0")
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
+    implementation(libs.coil.compose)
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -87,4 +100,11 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Google Services kennt die Beta-App-ID nicht — Task für Debug-Builds überspringen
+afterEvaluate {
+    tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
+        enabled = false
+    }
 }

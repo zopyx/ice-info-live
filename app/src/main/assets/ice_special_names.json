@@ -1,0 +1,62 @@
+[
+  {
+    "tz": "4601",
+    "name": "Europa/Europe",
+    "taufdatum": "24.05.2019",
+    "bemerkung": "BR 406 (ICE 3M); blauer Streifen und Europasterne; NS Zulassung; fuhr bis zur Ausmusterung der BR 406 im Jahr 2025"
+  },
+  {
+    "tz": "186",
+    "name": "30 Jahre ICE",
+    "taufdatum": "2021",
+    "bemerkung": "BR 401 (ICE 1); Tz 186 trägt zusätzlich den Taufnamen \"Chur\"; Sonderlackierung zum 30-jährigen Jubiläum des ICE"
+  },
+  {
+    "tz": "304",
+    "name": "Regenbogen ICE",
+    "taufdatum": "09.07.2021",
+    "bemerkung": "BR 403 (ICE 3); Tz 304 trägt zusätzlich den Taufnamen \"München\"; Pride-Sonderlackierung; vorgestellt am Berliner Gesundbrunnen; betrieben vom DB railbow-Netzwerk"
+  },
+  {
+    "tz": "9457",
+    "name": "Bundesrepublik Deutschland",
+    "taufdatum": "08.06.2021",
+    "bemerkung": "BR 412 (ICE 4, 13-teilig/XXL); getauft von Bundespräsident Frank-Walter Steinmeier im Berliner Hauptbahnhof; 374 m lang, 918 Sitzplätze"
+  },
+  {
+    "tz": "9046",
+    "name": "Female ICE",
+    "taufdatum": "11.05.2022",
+    "bemerkung": "BR 412 (ICE 4); Aktionszug für mehr Frauen bei der Deutschen Bahn; Sonderlackierung mit Porträts von DB-Mitarbeiterinnen"
+  },
+  {
+    "tz": "8029",
+    "name": "Europa/Europe",
+    "taufdatum": "23.09.2024",
+    "bemerkung": "BR 408 (ICE 3neo); getauft in Brüssel; blauer Streifen und Europasterne; fährt internationale Strecken u. a. nach Brüssel und Amsterdam"
+  },
+  {
+    "tz": "8055",
+    "name": "Europa/Europe",
+    "taufdatum": "",
+    "bemerkung": "BR 408 (ICE 3neo); zweiter Europa-ICE der BR 408 mit blauem Streifen; genaues Datum unbekannt"
+  },
+  {
+    "tz": "9237",
+    "name": "Spree · #StarkeSchiene",
+    "taufdatum": "19.02.2024",
+    "bemerkung": "BR 412 (ICE 4, 7-teilig); letzter ausgelieferter ICE 4 (Nummer 137); Sonderbeschriftung #StarkeSchiene"
+  },
+  {
+    "tz": "9485",
+    "name": "Karriere-ICE",
+    "taufdatum": "",
+    "bemerkung": "BR 412 (ICE 4); Recruitingkampagne der Deutschen Bahn; genaues Datum unbekannt"
+  },
+  {
+    "tz": "9223",
+    "name": "75 Jahre Bundespolizei",
+    "taufdatum": "16.03.2026",
+    "bemerkung": "BR 412 (ICE 4); vorgestellt am Hauptbahnhof Potsdam zum Jubiläumsauftakt der Bundespolizei"
+  }
+]

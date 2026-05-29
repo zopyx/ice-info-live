@@ -9,9 +9,15 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,11 +31,14 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -40,9 +49,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.pager.rememberPagerState
+import com.nruge.iceinfo.ui.navigationItems
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
@@ -52,18 +61,22 @@ import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import kotlinx.coroutines.launch
 import com.nruge.iceinfo.model.*
-import com.nruge.iceinfo.ui.AppBottomBar
+import com.nruge.iceinfo.ui.AppNavigationBar
 import com.nruge.iceinfo.ui.AppNavigation
 import com.nruge.iceinfo.ui.AppTopBar
 import com.nruge.iceinfo.ui.ChangelogDialog
+import com.nruge.iceinfo.ui.WhatsNewDialog
 import com.nruge.iceinfo.ui.CrashReportingConsentDialog
 import com.nruge.iceinfo.ui.DebugDialog
 import com.nruge.iceinfo.ui.InfoDialog
 import com.nruge.iceinfo.ui.MainViewModel
 import com.nruge.iceinfo.ui.OnboardingDialog
+import com.nruge.iceinfo.ui.RecordJourneyDialog
 import com.nruge.iceinfo.ui.SettingsSheet
 import com.nruge.iceinfo.ui.StopSelectionDialog
 import com.nruge.iceinfo.ui.components.NoWifiScreen
+import com.nruge.iceinfo.ui.components.RecordingSplitButton
+
 import com.nruge.iceinfo.ui.theme.ICEInfoTheme
 import com.nruge.iceinfo.util.isWIFIonICE as checkWIFIonICE
 import kotlinx.coroutines.delay
@@ -199,7 +212,21 @@ class MainActivity : ComponentActivity() {
             val reducedMotion: Boolean by viewModel.reducedMotion.collectAsStateWithLifecycle()
             val connections: List<ConnectingTrain> by viewModel.connections.collectAsStateWithLifecycle()
             val departures: List<Departure> by viewModel.departures.collectAsStateWithLifecycle()
+            val weather by viewModel.weather.collectAsStateWithLifecycle()
             val isWIFIonICEStatus: Boolean by viewModel.isWIFIonICE.collectAsStateWithLifecycle()
+            val isReconnecting: Boolean by viewModel.isReconnecting.collectAsStateWithLifecycle()
+            val serviceStation by viewModel.serviceStation.collectAsStateWithLifecycle()
+            val stationSearchResults by viewModel.stationSearchResults.collectAsStateWithLifecycle()
+            val osmData by viewModel.osmData.collectAsStateWithLifecycle()
+            val savedJourneys by viewModel.journeys.collectAsStateWithLifecycle()
+            val showRecordingConsent by viewModel.showRecordingConsent.collectAsStateWithLifecycle()
+            val isRecording by viewModel.isRecording.collectAsStateWithLifecycle()
+            val liveRecording by viewModel.liveRecording.collectAsStateWithLifecycle()
+            val menuItems by viewModel.menuCategories.collectAsStateWithLifecycle()
+            val isMenuLoading by viewModel.isMenuLoading.collectAsStateWithLifecycle()
+            val coaches by viewModel.coaches.collectAsStateWithLifecycle()
+            val selectedCoach by viewModel.selectedCoach.collectAsStateWithLifecycle()
+            val seatNumber by viewModel.seatNumber.collectAsStateWithLifecycle()
 
             val initialContext = LocalContext.current
             var appTheme by rememberSaveable {
@@ -252,17 +279,37 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                val lastSeenVersion = com.nruge.iceinfo.util.SettingsManager.getLastSeenVersion(context)
+                val currentVersion = com.nruge.iceinfo.BuildConfig.VERSION_CODE
+                var showWhatsNew by remember {
+                    mutableStateOf(lastSeenVersion > 0 && lastSeenVersion < currentVersion)
+                }
+                if (lastSeenVersion != currentVersion) {
+                    com.nruge.iceinfo.util.SettingsManager.setLastSeenVersion(context, currentVersion)
+                }
+
                 LaunchedEffect(intent) {
                     // Action select target is now handled by dropdown in HomeScreen
                 }
-                val navController = rememberNavController()
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-                val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+                val pagerState = rememberPagerState(pageCount = { navigationItems.size })
+                val coroutineScope = rememberCoroutineScope()
+                var showJourneys by remember { mutableStateOf(false) }
+                val currentRoute = if (showJourneys) com.nruge.iceinfo.ui.Screen.Journeys.route
+                                   else navigationItems[pagerState.currentPage].route
+                val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+                BackHandler(enabled = showJourneys) { showJourneys = false }
+
+                LaunchedEffect(currentRoute) {
+                    scrollBehavior.state.contentOffset = 0f
+                }
+
+                var demoBackProgress by remember { mutableFloatStateOf(0f) }
+                var demoBackInProgress by remember { mutableStateOf(false) }
 
                 Scaffold(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     snackbarHost = {
                         SnackbarHost(snackbarHostState) { data ->
                             Snackbar(snackbarData = data)
@@ -272,7 +319,10 @@ class MainActivity : ComponentActivity() {
                         AppTopBar(
                             isMockMode = isMockMode,
                             isConnected = trainStatus.isConnected,
+                            isOnTrainWifi = isWIFIonICEStatus,
+                            isReconnecting = isReconnecting,
                             serviceRunning = serviceRunning,
+                            showPrideBadge = !trainStatus.isConnected && !isMockMode && !isWIFIonICEStatus,
                             onToggleService = {
                                 if (serviceRunning) {
                                     val stopIntent = Intent(context, IceNotificationService::class.java).apply {
@@ -299,63 +349,151 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             onExitDemo = { viewModel.setMockMode(false) },
+                            onStartDemo = { viewModel.setMockMode(true) },
                             onShowSettings = { showSettings = true },
                             onShowInfo = { showInfo = true },
                             onShowChangelog = { showChangelog = true },
+                            onShowJourneys = { showJourneys = true },
+                            onNavigateBack = if (showJourneys) { { showJourneys = false } } else null,
+                            showScrollDivider = currentRoute != com.nruge.iceinfo.ui.Screen.Menu.route,
                             scrollBehavior = scrollBehavior
                         )
                     },
+                    bottomBar = {
+                        if ((trainStatus.isConnected || isMockMode || isWIFIonICEStatus) && !demoBackInProgress
+                            && currentRoute != com.nruge.iceinfo.ui.Screen.Journeys.route) {
+                            AppNavigationBar(
+                                currentRoute = currentRoute,
+                                enabled = true,
+                                onNavigate = { route ->
+                                    val index = navigationItems.indexOfFirst { it.route == route }
+                                    if (index >= 0) coroutineScope.launch {
+                                        pagerState.animateScrollToPage(index)
+                                    }
+                                }
+                            )
+                        }
+                    }
                 ) { innerPadding ->
+                    PredictiveBackHandler(enabled = isMockMode) { events ->
+                        try {
+                            events.collect { e ->
+                                demoBackInProgress = true
+                                demoBackProgress = e.progress
+                            }
+                            viewModel.setMockMode(false)
+                        } catch (_: kotlinx.coroutines.CancellationException) {
+                        } finally {
+                            demoBackInProgress = false
+                            demoBackProgress = 0f
+                        }
+                    }
+
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (!trainStatus.isConnected && !isMockMode) {
+                        if (demoBackInProgress) {
                             NoWifiScreen(
                                 modifier = Modifier.padding(innerPadding),
                                 status = trainStatus,
                                 isWIFIonICE = isWIFIonICEStatus,
-                                onRetry = { viewModel.retryConnection() },
-                                onMockMode = { viewModel.setMockMode(true) }
-                            )
-                        } else {
-                            AppNavigation(
-                                navController = navController,
-                                innerPadding = innerPadding,
-                                trainStatus = trainStatus,
-                                pois = pois,
-                                connections = connections,
-                                departures = departures,
-                                isDarkTheme = isDark,
-                                isMockMode = isMockMode,
-                                demoSpeed = demoSpeed,
-                                showDemoSpeed = showDemoSpeed,
-                                reducedMotion = reducedMotion,
-                                onDemoSpeedChange = {
-                                    viewModel.setDemoSpeed(it)
-                                    if (serviceRunning && isMockMode) {
-                                        val intent = Intent(context, IceNotificationService::class.java).apply {
-                                            putExtra(IceNotificationService.EXTRA_DEMO_SPEED, it)
-                                        }
-                                        context.startForegroundService(intent)
-                                    }
-                                },
-                                onTargetStopChange = { viewModel.setTargetStop(it) }
+                                onRetry = {},
+                                onMockMode = {}
                             )
                         }
 
-                        AppBottomBar(
-                            currentRoute = currentRoute,
-                            enabled = trainStatus.isConnected || isMockMode,
-                            onNavigate = { route ->
-                                navController.navigate(route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    if (demoBackInProgress) {
+                                        val s = 1f - (demoBackProgress * 0.15f)
+                                        scaleX = s
+                                        scaleY = s
+                                        alpha = 1f - demoBackProgress * 0.9f
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
-                            },
-                            modifier = Modifier.align(Alignment.BottomCenter)
-                        )
+                        ) {
+                            AppNavigation(
+                                    pagerState = pagerState,
+                                    isJourneysVisible = showJourneys,
+                                    innerPadding = innerPadding,
+                                    trainStatus = trainStatus,
+                                    pois = pois,
+                                    connections = connections,
+                                    departures = departures,
+                                    weather = weather,
+                                    osmData = osmData,
+                                    isMockMode = isMockMode,
+                                    demoSpeed = demoSpeed,
+                                    showDemoSpeed = showDemoSpeed,
+                                    reducedMotion = reducedMotion,
+                                    onDemoSpeedChange = {
+                                        viewModel.setDemoSpeed(it)
+                                        if (serviceRunning && isMockMode) {
+                                            val intent = Intent(context, IceNotificationService::class.java).apply {
+                                                putExtra(IceNotificationService.EXTRA_DEMO_SPEED, it)
+                                            }
+                                            context.startForegroundService(intent)
+                                        }
+                                    },
+                                    onTargetStopChange = { viewModel.setTargetStop(it) },
+                                    coaches = coaches,
+                                    selectedCoach = selectedCoach,
+                                    seatNumber = seatNumber,
+                                    onCoachChange = { viewModel.setCoach(it) },
+                                    onSeatChange = { viewModel.setSeat(it) },
+                                    serviceStation = serviceStation,
+                                    stationSearchResults = stationSearchResults,
+                                    onStationSearchQueryChange = { viewModel.searchStations(it) },
+                                    onStationSelect = { viewModel.selectServiceStation(it) },
+                                    onLoadTrainStation = { eva, name -> viewModel.loadServiceStationFromTrain(eva, name) },
+                                    savedJourneys = savedJourneys,
+                                    onDeleteJourney = { viewModel.deleteJourney(it) },
+                                    isRecording = isRecording,
+                                    liveRecording = liveRecording,
+                                    onStartRecording = { viewModel.requestRecording() },
+                                    menuItems = menuItems,
+                                    isMenuLoading = isMenuLoading,
+                                    onLoadMenu = { viewModel.fetchMenuIfNeeded() },
+                                    onRefreshMenu = { viewModel.refreshMenu() }
+                                )
+                            // NoWifiScreen als Overlay wenn nicht verbunden und nicht auf Journeys-Screen
+                            AnimatedVisibility(
+                                visible = !trainStatus.isConnected && !isMockMode && !isWIFIonICEStatus
+                                    && currentRoute != com.nruge.iceinfo.ui.Screen.Journeys.route,
+                                enter = EnterTransition.None,
+                                exit = fadeOut(animationSpec = tween(200))
+                            ) {
+                                NoWifiScreen(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                                        .padding(innerPadding),
+                                    status = trainStatus,
+                                    isWIFIonICE = isWIFIonICEStatus,
+                                    onRetry = { viewModel.retryConnection() },
+                                    onMockMode = { viewModel.setMockMode(true) }
+                                )
+                            }
+
+                            // Globaler Recording-Button – sichtbar auf allen Screens
+                            if (isRecording) {
+                                RecordingSplitButton(
+                                    onCancel = { viewModel.cancelRecording() },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(bottom = 24.dp + innerPadding.calculateBottomPadding())
+                                )
+                            }
+                        }
                     }
+                }
+
+                if (showRecordingConsent) {
+                    RecordJourneyDialog(
+                        status = trainStatus,
+                        onRecord = { recordGps -> viewModel.startRecording(recordGps) },
+                        onDecline = { viewModel.declineRecording() }
+                    )
                 }
 
                 if (showInfo) {
@@ -364,6 +502,10 @@ class MainActivity : ComponentActivity() {
 
                 if (showChangelog) {
                     ChangelogDialog(onDismiss = { showChangelog = false })
+                }
+
+                if (showWhatsNew) {
+                    WhatsNewDialog(onDismiss = { showWhatsNew = false })
                 }
 
                 if (showSettings) {
@@ -385,8 +527,10 @@ class MainActivity : ComponentActivity() {
                         onToggleCrashReporting = { enabled ->
                             crashReportingEnabled = enabled
                             com.nruge.iceinfo.util.SettingsManager.setCrashReportingEnabled(context, enabled)
-                            com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
-                                .isCrashlyticsCollectionEnabled = enabled
+                            runCatching {
+                                com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+                                    .isCrashlyticsCollectionEnabled = enabled
+                            }
                         },
                         language = com.nruge.iceinfo.util.SettingsManager.getLanguage(context),
                         onLanguageChange = {
@@ -417,8 +561,10 @@ class MainActivity : ComponentActivity() {
                             com.nruge.iceinfo.util.SettingsManager.setCrashConsentVersion(
                                 context, com.nruge.iceinfo.BuildConfig.VERSION_CODE
                             )
-                            com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
-                                .isCrashlyticsCollectionEnabled = true
+                            runCatching {
+                                com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+                                    .isCrashlyticsCollectionEnabled = true
+                            }
                             showCrashConsent = false
                         },
                         onDecline = {
@@ -426,8 +572,10 @@ class MainActivity : ComponentActivity() {
                             com.nruge.iceinfo.util.SettingsManager.setCrashConsentVersion(
                                 context, com.nruge.iceinfo.BuildConfig.VERSION_CODE
                             )
-                            com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
-                                .isCrashlyticsCollectionEnabled = false
+                            runCatching {
+                                com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+                                    .isCrashlyticsCollectionEnabled = false
+                            }
                             showCrashConsent = false
                         }
                     )

@@ -29,6 +29,7 @@ object TrainRepository {
     private const val API_PATH_TRIP   = "/api1/rs/tripInfo/trip"
     private const val API_PATH_POIS   = "/api1/rs/pois/map"
     private const val API_PATH_CONN   = "/api1/rs/tripInfo/connection"
+    private const val API_PATH_CONFIG = "/bap/api/config"
 
     // Try HTTPS first; many older ICE portals also serve plain HTTP
     private val hosts = listOf("https://iceportal.de", "http://iceportal.de")
@@ -126,7 +127,7 @@ object TrainRepository {
         val destTimetable = lastStop?.timetable
         val destScheduledMs = destTimetable?.scheduledArrivalTime ?: 0L
         val destActualMs = destTimetable?.actualArrivalTime ?: 0L
-        val destinationEta = formatTime(destScheduledMs)
+        val destinationEta = formatTime(if (destActualMs > 0L) destActualMs else destScheduledMs)
         val destinationTrack = lastStop?.track?.actual ?: ""
         val destinationDelay = calculateDelayMinutes(destActualMs, destScheduledMs)
         val totalDistance = lastStop?.info?.distanceFromStart ?: 0
@@ -159,7 +160,8 @@ object TrainRepository {
             val stopTrack = stop.track?.actual ?: ""
             val stopName = stop.station?.name ?: "?"
 
-            val isNext = !passed && !nextFound
+            val isCancelled = stop.cancelled || info.status == 3
+            val isNext = !passed && !nextFound && !isCancelled
             if (isNext) {
                 nextStopEva = stop.station?.evaNr ?: ""
                 nextFound = true
@@ -188,6 +190,7 @@ object TrainRepository {
                 isNext = isNext,
                 distanceFromStart = info.distanceFromStart,
                 scheduledArrivalMs = scheduledMs,
+                scheduledDepartureMs = depScheduledMs,
                 isAdditional = info.status == 2,
                 scheduledDeparture = formatTime(depScheduledMs),
                 actualDeparture = formatTime(depActualMs),
@@ -215,6 +218,7 @@ object TrainRepository {
             nextConnectivity = status.connectivity?.nextState,
             connectivityRemainingSeconds = status.connectivity?.remainingTimeSeconds,
             tzn = status.tzn,
+            series = status.series,
             latitude = status.latitude,
             longitude = status.longitude,
             distanceToDestination = distanceToDestination,
@@ -257,6 +261,16 @@ object TrainRepository {
             } ?: emptyList()
         } catch (e: Exception) {
             Log.e("ICERepo", "Connection Fehler: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun fetchCoaches(): List<Coach> = withContext(Dispatchers.IO) {
+        try {
+            val response: CoachConfigResponse = getWithFallback(API_PATH_CONFIG)
+            response.coachList?.coaches ?: emptyList()
+        } catch (e: Exception) {
+            Log.e("ICERepo", "Coach config Fehler: ${e.message}")
             emptyList()
         }
     }

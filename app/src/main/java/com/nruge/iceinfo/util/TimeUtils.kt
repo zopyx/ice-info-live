@@ -16,14 +16,19 @@ fun formatRemainingTime(distanceMeters: Int, speedKmh: Int): String {
     return if (hours > 0) "${hours}h ${minutes}min" else "${minutes}min"
 }
 
-fun formatRemainingTimeUntil(scheduledArrival: String, delayMinutes: Int): String {
+fun formatRemainingTimeUntil(
+    scheduledArrival: String,
+    delayMinutes: Int,
+    referenceTime: LocalTime = LocalTime.now()
+): String {
     if (scheduledArrival.isBlank()) return "--"
     val arrival = runCatching { LocalTime.parse(scheduledArrival) }.getOrNull() ?: return "--"
-    val now = LocalTime.now()
+    val now = referenceTime
     var diff = ChronoUnit.MINUTES.between(now, arrival).toInt() + delayMinutes
     if (diff < -60) diff += 24 * 60
-    if (diff < 0) return "0min"
+    if (diff < 0) return "00min"
     val hours = diff / 60
     val minutes = diff % 60
-    return if (hours > 0) "${hours}h ${minutes}min" else "${minutes}min"
+    return if (hours > 0) "${hours}h ${minutes.toString().padStart(2, '0')}min"
+    else "${minutes.toString().padStart(2, '0')}min"
 }

@@ -5,6 +5,7 @@
     <!-- Top Bar -->
     <string name="status_demo">Demo Modus</string>
     <string name="status_live">🟢 Live</string>
+    <string name="status_api_unreachable">Keine API-Daten</string>
     <string name="demo_end">Demo beenden</string>
     <string name="notifications_cd">Benachrichtigung</string>
     <string name="menu_cd">Menü</string>
@@ -13,6 +14,7 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
+    <string name="theme_dynamic">Dynamisch</string>
     <string name="menu_info">Informationen</string>
     <string name="menu_changelog">Änderungsprotokoll</string>
     <string name="changelog_title">Änderungsprotokoll</string>
@@ -20,6 +22,11 @@
     <string name="changelog_fixes">Fehlerbehebungen</string>
 
     <!-- No WiFi Screen -->
+    <string name="welcome_title">Willkommen an Bord</string>
+    <string name="welcome_subtitle">Verbinde dich mit dem ICE-WLAN für Live-Daten zu deinem Zug.</string>
+    <string name="welcome_connect_title">Mit WIFIonICE verbinden</string>
+    <string name="welcome_connect_desc">Öffne die WLAN-Einstellungen und wähle das Zug-Netzwerk.</string>
+    <string name="welcome_demo_desc">Sieh dir die App mit Beispieldaten an, auch ohne Zugfahrt.</string>
     <string name="no_wifi_title">Kein ICE WLAN gefunden</string>
     <string name="no_wifi_text">Verbinde dich mit \"WIFIonICE\"\nund tippe auf Verbinden.</string>
     <string name="no_wifi_connect">🔄 Verbinden</string>
@@ -46,13 +53,14 @@
     <string name="connectivity_none">Kein Signal</string>
 
     <!-- Stops Screen -->
-    <string name="stops_title">🛤️ Streckenverlauf</string>
+    <string name="stops_title">Streckenverlauf</string>
     <string name="stops_none">Keine Halteinformationen verfügbar.</string>
     <string name="pois_title">🏔️ Points of Interest</string>
     <string name="pois_demo">Demo</string>
 
     <!-- Connections -->
     <string name="connections_title">🔀 Anschlüsse in %1$s</string>
+    <string name="connections_header">Anschlüsse und Abfahrten in %1$s</string>
     <string name="connections_none">Keine Anschlusszüge verfügbar</string>
     <string name="connection_reachable">erreichbar</string>
     <string name="connection_missed">verpasst</string>
@@ -60,19 +68,40 @@
     <string name="connection_transfer_minutes">%1$d min Umstieg</string>
     <string name="connections_arrival">Ankunft %1$s</string>
 
-    <!-- Map -->
+    <!-- Map / Track Screen -->
     <string name="map_position_title">📍 Position</string>
+    <string name="track_section_track">Strecke</string>
+    <string name="track_section_features">Features in ±20 km</string>
+    <string name="track_property_max_speed">Höchstgeschwindigkeit</string>
+    <string name="track_property_electrified">Elektrifizierung</string>
+    <string name="track_property_tracks">Gleise</string>
+    <string name="track_property_usage">Nutzung</string>
+    <string name="track_empty_title">Keine Position verfügbar</string>
+    <string name="track_empty_desc">Verbinde dich mit dem Zug-WLAN, um Streckendaten zu laden.</string>
+    <string name="track_no_features">Keine benannten Features in ±20 km gefunden.</string>
+    <string name="track_source">Daten: © OpenStreetMap-Mitwirkende (ODbL)</string>
+    <string name="track_feature_tunnel">Tunnel</string>
+    <string name="track_feature_bridge">Brücke</string>
+    <string name="track_feature_station">Bahnhof</string>
+    <string name="track_feature_halt">Halt</string>
+    <string name="pois_title_plain">Points of Interest</string>
 
     <!-- Info Dialog -->
     <string name="info_version">Version %1$s</string>
-    <string name="info_description">Diese App liest Live-Daten aus der ICE Portal API des Deutsche Bahn ICE-WLANs aus und zeigt sie übersichtlich an.</string>
+    <string name="info_description">Diese App liest Live-Daten aus der ICE Portal API des Deutsche Bahn ICE-WLANs aus und zeigt sie übersichtlich an. Für Bahnhofsinformationen werden außerdem offizielle APIs der Deutschen Bahn genutzt.</string>
     <string name="info_privacy_title">Datenschutz</string>
-    <string name="info_privacy_text">Diese App speichert oder erfasst keine personenbezogenen Daten. Die API Abfragen erfolgen ausschließlich an die Interne API im Zug-WLAN.</string>
+    <string name="info_privacy_text">Diese App speichert oder erfasst keine personenbezogenen Daten. Fahrtdaten werden über die interne API im Zug-WLAN abgerufen. Bahnhofsdaten (Ausstattung, Aufzugsstatus) werden über öffentliche APIs der Deutschen Bahn aus dem Internet geladen.</string>
     <string name="info_api_title">API</string>
     <string name="info_api_url1">https://iceportal.de/api1/rs/status</string>
     <string name="info_api_url2">https://iceportal.de/api1/rs/tripInfo/trip</string>
     <string name="info_api_url3">https://iceportal.de/api1/rs/pois/all</string>
     <string name="info_api_url4">https://iceportal.de/api1/rs/tripInfo/connection/{eva_nummer}</string>
+    <string name="info_api_title_db">Offizielle DB APIs (CC BY 4.0)</string>
+    <string name="info_api_db_stada">DB StaDa – Station Data v2</string>
+    <string name="info_api_db_fasta">DB FaSta – Facility Status v2</string>
+    <string name="info_api_db_wagenreihung">DB Wagenreihung – bahn.de</string>
+    <string name="info_api_title_community">Community APIs</string>
+    <string name="info_api_community_transport">v6.db.transport.rest (db.transport.rest)</string>
     <string name="info_built_with_title">Entwickelt mit</string>
     <string name="info_built_with_text">Kotlin · Jetpack Compose · OSMDroid · Material 3</string>
     <string name="info_legal_title">Rechtliches</string>
@@ -116,10 +145,15 @@
     <string name="notif_no_eta">—</string>
 
     <!-- Navigation -->
-    <string name="nav_status">Status</string>
+    <string name="nav_status">Zug</string>
     <string name="nav_stops">Halte</string>
-    <string name="nav_map">Karte</string>
-    <string name="nav_service">Service</string>
+    <string name="nav_journey">Strecke</string>
+    <string name="nav_menu">Speisekarte</string>
+    <string name="menu_disclaimer">(Ohne Gewähr)</string>
+    <string name="menu_coming_soon">Hier erscheint bald die Bordgastronomie.</string>
+    <string name="menu_no_connection">Verbinde dich mit dem ICE WLAN, um die Speisekarte zu laden.</string>
+    <string name="nav_map">Strecke</string>
+    <string name="nav_service">Bahnhof</string>
     <string name="nav_connections">Anschlüsse</string>
 
     <!-- Settings -->
@@ -145,6 +179,10 @@
     <string name="cancel">Abbrechen</string>
     <string name="home_target_title">Dein Ausstieg</string>
     <string name="home_no_target">Kein Ausstieg gewählt</string>
+    <string name="home_next_stop_title">Nächster Halt</string>
+    <string name="home_coach_map_title">Wagenreihung</string>
+    <string name="home_coach_label">Wagen</string>
+    <string name="home_seat_label">Sitzplatz</string>
 
     <!-- Travel summary -->
     <string name="travel_remaining_stops">Noch %1$d Halte</string>
@@ -162,6 +200,32 @@
 
     <!-- Service -->
     <string name="service_wip">Service Status (In Arbeit)</string>
+
+    <!-- Service Screen -->
+    <string name="service_search_station">Bahnhof suchen</string>
+    <string name="service_station_title">Bahnhof %1$s</string>
+    <string name="service_clear">Löschen</string>
+    <string name="service_select_station_title">Bahnhof auswählen</string>
+    <string name="service_select_station_desc">Tippe auf die Suche oder nutze deinen gewählten Ausstieg.</string>
+    <string name="service_facilities">Ausstattung</string>
+    <string name="service_source">Quelle: DB StaDa &amp; FaSta (CC BY 4.0)</string>
+    <string name="service_out_of_order">Außer Betrieb</string>
+    <string name="facility_elevator">Aufzüge</string>
+    <string name="facility_escalator">Rolltreppen</string>
+    <string name="facility_toilet">Toiletten</string>
+    <string name="facility_wifi">WLAN</string>
+    <string name="facility_info_desk">DB Info</string>
+    <string name="facility_departure_monitor">Abfahrtsanzeige</string>
+    <string name="facility_ramp">Rampe</string>
+    <string name="facility_parking">Parken</string>
+    <string name="facility_bike_parking">Fahrradstellplätze</string>
+    <string name="facility_waiting_room">Schließfächer</string>
+
+    <!-- Connections section headers -->
+    <string name="connections_section_reachable">Erreichbar</string>
+    <string name="connections_section_tight">Knapp</string>
+    <string name="connections_section_missed">Verpasst</string>
+    <string name="connections_section_departures">Weitere Abfahrten</string>
 
     <!-- Debug -->
     <string name="settings_debug_title">Debug-Informationen</string>
